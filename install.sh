@@ -41,6 +41,9 @@ link "$DOTFILES/tmux.conf"      "$HOME/.tmux.conf"
 mkdir -p "$HOME/.config/kitty"
 link "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
 
+mkdir -p "$HOME/.config/lazygit"
+link "$DOTFILES/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
+
 mkdir -p "$HOME/.config/nvim"
 link "$DOTFILES/nvim/init.lua"  "$HOME/.config/nvim/init.lua"
 # Link the lua directory (kickstart plugins, custom plugins)
