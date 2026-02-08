@@ -32,6 +32,10 @@ bindkey -e
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
 bindkey '^[[Z' autosuggest-accept
+bindkey '^[[1;3D' backward-word
+bindkey '^[[1;3C' forward-word
+bindkey '^[b' backward-word
+bindkey '^[f' forward-word
 
 # ── Aliases ───────────────────────────────────────────────────────────
 alias ls='eza --icons --group-directories-first'
@@ -42,6 +46,12 @@ alias lg='lazygit'
 alias vim='nvim'
 alias vi='nvim'
 alias rm='trash'
+alias c='clear'
+alias 1='cd ..'
+alias 2='cd ../..'
+alias 3='cd ../../..'
+alias 4='cd ../../../..'
+alias 5='cd ../../../../..'
 
 # ── Environment ───────────────────────────────────────────────────────
 export EDITOR='nvim'
