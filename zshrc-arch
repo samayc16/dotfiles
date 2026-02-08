@@ -6,11 +6,7 @@ fi
 # ── Terminal ──────────────────────────────────────────────────────────
 export TERM=xterm-kitty
 
-# ── Display (X11 forwarding to Mac via XQuartz) ──────────────────────
-if [ -z "$DISPLAY" ]; then
-  export DISPLAY=$(who -m 2>/dev/null | awk '{print $NF}' | tr -d '()'):0
-  [ "$DISPLAY" = ":0" ] && export DISPLAY=${SSH_CLIENT%% *}:0
-fi
+# ── Display (X11 set by wsl-ssh.cmd launcher, forwarded to Mac XQuartz) ──
 
 # ── Start in home directory ───────────────────────────────────────────
 [[ "$PWD" == /mnt/* ]] && cd ~
