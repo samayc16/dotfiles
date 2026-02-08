@@ -14,7 +14,7 @@ fi
 echo "Installing packages..."
 brew install neovim zoxide zsh-autosuggestions zsh-syntax-highlighting \
   powerlevel10k fzf ripgrep fd bat eza git-delta lazygit gh \
-  tldr jq htop trash mise
+  tldr jq htop trash mise tmux
 
 # ── Font ──────────────────────────────────────────────────────────────
 echo "Installing MesloLGS Nerd Font..."
@@ -36,6 +36,7 @@ link() {
 echo "Creating symlinks..."
 link "$DOTFILES/zshrc"          "$HOME/.zshrc"
 link "$DOTFILES/gitconfig"      "$HOME/.gitconfig"
+link "$DOTFILES/tmux.conf"      "$HOME/.tmux.conf"
 
 mkdir -p "$HOME/.config/kitty"
 link "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
