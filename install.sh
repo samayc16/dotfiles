@@ -13,11 +13,12 @@ fi
 # ── Packages ──────────────────────────────────────────────────────────
 echo "Installing packages..."
 brew install neovim zoxide zsh-autosuggestions zsh-syntax-highlighting \
-  powerlevel10k fzf ripgrep fd bat eza git-delta lazygit gh
+  powerlevel10k fzf ripgrep fd bat eza git-delta lazygit gh \
+  tldr jq htop trash mise
 
 # ── Font ──────────────────────────────────────────────────────────────
 echo "Installing MesloLGS Nerd Font..."
-brew install --cask font-meslo-lg-nerd-font 2>/dev/null || true
+brew install --cask font-meslo-lg-nerd-font raycast 2>/dev/null || true
 
 # ── Symlinks ──────────────────────────────────────────────────────────
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"

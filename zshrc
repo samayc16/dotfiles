@@ -6,7 +6,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 
 # ── Path ──────────────────────────────────────────────────────────────
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="/opt/homebrew/opt/trash/bin:$HOME/.local/bin:$PATH"
 
 # ── Powerlevel10k ─────────────────────────────────────────────────────
 source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
@@ -41,6 +41,7 @@ alias cat='bat --paging=never'
 alias lg='lazygit'
 alias vim='nvim'
 alias vi='nvim'
+alias rm='trash'
 
 # ── Environment ───────────────────────────────────────────────────────
 export EDITOR='nvim'
@@ -59,6 +60,9 @@ export FZF_DEFAULT_OPTS='
   --color=info:#a6e22e,prompt:#f92672,pointer:#66d9ef
   --color=marker:#a6e22e,spinner:#ae81ff,header:#75715e
   --height=40% --layout=reverse --border'
+
+# ── Mise (runtime version manager) ───────────────────────────────────
+eval "$(mise activate zsh)"
 
 # ── Zoxide (must be after compinit) ──────────────────────────────────
 eval "$(zoxide init zsh)"
