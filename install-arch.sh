@@ -59,6 +59,9 @@ link "$DOTFILES/zshrc-arch"     "$HOME/.zshrc"
 link "$DOTFILES/gitconfig"      "$HOME/.gitconfig"
 link "$DOTFILES/tmux.conf"      "$HOME/.tmux.conf"
 
+mkdir -p "$HOME/.config/lazygit"
+link "$DOTFILES/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+
 mkdir -p "$HOME/.config/nvim"
 link "$DOTFILES/nvim/init.lua"  "$HOME/.config/nvim/init.lua"
 if [ -d "$DOTFILES/nvim/lua" ]; then

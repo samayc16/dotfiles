@@ -1,5 +1,17 @@
+[user]
+	name = Samay Chandna
+	email = samay.chandna@gmail.com
 [core]
 	pager = delta
+[alias]
+	lg = log --oneline --graph --decorate --all
+	st = status -sb
+	co = checkout
+	br = branch
+	cm = commit -m
+	amend = commit --amend --no-edit
+	undo = reset --soft HEAD~1
+	stash-all = stash push --include-untracked
 [interactive]
 	diffFilter = delta --color-only
 [delta]

@@ -43,6 +43,9 @@ bindkey '^[[1;3C' forward-word
 bindkey '^[b' backward-word
 bindkey '^[f' forward-word
 
+# ── Functions ────────────────────────────────────────────────────
+mkcd() { mkdir -p "$1" && cd "$1" }
+
 # ── Aliases ───────────────────────────────────────────────────────────
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -la --icons --group-directories-first'

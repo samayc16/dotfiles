@@ -1,0 +1,37 @@
+gui:
+  showIcons: true
+  nerdFontsVersion: "3"
+  border: rounded
+  theme:
+    activeBorderColor:
+      - "#a9dc76"   # green
+      - bold
+    inactiveBorderColor:
+      - "#727072"   # bright black
+    searchingActiveBorderColor:
+      - "#ffd866"   # yellow
+      - bold
+    optionsTextColor:
+      - "#78dce8"   # cyan
+    selectedLineBgColor:
+      - "#403e41"   # black
+    cherryPickedCommitFgColor:
+      - "#78dce8"   # cyan
+    cherryPickedCommitBgColor:
+      - "#403e41"   # black
+    markedBaseCommitFgColor:
+      - "#78dce8"   # cyan
+    markedBaseCommitBgColor:
+      - "#403e41"   # black
+    unstagedChangesColor:
+      - "#ff6188"   # red
+    defaultFgColor:
+      - "#fcfcfa"   # white
+git:
+  paging:
+    colorArg: always
+    pager: delta --paging=never
+  autoFetch: true
+  autoRefresh: true
+os:
+  editPreset: nvim
