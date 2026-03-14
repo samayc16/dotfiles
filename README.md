@@ -10,6 +10,7 @@ Personal dotfiles for macOS and Arch Linux (WSL).
 - **kitty** - Monokai Pro colors, MesloLGS Nerd Font
 - **lazygit** - Monokai Pro theme, delta pager
 - **git** - Delta side-by-side diffs, useful aliases
+- **claude code** - Settings, rules (19 files), agents (34 files), plugin manifest
 
 ## Install
 
@@ -26,6 +27,16 @@ cd ~/dotfiles && chmod +x install.sh && ./install.sh
 git clone https://github.com/samayc16/dotfiles.git ~/dotfiles
 cd ~/dotfiles && chmod +x install-arch.sh && ./install-arch.sh
 ```
+
+## Claude Code
+
+Config is symlinked from `claude/` to `~/.claude/`. After install:
+
+1. Run `claude` to authenticate
+2. Run `~/dotfiles/claude/install-plugins.sh` to install plugins
+
+**Tracked:** `settings.json`, `rules/`, `agents/`, `known_marketplaces.json`
+**Excluded:** credentials, `settings.local.json`, plugin cache, project-specific config
 
 ## Key bindings
 
