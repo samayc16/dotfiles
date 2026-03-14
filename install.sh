@@ -20,6 +20,10 @@ brew install neovim zoxide zsh-autosuggestions zsh-syntax-highlighting \
 echo "Installing MesloLGS Nerd Font..."
 brew install --cask font-meslo-lg-nerd-font raycast 2>/dev/null || true
 
+# ── Claude Code ──────────────────────────────────────────────────────
+echo "Installing Claude Code..."
+brew install claude-code
+
 # ── Symlinks ──────────────────────────────────────────────────────────
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 
@@ -51,8 +55,17 @@ if [ -d "$DOTFILES/nvim/lua" ]; then
   link "$DOTFILES/nvim/lua" "$HOME/.config/nvim/lua"
 fi
 
+# ── Claude Code config ──────────────────────────────────────────────
+echo "Linking Claude Code config..."
+mkdir -p "$HOME/.claude" "$HOME/.claude/plugins"
+link "$DOTFILES/claude/settings.json"           "$HOME/.claude/settings.json"
+link "$DOTFILES/claude/rules"                    "$HOME/.claude/rules"
+link "$DOTFILES/claude/agents"                   "$HOME/.claude/agents"
+link "$DOTFILES/claude/known_marketplaces.json"  "$HOME/.claude/plugins/known_marketplaces.json"
+
 echo ""
 echo "Done! Next steps:"
 echo "  1. Restart your terminal"
 echo "  2. Run 'p10k configure' to set up your prompt"
 echo "  3. Open nvim to let lazy.nvim install plugins"
+echo "  4. Run 'claude' and authenticate, then run ~/dotfiles/claude/install-plugins.sh"
