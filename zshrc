@@ -90,3 +90,9 @@ eval "$(zoxide init zsh)"
 # ── Plugins (keep at end) ─────────────────────────────────────────────
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# ── OpenClaw ─────────────────────────────────────────────────────────
+[[ -f "$HOME/.openclaw/completions/openclaw.zsh" ]] && source "$HOME/.openclaw/completions/openclaw.zsh"
+
+# ── Antigravity ──────────────────────────────────────────────────────
+[[ -d "$HOME/.antigravity/antigravity/bin" ]] && export PATH="$HOME/.antigravity/antigravity/bin:$PATH"

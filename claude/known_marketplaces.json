@@ -1,0 +1,26 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/Users/samaychandna/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-03-07T20:41:45.915Z"
+  },
+  "everything-claude-code": {
+    "source": {
+      "source": "github",
+      "repo": "affaan-m/everything-claude-code"
+    },
+    "installLocation": "/Users/samaychandna/.claude/plugins/marketplaces/everything-claude-code",
+    "lastUpdated": "2026-03-01T21:56:46.210Z"
+  },
+  "ui-ux-pro-max-skill": {
+    "source": {
+      "source": "github",
+      "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+    },
+    "installLocation": "/Users/samaychandna/.claude/plugins/marketplaces/ui-ux-pro-max-skill",
+    "lastUpdated": "2026-03-07T18:48:50.323Z"
+  }
+}

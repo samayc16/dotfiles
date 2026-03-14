@@ -68,9 +68,18 @@ if [ -d "$DOTFILES/nvim/lua" ]; then
   link "$DOTFILES/nvim/lua" "$HOME/.config/nvim/lua"
 fi
 
+# ── Claude Code config ──────────────────────────────────────────────
+echo "Linking Claude Code config..."
+mkdir -p "$HOME/.claude" "$HOME/.claude/plugins"
+link "$DOTFILES/claude/settings.json"           "$HOME/.claude/settings.json"
+link "$DOTFILES/claude/rules"                    "$HOME/.claude/rules"
+link "$DOTFILES/claude/agents"                   "$HOME/.claude/agents"
+link "$DOTFILES/claude/known_marketplaces.json"  "$HOME/.claude/plugins/known_marketplaces.json"
+
 echo ""
 echo "Done! Next steps:"
 echo "  1. Log out and back in (or run 'zsh')"
 echo "  2. Run 'p10k configure' to set up your prompt"
 echo "  3. Open nvim to let lazy.nvim install plugins"
 echo "  4. In tmux, plugins auto-install on first launch"
+echo "  5. Run 'claude' and authenticate, then run ~/dotfiles/claude/install-plugins.sh"
