@@ -3,6 +3,13 @@
 	email = 93499797+samayc16@users.noreply.github.com
 [core]
 	pager = delta
+	excludesfile = ~/.config/git/ignore
+[init]
+	defaultBranch = main
+[push]
+	default = current
+[pull]
+	rebase = true
 [alias]
 	lg = log --oneline --graph --decorate --all
 	st = status -sb
@@ -23,3 +30,12 @@
 	conflictstyle = diff3
 [diff]
 	colorMoved = default
+[credential "https://github.com"]
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = !gh auth git-credential
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f

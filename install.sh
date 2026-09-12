@@ -1,7 +1,14 @@
 #!/bin/bash
+# Usage: ./install.sh [--link-only]
+#   --link-only  skip brew/package installs, just (re)create symlinks
 set -e
 
+LINK_ONLY=false
+[[ "${1:-}" == "--link-only" ]] && LINK_ONLY=true
+
 echo "Installing dotfiles..."
+
+if ! $LINK_ONLY; then
 
 # ── Homebrew ──────────────────────────────────────────────────────────
 if ! command -v brew &>/dev/null; then
@@ -14,7 +21,7 @@ fi
 echo "Installing packages..."
 brew install neovim zoxide zsh-autosuggestions zsh-syntax-highlighting \
   powerlevel10k fzf ripgrep fd bat eza git-delta lazygit gh \
-  tldr jq htop trash mise tmux
+  tldr jq htop trash mise tmux git-lfs
 
 # ── Font ──────────────────────────────────────────────────────────────
 echo "Installing MesloLGS Nerd Font..."
@@ -23,6 +30,8 @@ brew install --cask font-meslo-lg-nerd-font raycast 2>/dev/null || true
 # ── Claude Code ──────────────────────────────────────────────────────
 echo "Installing Claude Code..."
 brew install claude-code
+
+fi # !LINK_ONLY
 
 # ── Symlinks ──────────────────────────────────────────────────────────
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
@@ -39,8 +48,21 @@ link() {
 
 echo "Creating symlinks..."
 link "$DOTFILES/zshrc"          "$HOME/.zshrc"
+link "$DOTFILES/zsh/p10k.zsh"   "$HOME/.p10k.zsh"
 link "$DOTFILES/gitconfig"      "$HOME/.gitconfig"
 link "$DOTFILES/tmux.conf"      "$HOME/.tmux.conf"
+
+mkdir -p "$HOME/.config/git"
+link "$DOTFILES/git/ignore"     "$HOME/.config/git/ignore"
+
+# Personal scripts → ~/bin (on PATH via zsh/common.zsh)
+mkdir -p "$HOME/bin"
+for script in "$DOTFILES"/bin/*; do
+  link "$script" "$HOME/bin/$(basename "$script")"
+done
+
+mkdir -p "$HOME/.codex"
+link "$DOTFILES/codex/config.toml" "$HOME/.codex/config.toml"
 
 mkdir -p "$HOME/.config/kitty"
 link "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
@@ -62,10 +84,13 @@ link "$DOTFILES/claude/settings.json"           "$HOME/.claude/settings.json"
 link "$DOTFILES/claude/rules"                    "$HOME/.claude/rules"
 link "$DOTFILES/claude/agents"                   "$HOME/.claude/agents"
 link "$DOTFILES/claude/known_marketplaces.json"  "$HOME/.claude/plugins/known_marketplaces.json"
+link "$DOTFILES/claude/statusline-command.sh"    "$HOME/.claude/statusline-command.sh"
+link "$DOTFILES/claude/load-project-skills.sh"   "$HOME/.claude/load-project-skills.sh"
 
 echo ""
 echo "Done! Next steps:"
-echo "  1. Restart your terminal"
-echo "  2. Run 'p10k configure' to set up your prompt"
+echo "  1. Restart your terminal (prompt is preconfigured; 'p10k configure' to change it)"
+echo "  2. Put machine-specific secrets/paths in ~/.zshrc.local (untracked)"
 echo "  3. Open nvim to let lazy.nvim install plugins"
-echo "  4. Run 'claude' and authenticate, then run ~/dotfiles/claude/install-plugins.sh"
+echo "  4. In tmux, press prefix + I to install plugins"
+echo "  5. Run 'claude' and authenticate, then run ~/dotfiles/claude/install-plugins.sh"
