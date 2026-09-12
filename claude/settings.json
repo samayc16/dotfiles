@@ -42,12 +42,55 @@
       "Bash(cat:*)",
       "Bash(~/h8r/scripts/docs-to-drive.sh:*)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "auto"
   },
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
     "everything-claude-code@everything-claude-code": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true
-  }
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "telegram@claude-plugins-official": true
+  },
+  "model": "opus[1m]",
+  "effortLevel": "high",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/load-project-skills.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "tui": "fullscreen",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true,
+  "cleanupPeriodDays": 365,
+  "alwaysThinkingEnabled": true,
+  "showThinkingSummaries": true,
+  "awaySummaryEnabled": true,
+  "showClearContextOnPlanAccept": true,
+  "feedbackSurveyRate": 0,
+  "autoDreamEnabled": true,
+  "channelsEnabled": true,
+  "preferredNotifChannel": "kitty",
+  "agentPushNotifEnabled": true,
+  "skillListingMaxDescChars": 3072,
+  "skillListingBudgetFraction": 0.02
 }

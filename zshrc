@@ -87,6 +87,9 @@ eval "$(zoxide init zsh)"
 # ── Git delta ─────────────────────────────────────────────────────────
 # Delta is configured via ~/.gitconfig (see git config setup)
 
+# ── Shared config (keybindings, colors, helpers) ─────────────────────
+source "$HOME/dotfiles/zsh/common.zsh"
+
 # ── Plugins (keep at end) ─────────────────────────────────────────────
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

@@ -1,0 +1,3 @@
+# Global gitignore (core.excludesfile)
+**/.claude/settings.local.json
+.DS_Store
