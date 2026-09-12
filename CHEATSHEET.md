@@ -55,16 +55,17 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 
 ## tmux
 
-**prefix = `Ctrl-a`**. `prefix + ?` for the popup.
+**prefix = `Ctrl-a`** (also `Ctrl-b`). `prefix + ?` for the popup.
 
 ### no prefix
 | keys | does |
 |---|---|
 | `Ctrl-h/j/k/l` | navigate panes (vim-aware — passes through to nvim splits) |
 | `Alt-h` / `Alt-l` | previous / next **window** |
-| `Alt-j` / `Alt-k` | next / previous **session** |
+| `Alt-j` / `Alt-k` | previous / next **session** |
 | `Alt-1` … `Alt-0` | jump to window 1–10 |
 | `Alt-H/J/K/L` (shift) | resize pane |
+| `Alt-←/→` | passed through to the shell (word movement) |
 
 ### windows
 | keys | does |
@@ -74,19 +75,18 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `prefix .` | move window to index |
 | `prefix <` / `>` | swap window left / right |
 | `prefix Tab` | last window |
-| `prefix X` | kill window |
+| `prefix X` | kill window (confirms) |
 
 ### panes
 | keys | does |
 |---|---|
-| `prefix \|` | split side-by-side |
-| `prefix -` | split stacked |
+| `prefix "` or `-` | split stacked (top/bottom) |
+| `prefix %` or `_` | split side-by-side (left/right) |
 | `prefix z` | zoom toggle |
-| `prefix H/J/K/L` | resize (repeatable) |
 | `prefix Space` | cycle layouts |
-| `prefix =` / `+` | balance side-by-side / stacked |
+| `prefix =` / `\|` | balance horizontally / vertically |
 | `prefix q` | show pane numbers |
-| `prefix x` | kill pane |
+| `prefix x` | kill pane (confirms) |
 
 ### sessions
 | keys | does |
@@ -94,15 +94,19 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `prefix s` | session picker |
 | `prefix F` | fzf picker over sessions / windows / panes |
 | `prefix C-c` | new session |
+| `prefix C` | new session, prompt for name |
+| `prefix g` | goto session (prompt with completion) |
 | `prefix C-f` | find session by name |
+| `prefix A` | alternate (last) session |
 | `prefix $` | rename session |
+| `prefix @` / `t` | promote pane to session / join pane from session |
 | `prefix C-x` | kill session (confirms) |
 | `prefix d` | detach |
 
 ### copy mode (vi)
 | keys | does |
 |---|---|
-| `prefix [` | enter copy mode |
+| `prefix [` | enter copy mode (mouse wheel also enters it) |
 | `v` / `C-v` | begin selection / rectangle toggle |
 | `y` | copy + exit |
 | `Esc` | cancel |
@@ -115,9 +119,8 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `prefix C-l` | clear screen + scrollback |
 | `prefix r` | reload config |
 | `prefix I` | install plugins (tpm) |
-| `prefix t` | clock |
 
-Status bar shows `PREFIX` / `COPY` / `SYNC` indicators on the right when active. Windows with background activity turn yellow.
+Status bar: `session > user` on the left; `PREFIX` / `COPY` / `SYNC` indicator · weather │ time │ date > host on the right. Windows with background activity turn yellow.
 
 ---
 
