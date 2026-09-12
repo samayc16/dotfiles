@@ -1,4 +1,11 @@
 {
+  "cleanupPeriodDays": 365,
+  "skillListingMaxDescChars": 3072,
+  "skillListingBudgetFraction": 0.02,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "WebSearch",
@@ -44,23 +51,7 @@
     ],
     "defaultMode": "auto"
   },
-  "enabledPlugins": {
-    "swift-lsp@claude-plugins-official": true,
-    "clangd-lsp@claude-plugins-official": true,
-    "everything-claude-code@everything-claude-code": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "telegram@claude-plugins-official": true
-  },
-  "model": "opus[1m]",
-  "effortLevel": "high",
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "bash $HOME/.claude/statusline-command.sh"
-  },
+  "model": "claude-fable-5-1[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -73,24 +64,33 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true,
+    "everything-claude-code@everything-claude-code": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "telegram@claude-plugins-official": true
+  },
+  "feedbackSurveyRate": 0,
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "awaySummaryEnabled": true,
+  "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",
   "voice": {
     "enabled": true,
     "mode": "hold"
   },
-  "voiceEnabled": true,
-  "skipDangerousModePermissionPrompt": true,
-  "skipAutoPermissionPrompt": true,
-  "cleanupPeriodDays": 365,
-  "alwaysThinkingEnabled": true,
-  "showThinkingSummaries": true,
-  "awaySummaryEnabled": true,
-  "showClearContextOnPlanAccept": true,
-  "feedbackSurveyRate": 0,
-  "autoDreamEnabled": true,
   "channelsEnabled": true,
+  "autoDreamEnabled": true,
+  "showThinkingSummaries": true,
+  "skipDangerousModePermissionPrompt": true,
   "preferredNotifChannel": "kitty",
   "agentPushNotifEnabled": true,
-  "skillListingMaxDescChars": 3072,
-  "skillListingBudgetFraction": 0.02
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true
 }

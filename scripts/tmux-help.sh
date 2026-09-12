@@ -1,77 +1,74 @@
-#!/usr/bin/env bash
-# tmux cheatsheet displayed in a floating popup (two-column layout)
+#!/bin/bash
+# tmux cheatsheet shown in a floating popup (prefix + ?)
 
-readonly BLD=$'\033[1m'
-readonly DIM=$'\033[2m'
-readonly RST=$'\033[0m'
-readonly GRN=$'\033[38;2;169;220;118m'  # #a9dc76
-readonly PNK=$'\033[38;2;255;97;136m'   # #ff6188
-readonly YLW=$'\033[38;2;255;216;102m'  # #ffd866
-readonly CYN=$'\033[38;2;120;220;232m'  # #78dce8
-readonly VLT=$'\033[38;2;171;157;242m'  # #ab9df2
-readonly ORG=$'\033[38;2;252;152;103m'  # #fc9867
-readonly WHT=$'\033[38;2;252;252;250m'  # #fcfcfa
-readonly GRY=$'\033[38;2;114;112;114m'  # #727072
+# Monokai Pro palette
+G=$'\033[38;2;169;220;118m'   # green
+P=$'\033[38;2;255;97;136m'    # pink
+Y=$'\033[38;2;255;216;102m'   # yellow
+B=$'\033[38;2;120;220;232m'   # blue
+V=$'\033[38;2;171;157;242m'   # violet
+O=$'\033[38;2;252;169;104m'   # orange
+A=$'\033[38;2;114;112;114m'   # gray
+W=$'\033[38;2;252;252;250m'   # white
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+R=$'\033[0m'
 
-readonly C2=49  # absolute column where the right side starts
+DASH70="──────────────────────────────────────────────────────────────────────"
 
-header2() {
-    printf "  ${1}${BLD}%s${RST}" "$2"
-    printf "\033[${C2}G  ${3}${BLD}%s${RST}\n" "$4"
+# row  lcolor lkey ldesc  rcolor rkey rdesc
+row() {
+    printf "   ${1}%-5s${R}  %-30s    ${4}%-9s${R}  %s\n" \
+        "$2" "$3" "$5" "$6"
 }
 
-sep2() {
-    local s
-    s=$(printf '%.0s─' {1..40})
-    printf "  ${GRY}%s${RST}" "$s"
-    printf "\033[${C2}G  ${GRY}%s${RST}\n" "$s"
-}
-
-row2() {
-    if [[ -n "$1" ]]; then
-        printf "  ${YLW}%-22s${RST}${GRY}│${RST} ${WHT}%s${RST}" "$1" "$2"
-    fi
-    if [[ -n "$3" ]]; then
-        printf "\033[${C2}G  ${YLW}%-18s${RST}${GRY}│${RST} ${WHT}%s${RST}" "$3" "$4"
-    fi
-    printf "\n"
+# section  lcolor ltitle  rcolor rtitle
+section() {
+    local lt="$2" rt="$4"
+    local lpad=$((41 - ${#lt}))
+    local lund="" rund="" i
+    for ((i=0; i<${#lt}; i++)); do lund+="─"; done
+    for ((i=0; i<${#rt}; i++)); do rund+="─"; done
+    printf "   ${1}${BOLD}%s${R}%${lpad}s${3}${BOLD}%s${R}\n" "$lt" "" "$rt"
+    printf "   ${1}%s${R}%${lpad}s${3}%s${R}\n"               "$lund" "" "$rund"
 }
 
 clear
-printf "\n"
-printf "  ${GRN}${BLD}  tmux cheatsheet${RST}   ${DIM}${GRY}(prefix = C-a)${RST}\n"
-printf "  ${GRY}%s${RST}\n" "$(printf '%.0s━' {1..86})"
+echo ""
+printf "   ${BOLD}${W}TMUX · KEYBINDINGS${R}%35s${DIM}prefix:${R} ${Y}C-a${R} ${A}·${R} ${Y}C-b${R}\n" ""
+printf "   ${A}${DASH70}${R}\n"
+echo ""
 
-printf "\n"
-header2 "$PNK" " No prefix"            "$CYN" " Windows"
-sep2
-row2 "C-h / C-j / C-k / C-l" "Pane ← ↓ ↑ →"       "prefix c" "New window (cwd)"
-row2 "M-h / M-l" "Prev / next window"                 "prefix ," "Rename window"
-row2 "M-j / M-k" "Next / prev session"                "prefix ." "Move window to index"
-row2 "M-1 … M-0" "Window 1–10"                        "prefix < / >" "Swap left / right"
-row2 "M-H/J/K/L" "Resize pane"                        "prefix Tab" "Last window"
-row2 "" ""                                             "prefix X" "Kill window"
+section "$P" "PREFIX"                          "$B" "NO PREFIX"
+row "$Y" "?"    "help"                         "$O" "C-hjkl"    "navigate panes"
+row "$Y" "r"    "reload config"                "$O" "M-hl"      "prev / next window"
+row "$Y" "d"    "detach"                       "$O" "M-jk"      "prev / next session"
+row "$Y" "m"    "toggle mouse"                 "$O" "M-1..0"    "select window"
+row "$Y" "S"    "sync panes"                   "$O" "M-←/→"     "word back / fwd"
+row "$Y" "C-l"  "clear history"                "$O" "M-HJKL"    "resize pane"
+echo ""
 
-printf "\n"
-header2 "$GRN" " Panes"               "$VLT" " Sessions"
-sep2
-row2 "prefix |" "Split side-by-side"                   "prefix s" "Session picker"
-row2 "prefix -" "Split stacked"                        "prefix F" "fzf sessions/windows"
-row2 "prefix z" "Zoom toggle"                          "prefix C-c" "New session"
-row2 "prefix H/J/K/L" "Resize (repeatable)"            "prefix C-f" "Find session by name"
-row2 "prefix Space" "Cycle layouts"                    "prefix \$" "Rename session"
-row2 "prefix = / +" "Balance layouts"   "prefix C-x" "Kill session"
-row2 "prefix x" "Kill pane"                            "prefix d" "Detach"
+section "$Y" "WINDOWS"                         "$G" "PANES"
+row "$Y" "c"    "new window"                   "$G" "\" -"      "split stacked"
+row "$Y" ","    "rename"                       "$G" "% _"       "split side-by-side"
+row "$Y" "."    "move"                         "$G" "x  X"      "kill pane / window"
+row "$Y" "> <"  "swap right / left"            "$G" "z"         "zoom toggle"
+row "$Y" "Tab"  "last window"                  "$G" "Space"     "cycle layouts"
+row "$Y" "q"    "show pane numbers"            "$G" "C-o/M-o"   "rotate fwd / back"
+row ""   ""     ""                             "$G" "=  |"      "balance h / v"
+echo ""
 
-printf "\n"
-header2 "$ORG" " Copy mode  (vi)"     "$YLW" " Toggles & misc"
-sep2
-row2 "prefix [" "Enter copy mode"                      "prefix m" "Toggle mouse"
-row2 "v / C-v" "Select / rectangle"                    "prefix S" "Sync panes"
-row2 "y" "Yank selection"                               "prefix C-l" "Clear screen + history"
-row2 "Escape" "Cancel"                                  "prefix r" "Reload config"
-row2 "" ""                                              "prefix ?" "This help"
+section "$V" "SESSIONS"                        "$O" "COPY MODE"
+row "$Y" "s"    "list"                         "$V" "["         "enter copy mode"
+row "$Y" "F"    "fzf sessions/windows/panes"   "$V" "v"         "begin selection"
+row "$Y" "\$"   "rename"                       "$V" "C-v"       "rectangle toggle"
+row "$Y" "( )"  "prev / next"                  "$V" "y"         "copy & exit"
+row "$Y" "A"    "alternate (last) session"     "$V" "Esc"       "cancel"
+row "$Y" "C-c"  "new session"                  ""   ""          ""
+row "$Y" "C-f"  "find session"                 ""   ""          ""
+row "$Y" "g"    "goto session (prompt)"        ""   ""          ""
+row "$Y" "C-x"  "kill session"                 ""   ""          ""
+echo ""
 
-printf "\n  ${DIM}${GRY}Press any key to close${RST}\n\n"
-
-read -rsn1 _
+printf "   ${A}${DASH70}${R}\n"
+printf "                        ${DIM}press any key to close${R}\n"

@@ -8,7 +8,7 @@ See [CHEATSHEET.md](./CHEATSHEET.md) for every alias, keybinding and command wir
 
 - **zsh** - Powerlevel10k (Monokai truecolor), fzf, zoxide, autosuggestions, syntax highlighting, Monokai `LS_COLORS`/`EZA_COLORS`, OSC52 copy-command-line, `~/.zshrc.local` for untracked secrets
 - **neovim** - kickstart.nvim + Monokai Pro, vim-tmux-navigator, bufferline, undotree, render-markdown, claudecode.nvim
-- **tmux** - Monokai Pro status bar with weather + prefix/copy/sync indicator, vim-tmux-navigator, resurrect/continuum, tmux-fzf, `prefix + ?` help popup
+- **tmux** - Monokai Pro status bar with weather + prefix/copy/sync indicator, vim-tmux-navigator, resurrect/continuum, tmux-fzf, `prefix + ?` help popup, sessionist
 - **kitty** - Monokai Pro colors, MesloLGS Nerd Font, OSC52 clipboard for SSH
 - **lazygit** - Monokai Pro theme, delta pager
 - **git** - Delta side-by-side diffs, aliases, rebase-on-pull, `gh` credential helper, global ignore

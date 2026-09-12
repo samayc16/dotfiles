@@ -38,6 +38,10 @@ DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 
 link() {
   local src="$1" dst="$2"
+  if [ "$(readlink "$dst" 2>/dev/null)" = "$src" ]; then
+    echo "  Already linked $dst"
+    return
+  fi
   if [ -e "$dst" ] || [ -L "$dst" ]; then
     echo "  Backing up existing $dst -> ${dst}.bak"
     mv "$dst" "${dst}.bak"
