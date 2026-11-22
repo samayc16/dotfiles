@@ -1,69 +1,66 @@
 # dotfiles
 
-Personal dotfiles for macOS and Arch Linux (WSL). Monokai Pro everywhere.
-
-See [CHEATSHEET.md](./CHEATSHEET.md) for every alias, keybinding and command wired up here.
-
-## What's included
-
-- **zsh** - Powerlevel10k (Monokai truecolor), fzf, zoxide, autosuggestions, syntax highlighting, Monokai `LS_COLORS`/`EZA_COLORS`, OSC52 copy-command-line, `~/.zshrc.local` for untracked secrets
-- **neovim** - kickstart.nvim + Monokai Pro, vim-tmux-navigator, bufferline, undotree, render-markdown, claudecode.nvim
-- **tmux** - Monokai Pro status bar with weather + prefix/copy/sync indicator, vim-tmux-navigator, resurrect/continuum, tmux-fzf, `prefix + ?` help popup, sessionist
-- **kitty** - Monokai Pro colors, MesloLGS Nerd Font, OSC52 clipboard for SSH
-- **lazygit** - Monokai Pro theme, delta pager
-- **git** - Delta side-by-side diffs, aliases, rebase-on-pull, `gh` credential helper, global ignore
-- **bin/** - `copy` / `copy_cmd` (OSC52 clipboard over SSH/tmux), terminal color tests
-- **claude code** - Settings, Monokai status line, project-skills SessionStart hook, rules (19 files), agents (34 files), plugin manifest
-- **codex** - Agentic defaults + native status line
-- **htop** - Linux-only layout (`install-arch.sh`)
+A portable terminal development environment for macOS and Linux: a Neovim IDE for Python, C/C++, Swift, SystemVerilog and Haskell, tmux, zsh, kitty and Claude Code, plus offline trainers for getting better at all of it. Monokai Pro everywhere.
 
 ## Install
 
-### macOS
-
 ```sh
 git clone https://github.com/samayc16/dotfiles.git ~/dotfiles
-cd ~/dotfiles && chmod +x install.sh && ./install.sh
+cd ~/dotfiles && ./install.sh
 ```
 
-### Arch Linux (WSL)
+One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SSH boxes without root. It installs everything, then smoke-tests every language in Neovim.
 
-```sh
-git clone https://github.com/samayc16/dotfiles.git ~/dotfiles
-cd ~/dotfiles && chmod +x install-arch.sh && ./install-arch.sh
-```
+| profile | for |
+|---|---|
+| `./install.sh` (full) | your own machine: everything below |
+| `./install.sh --profile dev` | no games or learning tracks |
+| `./install.sh --profile cli` | minimal servers: shell, tmux, Neovim, CLI tools |
 
-### Re-link only
+`./install.sh --list-steps` shows the plan; `--only <step>` re-runs one. Per-OS details, flags and no-root behaviour: [docs/install.md](docs/install.md).
 
-Already have the packages? Pass `--link-only` to either installer to skip installs and just (re)create symlinks. Existing files are moved to `<file>.bak`.
+## What you get
+
+| area | highlights | guide |
+|---|---|---|
+| **Neovim** | LSP, completion, snippets, formatting, run (`Space rr`), debug and tests for 8 languages; Xcode build/run; SystemVerilog hierarchy + Verilator; Claude panel | [docs/neovim.md](docs/neovim.md) |
+| **Learning** | `learn`: koans and Exercism exercises with tests, stars and XP · `:Dojo`: vim golf for motions and these keymaps · offline docs | [docs/learning.md](docs/learning.md) |
+| **Games** | `play`: vim trainers, GameShell, a grep murder mystery, DOOM in Neovim, Zork, roguelikes | [docs/games.md](docs/games.md) |
+| **Terminal** | zsh + Powerlevel10k, tmux with popups and a clean status bar, kitty, fzf/zoxide/eza/bat, lazygit + delta | [CHEATSHEET.md](CHEATSHEET.md) |
+| **Claude Code** | Remote Control in every session, Claude inside Neovim (`Space ac`), a Tutor style for learning, `quiz` and `learn-coach` skills | [below](#claude-code) |
+
+Every keybinding is in [CHEATSHEET.md](CHEATSHEET.md). In tmux press `prefix ?`; in Neovim press `Space` and wait.
+
+## First steps
+
+1. Open a new kitty window (font) and run `tmux`.
+2. `nvim .` → `-` to browse, `Space sf` to find a file, `Space rr` to run it.
+3. `learn` → pick a track → `Space lc` checks your answer.
+4. `:Dojo` for five minutes of vim practice.
+5. `Space ac` to ask Claude about the code you're looking at.
+
+## Claude Code
+
+`claude/` is linked into `~/.claude/`.
+
+- **Work vs learning:** task requests just get done; "how do I / teach me / why" gets taught. Inside `~/learn` the Tutor style is on: you answer first, hints come in levels, you write the key lines.
+- **In Neovim:** `Space ac` opens Claude beside your code with your selection as context; edits arrive as diffs (`Space aa` accept, `Space ad` deny). `claude` in another tmux pane can attach with `/ide`.
+- **Skills:** say "quiz me" for keymap / tmux / sed quizzes; ask for help on a `learn` exercise and get hints without spoilers.
+- **Plugins:** language-server plugins for C/C++, Swift, Python and Lua (`claude/install-plugins.sh`, safe to re-run).
+
+Tracked: `settings.json`, `CLAUDE.md`, `output-styles/`, `skills/`, `rules/`, `agents/`, the status line and hooks. Credentials and `settings.local.json` are never tracked.
 
 ## Layout
 
 ```
-dotfiles/
-├── install.sh / install-arch.sh   # installers (mac / arch)
-├── zshrc / zshrc-arch             # platform zsh (PATH, plugins, tool init)
-├── zsh/common.zsh                 # shared zsh (keys, colors, helpers) — sourced by both
-├── zsh/p10k.zsh                   # prompt
-├── tmux.conf + scripts/           # tmux + help popup + weather
-├── nvim/                          # kickstart + lua/custom/plugins/
-├── kitty/  lazygit/  gitconfig  git/ignore
-├── bin/                           # → ~/bin
-├── claude/                        # → ~/.claude (settings, statusline, hook, rules, agents)
-├── codex/                         # → ~/.codex/config.toml
-└── htop/                          # → ~/.config/htop (Linux only)
+install.sh · install.py · installer/ · install.d/   one installer, one script per step
+nvim/        → ~/.config/nvim   lua/config, lua/plugins, lua/plugins/lang, scripts/{bootstrap,smoke}.lua
+learn/       learn CLI tracks, roadmap, reading quests     games/  offline games installer
+zshrc · zsh/ · tmux.conf · scripts/ · kitty/ · gitconfig · git/ · lazygit/ · clangd/ · mise/
+bin/         → ~/bin (learn, play, copy)                    claude/ → ~/.claude    codex/ → ~/.codex
+docs/        guides                                         .github/workflows/  installer CI
 ```
 
-## Claude Code
+## Privacy
 
-Config is symlinked from `claude/` to `~/.claude/`. After install:
-
-1. Run `claude` to authenticate
-2. Run `~/dotfiles/claude/install-plugins.sh` to install plugins
-
-**Tracked:** `settings.json`, `statusline-command.sh`, `load-project-skills.sh`, `rules/`, `agents/`, `known_marketplaces.json`
-**Excluded:** credentials, `settings.local.json`, plugin cache, project-specific config
-
-## Secrets
-
-Nothing tracked here should contain keys. Machine-specific exports go in `~/.zshrc.local`, which `zsh/common.zsh` sources if present.
+This repo is public and holds no secrets or personal details. Git identity lives in `~/.gitconfig.local` and machine-specific settings in `~/.zshrc.local`; neither is tracked.
