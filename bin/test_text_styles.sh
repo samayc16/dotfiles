@@ -1,13 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Text style test. printf escapes (not `echo -e "\e"`) so it also works on
+# macOS's /bin/bash 3.2.
+
+ESC=$'\033'
+R="${ESC}[0m"
+
 echo "Testing text styles in terminal:"
 echo ""
 echo "Normal text"
-echo -e "\e[1mBold text\e[0m"
-echo -e "\e[3mItalic text\e[0m"
-echo -e "\e[4mUnderlined text\e[0m"
-echo -e "\e[1;3mBold italic text\e[0m"
-echo -e "\e[1;4mBold underlined text\e[0m"
-echo -e "\e[3;4mItalic underlined text\e[0m"
-echo -e "\e[1;3;4mBold italic underlined text\e[0m"
+printf '%s[1mBold text%s\n' "$ESC" "$R"
+printf '%s[3mItalic text%s\n' "$ESC" "$R"
+printf '%s[4mUnderlined text%s\n' "$ESC" "$R"
+printf '%s[1;3mBold italic text%s\n' "$ESC" "$R"
+printf '%s[1;4mBold underlined text%s\n' "$ESC" "$R"
+printf '%s[3;4mItalic underlined text%s\n' "$ESC" "$R"
+printf '%s[1;3;4mBold italic underlined text%s\n' "$ESC" "$R"
+printf '%s[4:3mUndercurl text%s (needs a terminal with styled underlines)\n' "$ESC" "$R"
 echo ""
 echo "If you can see differences in the text above, styling works!"

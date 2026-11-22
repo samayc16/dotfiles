@@ -1,20 +1,18 @@
-#!/bin/bash
-# Copy text to clipboard via OSC-52 (no streaming, no execution)
+#!/usr/bin/env bash
+# Copy text to the clipboard without running it (no streaming, no execution).
 # Usage: copy_cmd echo "hello"     -> copies "echo hello"
 #        echo "hello" | copy_cmd   -> copies "hello"
+#
+# Thin wrapper over `copy` (OSC52 + native clipboard), which prints the text
+# and copies it without the trailing newline.
 
-if [[ $# -gt 0 ]]; then
+if [ $# -gt 0 ]; then
     cmd="$*"
 else
     cmd=$(cat)
 fi
 
-printf '%s\n' "$cmd"
+copy="$(dirname "$0")/copy"
+[ -x "$copy" ] || copy=$(command -v copy) || { echo "copy_cmd: 'copy' not found" >&2; exit 1; }
 
-encoded=$(printf '%s' "$cmd" | base64 | tr -d '\n')
-
-if [[ -n "$TMUX" ]]; then
-    printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded"
-else
-    printf '\033]52;c;%s\a' "$encoded"
-fi
+printf '%s\n' "$cmd" | "$copy"

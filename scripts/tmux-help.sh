@@ -1,5 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # tmux cheatsheet shown in a floating popup (prefix + ?)
+#
+# Must fit the popup's 34 inner rows (display-popup -h 36): keep it at 33 lines.
+# Padding is done by character count, not printf's byte count, so keys like
+# "M-←/→" stay aligned.
+
+# ${#var} must count characters, not bytes
+case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+    *UTF-8*|*utf8*|*UTF8*) ;;
+    *)  # C.UTF-8 exists on modern Linux; macOS ships en_US.UTF-8
+        if [ "$(uname -s)" = Darwin ]; then export LC_CTYPE=en_US.UTF-8
+        else export LC_CTYPE=C.UTF-8; fi 2>/dev/null ;;
+esac
 
 # Monokai Pro palette
 G=$'\033[38;2;169;220;118m'   # green
@@ -7,36 +19,49 @@ P=$'\033[38;2;255;97;136m'    # pink
 Y=$'\033[38;2;255;216;102m'   # yellow
 B=$'\033[38;2;120;220;232m'   # blue
 V=$'\033[38;2;171;157;242m'   # violet
-O=$'\033[38;2;252;169;104m'   # orange
+O=$'\033[38;2;252;152;103m'   # orange
 A=$'\033[38;2;114;112;114m'   # gray
+D=$'\033[38;2;91;89;92m'      # dim rule
 W=$'\033[38;2;252;252;250m'   # white
 BOLD=$'\033[1m'
-DIM=$'\033[2m'
 R=$'\033[0m'
 
-DASH70="──────────────────────────────────────────────────────────────────────"
+WIDTH=70        # content width inside the 3-col margin
+LCOL=38         # left column width (key + desc)
+LKEY=6          # left key cell
+RKEY=10         # right key cell
+
+# pad <text> <width>: text followed by spaces up to width (counts characters)
+pad() {
+    local n=$(( $2 - ${#1} ))
+    (( n < 0 )) && n=0
+    printf '%s%*s' "$1" "$n" ''
+}
+
+# rule <width>: a dim horizontal line
+rule() {
+    local s="" i
+    for ((i = 0; i < $1; i++)); do s+="─"; done
+    printf '%s' "$s"
+}
 
 # row  lcolor lkey ldesc  rcolor rkey rdesc
 row() {
-    printf "   ${1}%-5s${R}  %-30s    ${4}%-9s${R}  %s\n" \
-        "$2" "$3" "$5" "$6"
+    printf '   %s%s%s%s' "$1" "$(pad "$2" "$LKEY")" "$R" "$(pad "$3" $((LCOL - LKEY)))"
+    printf '%s%s%s%s\n' "$4" "$(pad "$5" "$RKEY")" "$R" "$6"
 }
 
-# section  lcolor ltitle  rcolor rtitle
+# section  lcolor ltitle  rcolor rtitle  →  "TITLE ────────   TITLE ────────"
 section() {
     local lt="$2" rt="$4"
-    local lpad=$((41 - ${#lt}))
-    local lund="" rund="" i
-    for ((i=0; i<${#lt}; i++)); do lund+="─"; done
-    for ((i=0; i<${#rt}; i++)); do rund+="─"; done
-    printf "   ${1}${BOLD}%s${R}%${lpad}s${3}${BOLD}%s${R}\n" "$lt" "" "$rt"
-    printf "   ${1}%s${R}%${lpad}s${3}%s${R}\n"               "$lund" "" "$rund"
+    printf '   %s%s%s %s%s%s' "$1" "$BOLD" "$lt" "$D" "$(rule $((LCOL - ${#lt} - 3)))" "$R"
+    printf '  %s%s%s %s%s%s\n' "$3" "$BOLD" "$rt" "$D" "$(rule $((WIDTH - LCOL - ${#rt} - 3)))" "$R"
 }
 
 clear
-echo ""
-printf "   ${BOLD}${W}TMUX · KEYBINDINGS${R}%35s${DIM}prefix:${R} ${Y}C-a${R} ${A}·${R} ${Y}C-b${R}\n" ""
-printf "   ${A}${DASH70}${R}\n"
+printf '   %s%s%s%s%sprefix %s%sC-a%s %s·%s %sC-b%s\n' \
+    "$BOLD" "$W" "TMUX · KEYBINDINGS" "$R" "$(pad '' $((WIDTH - 18 - 16)))" "$R" "$Y" "$R" "$A" "$R" "$Y" "$R"
+printf '   %s%s%s\n' "$A" "$(rule "$WIDTH")" "$R"
 echo ""
 
 section "$P" "PREFIX"                          "$B" "NO PREFIX"
@@ -70,5 +95,5 @@ row "$Y" "g"    "goto session (prompt)"        ""   ""          ""
 row "$Y" "C-x"  "kill session"                 ""   ""          ""
 echo ""
 
-printf "   ${A}${DASH70}${R}\n"
-printf "                        ${DIM}press any key to close${R}\n"
+printf '   %s%s%s\n' "$A" "$(rule "$WIDTH")" "$R"
+printf '   %s%s%s' "$A" "$(pad '' 23)press any key to close" "$R"

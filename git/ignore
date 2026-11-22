@@ -1,3 +1,20 @@
 # Global gitignore (core.excludesfile)
 **/.claude/settings.local.json
 .DS_Store
+
+# macOS
+._*
+.AppleDouble
+.LSOverride
+
+# Linux desktops / NFS
+.directory
+.Trash-*
+.nfs*
+
+# Windows (WSL checkouts)
+Thumbs.db
+desktop.ini
+
+# editor backups
+*~
