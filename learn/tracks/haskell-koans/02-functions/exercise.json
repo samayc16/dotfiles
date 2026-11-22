@@ -1,0 +1,20 @@
+{
+  "title": "Functions & currying",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "function definitions",
+    "currying",
+    "partial application",
+    "higher-order functions"
+  ],
+  "files": [
+    "Functions.hs"
+  ],
+  "open": "Functions.hs",
+  "check": "check.sh",
+  "hints": [
+    "`add3 10 0` is already a function of one more Int.",
+    "applyTwice f x = f (f x)"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Dataclasses",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "@dataclass",
+    "field(default_factory)",
+    "__post_init__",
+    "order=True",
+    "classmethod"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "from dataclasses import dataclass, field. A mutable default must be field(default_factory=list), never `= []`.",
+    "Validate in def __post_init__(self): if self.price < 0: raise ValueError(...). Ordering: @dataclass(order=True) compares fields in declaration order."
+  ]
+}

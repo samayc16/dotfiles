@@ -1,0 +1,21 @@
+{
+  "title": "Boss: incident report",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "multi-field aggregation",
+    "averages",
+    "multi-key sort"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 324,
+  "hints": [
+    "Split each `key=value` field, then aggregate count and total ms per path.",
+    "Average = total / count, in the END block.",
+    "`sort -k2,2nr -k1,1`: by count descending, then path ascending."
+  ]
+}

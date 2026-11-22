@@ -1,0 +1,20 @@
+{
+  "title": "Comprehensions",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "list comprehension",
+    "dict comprehension",
+    "set comprehension",
+    "zip"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "[x * x for x in nums if x % 2 == 0] — the filter goes at the end.",
+    "Dict: {w: len(w) for w in words}. Set: {w[0].lower() for w in words if w}. Nested: [x for row in m for x in row]. Transpose: [list(col) for col in zip(*m)]."
+  ]
+}

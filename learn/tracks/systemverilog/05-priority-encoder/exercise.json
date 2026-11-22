@@ -1,0 +1,20 @@
+{
+  "title": "Priority encoder",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "always_comb",
+    "for loops in hardware",
+    "default assignments"
+  ],
+  "files": [
+    "prio_enc.sv"
+  ],
+  "open": "prio_enc.sv",
+  "check": "check.sh",
+  "hints": [
+    "Assign defaults first (`idx = '0; valid = 0;`), then let later loop iterations override earlier ones.",
+    "Loop from bit 0 upward and overwrite, so the highest set bit wins.",
+    "Or use `casez` with `?` wildcards."
+  ]
+}

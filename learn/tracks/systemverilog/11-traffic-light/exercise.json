@@ -1,0 +1,20 @@
+{
+  "title": "Traffic light",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "FSM + timer",
+    "package enums on ports",
+    "parameters"
+  ],
+  "files": [
+    "traffic.sv"
+  ],
+  "open": "traffic.sv",
+  "check": "check.sh",
+  "hints": [
+    "Keep a timer that counts cycles spent in the current state.",
+    "When the timer reaches DURATION-1, move to the next colour and reset the timer.",
+    "`walk = (light == RED);`"
+  ]
+}

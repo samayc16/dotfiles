@@ -1,0 +1,21 @@
+{
+  "title": "Lambdas and captures",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "lambda",
+    "capture by value/reference",
+    "mutable",
+    "generic lambda",
+    "std::function"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "Stateful lambda: return [count = 0]() mutable { return ++count; };  — init-capture + mutable.",
+    "Generic: [](auto a, auto b) { return a + b; }.  compose: return [=](auto x) { return f(g(x)); };"
+  ]
+}

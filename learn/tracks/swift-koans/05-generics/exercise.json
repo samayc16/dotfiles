@@ -1,0 +1,20 @@
+{
+  "title": "Generics and where clauses",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "generic types",
+    "generic functions",
+    "Equatable constraint",
+    "where clause"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "struct Stack<Element> { private var items: [Element] = []; mutating func push(_ x: Element) { items.append(x) }; mutating func pop() -> Element? { items.popLast() } ... }",
+    "func allEqual<C: Collection>(_ c: C) -> Bool where C.Element: Equatable { guard let first = c.first else { return true }; return c.allSatisfy { $0 == first } }"
+  ]
+}

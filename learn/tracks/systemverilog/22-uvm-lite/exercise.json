@@ -1,0 +1,21 @@
+{
+  "title": "Boss: a UVM-style testbench",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "virtual interfaces",
+    "driver/monitor/scoreboard",
+    "reference models",
+    "mailboxes between components"
+  ],
+  "files": [
+    "fifo_tb_pkg.sv"
+  ],
+  "open": "fifo_tb_pkg.sv",
+  "check": "check.sh",
+  "hints": [
+    "Monitor: every `@(posedge vif.clk)`, look at push/pop/full/empty *before* the edge updates them, and send what actually happened to the scoreboard.",
+    "Scoreboard: keep a queue model. On a pop, compare `dout` with `model.pop_front()`.",
+    "Count `num_matches` and `num_mismatches`; the testbench reads them at the end."
+  ]
+}

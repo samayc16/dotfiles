@@ -1,0 +1,20 @@
+{
+  "title": "C++26 sneak peek: pack indexing, = delete(\"why\"), mdspan",
+  "difficulty": 4,
+  "xp": 35,
+  "concepts": [
+    "pack indexing (C++26)",
+    "= delete(reason) (C++26)",
+    "_ placeholder (C++26)",
+    "std::mdspan (C++23)"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "Pack indexing: template <class... Ts> constexpr auto first(Ts... ts) { return ts...[0]; }  last: ts...[sizeof...(ts) - 1].",
+    "void process(double) = delete(\"use process(int)\");   mdspan: std::mdspan grid(data, rows, cols); grid[r, c] (multidimensional subscript)."
+  ]
+}

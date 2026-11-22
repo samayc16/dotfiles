@@ -1,0 +1,21 @@
+{
+  "title": "Functions",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "function automatic",
+    "packages of functions",
+    "loops",
+    "return"
+  ],
+  "files": [
+    "bits_pkg.sv"
+  ],
+  "open": "bits_pkg.sv",
+  "check": "check.sh",
+  "hints": [
+    "Gray code: `b ^ (b >> 1)`.",
+    "gray2bin: each binary bit is the XOR of all gray bits at or above it. Loop from the MSB down.",
+    "Power of two: exactly one bit set, so `x != 0 && (x & (x - 1)) == 0`."
+  ]
+}

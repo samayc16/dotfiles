@@ -1,0 +1,19 @@
+{
+  "title": "Logic gates",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "module",
+    "assign",
+    "& | ^ ~"
+  ],
+  "files": [
+    "gates.sv"
+  ],
+  "open": "gates.sv",
+  "check": "check.sh",
+  "hints": [
+    "`assign y_and = a & b;`, and the others follow the same shape.",
+    "NAND is NOT of AND: `~(a & b)`."
+  ]
+}

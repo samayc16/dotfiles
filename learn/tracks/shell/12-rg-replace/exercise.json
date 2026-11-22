@@ -1,0 +1,21 @@
+{
+  "title": "Which endpoints?",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "rg -o -r '$1'",
+    "capture groups",
+    "\\S"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 155,
+  "hints": [
+    "`path=(\\S+) status=503` captures the path. rg supports Perl-style `\\S`, `\\d`, `\\w`.",
+    "`-o -r '$1'` replaces each match with capture group 1.",
+    "`sort -u` sorts and removes duplicates."
+  ]
+}

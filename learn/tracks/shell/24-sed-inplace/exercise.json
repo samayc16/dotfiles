@@ -1,0 +1,21 @@
+{
+  "title": "Hotfix the config",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "sed -i (BSD vs GNU)",
+    "ranges + several commands"
+  ],
+  "files": [
+    "solution.sh",
+    "services.conf"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 220,
+  "hints": [
+    "Restrict commands to a range: `/^\\[web\\]/,/^$/{ ...; }`.",
+    "Inside the braces, separate commands with `;` and end with `;}` (BSD sed needs it).",
+    "`sed -i.bak ... && rm services.conf.bak`."
+  ]
+}

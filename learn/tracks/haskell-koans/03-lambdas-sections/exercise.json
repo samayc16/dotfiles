@@ -1,0 +1,21 @@
+{
+  "title": "Lambdas, sections & composition",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "lambdas",
+    "operator sections",
+    "function composition (.)",
+    "map"
+  ],
+  "files": [
+    "Lambdas.hs"
+  ],
+  "open": "Lambdas.hs",
+  "check": "check.sh",
+  "hints": [
+    "A section fixes one side of an operator: (*2) is \\x -> x * 2.",
+    "(f . g) x == f (g x). shout = (++ \"!\") . map toUpper",
+    "foldr (.) id fs composes every function in the list."
+  ]
+}

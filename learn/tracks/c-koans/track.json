@@ -1,0 +1,20 @@
+{
+  "name": "C \u00b7 Koans (C23)",
+  "slug": "c-koans",
+  "language": "c",
+  "description": "Pointers, memory and modern C23 (bool/nullptr/constexpr/typeof/enum : type), checked under ASan + UBSan.",
+  "order": [
+    "01-c23-basics",
+    "02-pointers",
+    "03-strings",
+    "04-structs",
+    "05-enums",
+    "06-tagged-unions",
+    "07-dynamic-array",
+    "08-function-pointers",
+    "09-bits",
+    "10-typeof-generic",
+    "11-file-io",
+    "12-layout-static-assert"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "C23 basics: bool, nullptr, constexpr, binary literals",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "bool keyword",
+    "nullptr",
+    "constexpr",
+    "0b literals",
+    "digit separators"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "C23 makes bool/true/false keywords (no <stdbool.h>) and adds nullptr. constexpr unsigned MASK = 0b1111'0000;",
+    "first_positive: loop with a pointer, return &xs[i] when xs[i] > 0, else nullptr."
+  ]
+}

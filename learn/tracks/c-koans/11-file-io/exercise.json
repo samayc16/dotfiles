@@ -1,0 +1,20 @@
+{
+  "title": "File I/O",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "fopen/fclose",
+    "fgets",
+    "fprintf",
+    "error handling"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "FILE *f = fopen(path, \"w\"); if (f == nullptr) return false; for each line: fprintf(f, \"%s\\n\", lines[i]); return fclose(f) == 0;",
+    "count_lines: char buf[256]; while (fgets(buf, sizeof buf, f)) if (strchr(buf, '\\n')) count++;  sum_numbers: while (fscanf(f, \"%ld\", &n) == 1) total += n;"
+  ]
+}

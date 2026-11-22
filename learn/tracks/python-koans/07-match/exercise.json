@@ -1,0 +1,21 @@
+{
+  "title": "Structural pattern matching",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "match/case",
+    "class patterns",
+    "sequence patterns",
+    "mapping patterns",
+    "guards"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "Class patterns use the dataclass fields: case Circle(radius=r): ...  case Rect(w, h) if w == h: ...",
+    "Sequences: match command.split(): case ['go', direction]: ...  case ['take', *items]: ...  Mappings: case {'type': 'click', 'pos': (x, y)}: ..."
+  ]
+}

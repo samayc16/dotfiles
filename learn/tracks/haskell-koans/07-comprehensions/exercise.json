@@ -1,0 +1,21 @@
+{
+  "title": "List comprehensions & ranges",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "list comprehensions",
+    "ranges",
+    "multiple generators",
+    "guards in comprehensions"
+  ],
+  "files": [
+    "Comprehensions.hs"
+  ],
+  "open": "Comprehensions.hs",
+  "check": "check.sh",
+  "hints": [
+    "[x | x <- [1 .. n], even x]",
+    "Use three generators for c, b and a, plus a guard for a*a + b*b == c*c.",
+    "A comprehension can contain another comprehension for the nested list."
+  ]
+}

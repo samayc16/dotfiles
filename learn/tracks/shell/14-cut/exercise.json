@@ -1,0 +1,19 @@
+{
+  "title": "Columns, please",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "cut -d -f",
+    "tail -n +2"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 132,
+  "hints": [
+    "`tail -n +2` prints from line 2 onward, skipping the header.",
+    "`cut -d, -f3` splits on commas and keeps field 3."
+  ]
+}

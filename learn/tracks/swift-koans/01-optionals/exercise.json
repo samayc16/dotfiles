@@ -1,0 +1,21 @@
+{
+  "title": "Optionals: if let, guard, ??, optional chaining",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "Optional",
+    "if let",
+    "guard let",
+    "nil-coalescing ??",
+    "optional chaining"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "greet: \"Hello, \\(name ?? \"stranger\")!\". firstEven: xs.first { $0 % 2 == 0 }.",
+    "parsePort: guard let n = Int(text), (1...65535).contains(n) else { return nil }; return n.  streetLength: user?.address?.street.count"
+  ]
+}

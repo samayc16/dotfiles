@@ -1,0 +1,23 @@
+{
+  "title": "Vectors, slices, reductions",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "[7:0] vectors",
+    "slices",
+    "{concat}",
+    "{N{replicate}}",
+    "reduction ^a &a |a",
+    "{<<{a}}"
+  ],
+  "files": [
+    "vectors.sv"
+  ],
+  "open": "vectors.sv",
+  "check": "check.sh",
+  "hints": [
+    "Nibble swap: `{a[3:0], a[7:4]}`.",
+    "Reduction operators take one operand: `^a`, `&a`, `|a`.",
+    "Sign extension: `{{8{a[7]}}, a}`. Bit reverse: `{<<{a}}`."
+  ]
+}

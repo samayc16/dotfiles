@@ -1,0 +1,20 @@
+{
+  "title": "Debouncer + edge detector",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "counters as timers",
+    "edge detection",
+    "registered vs combinational"
+  ],
+  "files": [
+    "debounce.sv"
+  ],
+  "open": "debounce.sv",
+  "check": "check.sh",
+  "hints": [
+    "Count consecutive cycles where `noisy != clean`; reset the counter whenever they agree.",
+    "When the counter hits N-1 (and they still differ), flip `clean`.",
+    "Edges: keep `clean_q` (clean delayed by one cycle). `rise = clean & ~clean_q`."
+  ]
+}

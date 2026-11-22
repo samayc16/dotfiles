@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""learn — gamified offline trainer. See ~/dotfiles/learn/ROADMAP.md."""
+import os
+import sys
+from pathlib import Path
+
+# bin/learn is symlinked into ~/bin; resolve back to the dotfiles repo.
+REPO = Path(os.path.realpath(__file__)).parent.parent
+sys.path.insert(0, str(REPO / "learn"))
+
+from learnlib.cli import main  # noqa: E402
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)

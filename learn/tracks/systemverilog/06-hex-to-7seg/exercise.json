@@ -1,0 +1,19 @@
+{
+  "title": "Hex to 7-segment",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "case tables",
+    "default",
+    "bit ordering"
+  ],
+  "files": [
+    "hex7seg.sv"
+  ],
+  "open": "hex7seg.sv",
+  "check": "check.sh",
+  "hints": [
+    "Write out a 16-entry `case`; each segment pattern is a 7-bit constant `7'b gfedcba`.",
+    "Draw the digit and mark which of a..g light up; bit 0 is segment a."
+  ]
+}

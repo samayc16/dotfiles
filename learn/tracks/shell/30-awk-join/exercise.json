@@ -1,0 +1,20 @@
+{
+  "title": "Which team spends the most?",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "NR==FNR two-file join",
+    "next"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 291,
+  "hints": [
+    "With two files, `NR == FNR` is only true while reading the first one.",
+    "Load the lookup table from file 1 (`team[$1] = $4; next`), then use it on file 2.",
+    "`sort -k2,2nr` sorts by the 2nd column, numeric, descending."
+  ]
+}

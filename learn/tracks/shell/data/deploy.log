@@ -1,0 +1,39 @@
+2026-03-14T09:58:00Z deploy start version=2026.03.14-1
+2026-03-14T09:58:04Z deploy step=build status=ok
+2026-03-14T09:58:31Z deploy step=migrate status=FAILED
+Traceback (most recent call last):
+  File "deploy/migrate.py", line 88, in run
+    conn = db.connect(settings.DATABASE_URL)
+  File "deploy/db.py", line 12, in connect
+    return socket.create_connection(addr)
+ConnectionRefusedError: [Errno 61] Connection refused
+2026-03-14T09:58:32Z deploy rollback version=2026.03.14-1
+2026-03-14T10:05:10Z deploy start version=2026.03.14-2
+2026-03-14T10:05:12Z deploy step=build status=ok
+2026-03-14T10:06:02Z deploy step=migrate status=FAILED
+Traceback (most recent call last):
+  File "deploy/migrate.py", line 91, in run
+    with lock.acquire(timeout=30):
+TimeoutError: migration lock not acquired in 30s
+2026-03-14T10:06:03Z deploy rollback version=2026.03.14-2
+2026-03-14T10:12:40Z deploy start version=2026.03.14-3
+2026-03-14T10:12:41Z deploy step=config status=FAILED
+Traceback (most recent call last):
+  File "deploy/config.py", line 20, in load
+    url = os.environ["DATABASE_URL"]
+KeyError: 'DATABASE_URL'
+2026-03-14T10:12:41Z deploy rollback version=2026.03.14-3
+2026-03-14T10:20:00Z deploy start version=2026.03.14-4
+2026-03-14T10:20:01Z deploy step=build status=ok
+2026-03-14T10:20:30Z deploy step=migrate status=ok
+2026-03-14T10:20:44Z deploy step=assets status=FAILED
+Traceback (most recent call last):
+  File "deploy/assets.py", line 7, in publish
+    shutil.copytree(src, "/var/lib/nimbus/static")
+  File "/usr/lib/python3.12/shutil.py", line 600, in copytree
+    os.makedirs(dst)
+PermissionError: [Errno 13] Permission denied: '/var/lib/nimbus/static'
+2026-03-14T10:20:45Z deploy rollback version=2026.03.14-4
+2026-03-14T10:31:00Z deploy start version=2026.03.14-5
+2026-03-14T10:31:58Z deploy step=migrate status=ok
+2026-03-14T10:32:20Z deploy finished version=2026.03.14-5 status=ok

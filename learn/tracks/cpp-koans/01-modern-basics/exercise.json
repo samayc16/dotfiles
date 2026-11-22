@@ -1,0 +1,21 @@
+{
+  "title": "auto, structured bindings, std::format",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "auto",
+    "structured bindings",
+    "range-for",
+    "std::format",
+    "std::minmax_element"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "auto [lo, hi] = std::ranges::minmax(v); return {lo, hi};  (std::ranges::minmax returns a struct with .min/.max)",
+    "for (const auto& [name, count] : m) total += count;   std::format(\"{:<6}|{:>4}\", name, n)"
+  ]
+}

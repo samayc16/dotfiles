@@ -1,0 +1,20 @@
+{
+  "title": "Function pointers and callbacks",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "function pointers",
+    "typedef",
+    "qsort comparator",
+    "callbacks"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "typedef int (*BinOp)(int, int); a function name decays to a pointer: BinOp f = add; f(2, 3).",
+    "qsort comparator for descending ints: const int x = *(const int *)a, y = *(const int *)b; return (x < y) - (x > y);"
+  ]
+}

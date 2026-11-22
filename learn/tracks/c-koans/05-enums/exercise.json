@@ -1,0 +1,19 @@
+{
+  "title": "Enums with a fixed underlying type + switch",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "enum : type (C23)",
+    "switch",
+    "exhaustive handling"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "C23 lets you pick the storage: enum Dir : unsigned char { NORTH, EAST, SOUTH, WEST };  sizeof(enum Dir) is then 1.",
+    "turn_right: (enum Dir)((d + 1) % 4). opposite: (d + 2) % 4. dir_name: switch (d) { case NORTH: return \"north\"; ... }"
+  ]
+}

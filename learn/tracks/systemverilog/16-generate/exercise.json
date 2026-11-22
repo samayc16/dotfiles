@@ -1,0 +1,21 @@
+{
+  "title": "Generate: ripple-carry adder",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "generate for",
+    "genvar",
+    "instance arrays",
+    "named blocks"
+  ],
+  "files": [
+    "ripple_adder.sv"
+  ],
+  "open": "ripple_adder.sv",
+  "check": "check.sh",
+  "hints": [
+    "Declare a carry vector `logic [W:0] c;` with `c[0] = cin`.",
+    "`for (genvar i = 0; i < W; i++) begin : g_bit full_adder fa (...); end`",
+    "`cout = c[W]`."
+  ]
+}

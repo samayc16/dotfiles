@@ -1,0 +1,21 @@
+{
+  "title": "Expressions & types",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "expressions",
+    "Int/Double/String/Bool",
+    "infix functions",
+    "fromIntegral"
+  ],
+  "files": [
+    "Expressions.hs"
+  ],
+  "open": "Expressions.hs",
+  "check": "check.sh",
+  "hints": [
+    "Arithmetic works like you'd expect: 24 * 60 * 60.",
+    "`++` joins lists, and a String is just a list of Char.",
+    "`fromIntegral n` turns an Int into any number type, including Double: fromIntegral n / 2."
+  ]
+}

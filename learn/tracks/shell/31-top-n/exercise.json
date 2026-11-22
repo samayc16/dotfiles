@@ -1,0 +1,19 @@
+{
+  "title": "Top talkers",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "top-N pipeline",
+    "awk '{print $1}'"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 166,
+  "hints": [
+    "The IP is the first whitespace-separated field.",
+    "sort, `uniq -c`, `sort -rn`, `head`."
+  ]
+}

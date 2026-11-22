@@ -1,0 +1,21 @@
+{
+  "title": "Collections and higher-order functions",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "map/filter/reduce",
+    "compactMap",
+    "Dictionary(grouping:)",
+    "reduce(into:)",
+    "zip"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "Dictionary(grouping: words) { $0.first! } groups by first character. compactMap { Int($0) } drops failures.",
+    "Frequencies: words.reduce(into: [:]) { counts, w in counts[w, default: 0] += 1 }.  Sum of odd squares: nums.filter { $0 % 2 != 0 }.map { $0 * $0 }.reduce(0, +)"
+  ]
+}

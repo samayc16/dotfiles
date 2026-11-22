@@ -1,0 +1,22 @@
+{
+  "title": "Type classes & instances",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "type classes",
+    "instance declarations",
+    "Show",
+    "Ord",
+    "custom classes"
+  ],
+  "files": [
+    "Classes.hs"
+  ],
+  "open": "Classes.hs",
+  "check": "check.sh",
+  "hints": [
+    "show coin = show (value coin) ++ \"¢\"",
+    "compare = comparing value",
+    "intercalate \", \" (map describe xs)"
+  ]
+}

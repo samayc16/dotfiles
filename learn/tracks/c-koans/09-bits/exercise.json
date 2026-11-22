@@ -1,0 +1,20 @@
+{
+  "title": "Bit manipulation",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "bitwise ops",
+    "masks",
+    "shifts",
+    "popcount"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "is_power_of_two: x && !(x & (x - 1)). set: x | (1u << i); clear: x & ~(1u << i); toggle: x ^ (1u << i).",
+    "popcount: while (x) { x &= x - 1; count++; } (clears the lowest set bit each time). field: (x >> pos) & ((1u << width) - 1)."
+  ]
+}

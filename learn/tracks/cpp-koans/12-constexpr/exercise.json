@@ -1,0 +1,21 @@
+{
+  "title": "constexpr and consteval: compile-time computation",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "constexpr functions",
+    "consteval",
+    "static_assert",
+    "compile-time tables",
+    "if consteval"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "constexpr functions run at compile time when given constants: constexpr long factorial(int n) { return n <= 1 ? 1 : n * factorial(n - 1); }",
+    "consteval forces compile-time evaluation. A compile-time table: constexpr auto make_squares() { std::array<int, 10> t{}; for (int i = 0; i < 10; ++i) t[i] = i * i; return t; }"
+  ]
+}

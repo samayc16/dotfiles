@@ -1,0 +1,21 @@
+{
+  "title": "Records",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "record syntax",
+    "field accessors",
+    "record update",
+    "Ord/Enum on enums",
+    "succ"
+  ],
+  "files": [
+    "Records.hs"
+  ],
+  "open": "Records.hs",
+  "check": "check.sh",
+  "hints": [
+    "Record update: m { xp = xp m + n }",
+    "`succ` gives the next constructor of an Enum; `maxBound` is the last one of a Bounded type."
+  ]
+}

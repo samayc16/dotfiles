@@ -1,0 +1,20 @@
+{
+  "title": "Property wrappers",
+  "difficulty": 4,
+  "xp": 30,
+  "concepts": [
+    "@propertyWrapper",
+    "wrappedValue",
+    "projectedValue",
+    "generic constraints"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "@propertyWrapper struct Clamped<Value: Comparable> { private var value: Value; let range: ClosedRange<Value>; var wrappedValue: Value { get { value } set { value = min(max(newValue, range.lowerBound), range.upperBound) } } }",
+    "init(wrappedValue: Value, _ range: ClosedRange<Value>) { self.range = range; self.value = min(max(wrappedValue, range.lowerBound), range.upperBound) }  — then: @Clamped(0...10) var level = 5"
+  ]
+}

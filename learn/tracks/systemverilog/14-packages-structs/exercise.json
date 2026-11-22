@@ -1,0 +1,22 @@
+{
+  "title": "Packages, structs, unions",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "package",
+    "typedef struct packed",
+    "union packed",
+    "import"
+  ],
+  "files": [
+    "cpu_pkg.sv",
+    "alu.sv"
+  ],
+  "open": "alu.sv",
+  "check": "check.sh",
+  "hints": [
+    "`typedef struct packed { opcode_t op; logic [4:0] shamt; logic [7:0] imm; } instr_t;` (16 bits, MSB first).",
+    "`typedef union packed { instr_t f; logic [15:0] raw; } instr_u;`",
+    "In alu.sv: `import cpu_pkg::*;` then `case (instr.op)`."
+  ]
+}

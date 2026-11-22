@@ -1,0 +1,21 @@
+{
+  "title": "Enums with associated values",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "enum",
+    "associated values",
+    "switch pattern matching",
+    "CaseIterable",
+    "failable init"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "switch self { case .circle(let r): return .pi * r * r; case let .rect(w, h): return w * h; case let .triangle(b, h): return b * h / 2 }",
+    "Parse: switch text.split(separator: \" \") { case [\"go\", let dir]: return .go(String(dir)) ... }  — or use if/guard on parts."
+  ]
+}

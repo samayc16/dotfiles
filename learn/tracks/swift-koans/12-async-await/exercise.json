@@ -1,0 +1,21 @@
+{
+  "title": "async/await, async let, task groups",
+  "difficulty": 4,
+  "xp": 35,
+  "concepts": [
+    "async/await",
+    "async let",
+    "withTaskGroup",
+    "Task.sleep",
+    "structured concurrency"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "Run two at once: async let a = fetch(...); async let b = fetch(...); return await (a, b)",
+    "Many at once, order preserved: await withTaskGroup(of: (Int, String).self) { group in for (i, n) in names.enumerated() { group.addTask { (i, await fetch(n, delay: delay)) } } ... collect, sort by index }"
+  ]
+}

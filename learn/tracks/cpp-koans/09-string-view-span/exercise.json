@@ -1,0 +1,20 @@
+{
+  "title": "string_view and span",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "std::string_view",
+    "std::span",
+    "non-owning views",
+    "subspan"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "trim: find_first_not_of(\" \\t\\n\") / find_last_not_of(...) then substr. A string_view never copies.",
+    "split: loop with find(sep), push_back(text.substr(0, pos)), text.remove_prefix(pos + 1). span: std::span<const int> s; s.subspan(1, s.size() - 2)."
+  ]
+}

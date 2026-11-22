@@ -1,0 +1,22 @@
+{
+  "title": "Config to env vars",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "regex FS",
+    "gsub",
+    "toupper",
+    "state across lines"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 248,
+  "hints": [
+    "`-F' *= *'` makes the separator an `=` with optional spaces around it.",
+    "On a `[section]` line, strip the brackets (`gsub`), remember the name, and `next`.",
+    "On `key = value` lines, drop an inline comment from `$2` with `sub(/ *#.*/, \"\", $2)`."
+  ]
+}

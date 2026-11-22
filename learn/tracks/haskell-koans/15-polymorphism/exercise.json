@@ -1,0 +1,21 @@
+{
+  "title": "Polymorphism & constraints",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "type variables",
+    "class constraints",
+    "Ord/Eq/Show/Num",
+    "type inference"
+  ],
+  "files": [
+    "Polymorphism.hs"
+  ],
+  "open": "Polymorphism.hs",
+  "check": "check.sh",
+  "hints": [
+    "filter (== x) xs keeps the matching elements.",
+    "clamp lo hi x = max lo (min hi x)",
+    "dedupe: walk the list carrying the elements you've already seen."
+  ]
+}

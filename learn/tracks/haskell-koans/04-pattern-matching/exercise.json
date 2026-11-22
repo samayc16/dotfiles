@@ -1,0 +1,21 @@
+{
+  "title": "Pattern matching & guards",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "pattern matching",
+    "guards",
+    "case expressions",
+    "tuples"
+  ],
+  "files": [
+    "Patterns.hs"
+  ],
+  "open": "Patterns.hs",
+  "check": "check.sh",
+  "hints": [
+    "Guards are checked top to bottom; `otherwise` is just True.",
+    "Check 15 before 3 and 5 in fizzbuzz.",
+    "firstOr def [] = def ; firstOr _ (x:_) = x"
+  ]
+}

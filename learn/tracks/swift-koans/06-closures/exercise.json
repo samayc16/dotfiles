@@ -1,0 +1,21 @@
+{
+  "title": "Closures, capturing and @escaping",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "closures",
+    "trailing closures",
+    "capturing",
+    "@escaping",
+    "shorthand $0"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "names.sorted { ($0.count, $0) < ($1.count, $1) } — tuples compare element by element.",
+    "makeIncrementer: var total = 0; return { total += step; return total }.  Storing a closure for later needs @escaping: func on(_ handler: @escaping (String) -> Void) { handlers.append(handler) }"
+  ]
+}

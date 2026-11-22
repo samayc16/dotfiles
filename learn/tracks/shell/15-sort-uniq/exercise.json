@@ -1,0 +1,18 @@
+{
+  "title": "Team roster",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "sort -u"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 143,
+  "hints": [
+    "Extract the column like the last level, then sort.",
+    "`sort -u` = `sort | uniq`."
+  ]
+}

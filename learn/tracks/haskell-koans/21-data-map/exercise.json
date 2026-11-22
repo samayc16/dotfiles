@@ -1,0 +1,22 @@
+{
+  "title": "Data.Map: dictionaries",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "Data.Map",
+    "qualified imports",
+    "insertWith / fromListWith",
+    "findWithDefault",
+    "sortBy"
+  ],
+  "files": [
+    "WordCount.hs"
+  ],
+  "open": "WordCount.hs",
+  "check": "check.sh",
+  "hints": [
+    "Replace non-letters with spaces, lowercase, then `words`.",
+    "Map.fromListWith (+) [(w, 1) | w <- ws] counts things.",
+    "Sort with a key of (Down count, word): Down reverses an ordering."
+  ]
+}

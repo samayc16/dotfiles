@@ -1,0 +1,22 @@
+{
+  "title": "Structs vs classes: value and reference semantics",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "struct",
+    "class",
+    "mutating",
+    "value semantics",
+    "reference semantics",
+    "==="
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "Structs are copied on assignment; classes are shared. Change `class Counter` to `struct Counter` and mark increment() as `mutating`.",
+    "For the class, identity is checked with === (same instance)."
+  ]
+}

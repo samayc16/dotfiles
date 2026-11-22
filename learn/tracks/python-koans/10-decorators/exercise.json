@@ -1,0 +1,20 @@
+{
+  "title": "Decorators",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "decorators",
+    "functools.wraps",
+    "decorator factories",
+    "function attributes"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "def count_calls(fn): @wraps(fn) def wrapper(*a, **kw): wrapper.calls += 1; return fn(*a, **kw); wrapper.calls = 0; return wrapper",
+    "A decorator WITH arguments is a function returning a decorator: def retry(times): def deco(fn): ... return deco"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "title": "where & let",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "where clauses",
+    "let expressions",
+    "local helpers"
+  ],
+  "files": [
+    "LocalDefs.hs"
+  ],
+  "open": "LocalDefs.hs",
+  "check": "check.sh",
+  "hints": [
+    "Guards can use names defined in the `where` below them.",
+    "let disc = b*b - 4*a*c in if disc < 0 then Nothing else Just (...)"
+  ]
+}

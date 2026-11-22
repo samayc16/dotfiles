@@ -1,0 +1,20 @@
+{
+  "title": "Tagged unions",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "union",
+    "anonymous members",
+    "tagged union",
+    "M_PI"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "A tagged union = an enum tag + a union of payloads. Anonymous union/struct members let you write s.circle.r directly.",
+    "area: switch (s.kind) { case SHAPE_CIRCLE: return 3.141592653589793 * s.circle.r * s.circle.r; case SHAPE_RECT: return s.rect.w * s.rect.h; }"
+  ]
+}

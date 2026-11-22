@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Level 17 · Hottest moments
+# Task: README.md · run: bash solution.sh · check: learn check
+# Inputs are in $DATA, e.g. "$DATA/app.log". Print the answer to stdout.
+DATA=${LEARN_EXERCISE_DIR:-~/dotfiles/learn/tracks/shell/data}/../data
+export LC_ALL=C
+
+tail -n +2 "$DATA/metrics.tsv" | sort -t$'\t' -k3,3nr | head -3

@@ -1,0 +1,21 @@
+{
+  "title": "Either: errors as values",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "Either",
+    "custom error types",
+    "readMaybe",
+    "mapM / traverse"
+  ],
+  "files": [
+    "Errors.hs"
+  ],
+  "open": "Errors.hs",
+  "check": "check.sh",
+  "hints": [
+    "case readMaybe s of Nothing -> ...; Just n -> ...  (guards work inside case alternatives)",
+    "Either is a Monad: in a do-block, `age <- parseAge s` stops at the first Left.",
+    "mapM parseAge xs"
+  ]
+}

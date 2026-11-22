@@ -1,0 +1,21 @@
+{
+  "title": "Containers and algorithms",
+  "difficulty": 2,
+  "xp": 25,
+  "concepts": [
+    "unordered_map",
+    "std::ranges::sort",
+    "projections",
+    "std::erase_if",
+    "fold_left"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "word_freq: std::unordered_map<std::string, int> m; for (const auto& w : words) ++m[w];",
+    "top_k: copy into a vector<pair>, std::ranges::sort(v, std::greater{}, &std::pair<std::string,int>::second) — the projection picks what to compare. drop_negatives: std::erase_if(v, [](int x) { return x < 0; });"
+  ]
+}

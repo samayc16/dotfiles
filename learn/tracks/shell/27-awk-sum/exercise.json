@@ -1,0 +1,21 @@
+{
+  "title": "Revenue check",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "accumulators",
+    "END block",
+    "printf %.2f"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 186,
+  "hints": [
+    "Variables start at 0 (or empty), so `s += $3` just works.",
+    "`END { ... }` runs after the last line.",
+    "`printf \"%.2f\\n\", s`."
+  ]
+}

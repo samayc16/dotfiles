@@ -1,0 +1,18 @@
+{
+  "title": "The pager goes off",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "grep PATTERN FILE"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 115,
+  "hints": [
+    "`grep PATTERN FILE` prints the lines of FILE that contain PATTERN.",
+    "Quote the path: `\"$DATA/app.log\"`."
+  ]
+}

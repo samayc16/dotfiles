@@ -1,0 +1,21 @@
+{
+  "title": "Mailboxes, fork/join, events",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "mailbox #(T)",
+    "fork/join, join_any, join_none",
+    "disable fork",
+    "events"
+  ],
+  "files": [
+    "workers_pkg.sv"
+  ],
+  "open": "workers_pkg.sv",
+  "check": "check.sh",
+  "hints": [
+    "`m.put(x)` blocks only on a bounded, full mailbox; `m.get(x)` blocks until an item arrives.",
+    "Timeout pattern: `fork begin work(); ok = 1; end begin #limit; end join_any disable fork;`",
+    "Events: `-> done;` to trigger, `@(done)` to wait."
+  ]
+}

@@ -1,0 +1,5 @@
+/api/search 25 2877.6
+/api/login 24 3027.8
+/api/users 15 2763.5
+/api/checkout 14 2955.1
+/api/orders 14 3160.2

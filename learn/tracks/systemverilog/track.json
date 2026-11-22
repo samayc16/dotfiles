@@ -1,0 +1,30 @@
+{
+  "name": "SystemVerilog: from gates to testbenches",
+  "slug": "systemverilog",
+  "language": "systemverilog",
+  "description": "Start from AND gates, end writing a UVM-style class-based testbench. Each exercise is checked by a self-checking testbench compiled with Verilator (-Wall lint as tips). WAVES=1 learn check dumps wave.vcd for surfer.",
+  "order": [
+    "01-gates",
+    "02-vectors",
+    "03-mux",
+    "04-adder",
+    "05-priority-encoder",
+    "06-hex-to-7seg",
+    "07-flip-flops",
+    "08-counter",
+    "09-lfsr",
+    "10-sequence-detector",
+    "11-traffic-light",
+    "12-debouncer",
+    "13-sync-fifo",
+    "14-packages-structs",
+    "15-interfaces",
+    "16-generate",
+    "17-functions",
+    "18-assertions",
+    "19-classes",
+    "20-constraints",
+    "21-mailbox-fork",
+    "22-uvm-lite"
+  ]
+}

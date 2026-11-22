@@ -1,0 +1,20 @@
+{
+  "title": "Pointers and arrays",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "pointers",
+    "pointer arithmetic",
+    "const correctness",
+    "in-place algorithms"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "swap: int tmp = *a; *a = *b; *b = tmp;  An array argument decays to a pointer to its first element.",
+    "reverse: walk two pointers from both ends towards the middle (int *lo = xs, *hi = xs + n - 1; while (lo < hi) ...)."
+  ]
+}

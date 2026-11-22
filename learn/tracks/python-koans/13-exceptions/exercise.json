@@ -1,0 +1,20 @@
+{
+  "title": "Exceptions: hierarchies, chaining, ExceptionGroup",
+  "difficulty": 4,
+  "xp": 30,
+  "concepts": [
+    "custom exceptions",
+    "raise from",
+    "ExceptionGroup",
+    "except*"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "class NotFound(AppError): def __init__(self, key): super().__init__(f'not found: {key}'); self.key = key. Chain with: raise NotFound(key) from err",
+    "Collect errors in a list, then: if errors: raise ExceptionGroup('invalid items', errors). Split with: except* ValueError as group: ..."
+  ]
+}

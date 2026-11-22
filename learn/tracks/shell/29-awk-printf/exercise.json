@@ -1,0 +1,21 @@
+{
+  "title": "A report your manager can read",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "printf widths %-10s %5d",
+    "piping inside awk",
+    "close()"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 293,
+  "hints": [
+    "`%-10s` is left-aligned width 10; `%5d` is right-aligned width 5.",
+    "Inside awk, `print ... | \"sort\"` pipes rows through sort; `close(\"sort\")` flushes it before you print TOTAL.",
+    "Or build it in pieces with the shell: `{ echo header; awk ... | sort; awk ... total; }`."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Applicative & Monad with Maybe",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "Applicative <*>",
+    "Monad >>=",
+    "do-notation",
+    "list monad"
+  ],
+  "files": [
+    "Monads.hs"
+  ],
+  "open": "Monads.hs",
+  "check": "check.sh",
+  "hints": [
+    "(+) <$> a <*> b: fmap the function in, then apply it to the second box.",
+    "In a Maybe do-block, `name <- userName uid` short-circuits on Nothing.",
+    "safeRecip x >>= safeRoot"
+  ]
+}

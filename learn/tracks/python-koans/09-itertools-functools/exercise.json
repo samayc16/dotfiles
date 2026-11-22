@@ -1,0 +1,22 @@
+{
+  "title": "itertools & functools",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "groupby",
+    "pairwise",
+    "accumulate",
+    "reduce",
+    "cache",
+    "partial"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "groupby only groups ADJACENT items: sort first. {k: list(g) for k, g in groupby(sorted(words), key=lambda w: w[0])}",
+    "pairwise(nums) yields (a, b) neighbours; accumulate(nums) gives prefix sums; reduce(operator.mul, nums, 1); @cache memoizes; partial(pow, exp=2)."
+  ]
+}

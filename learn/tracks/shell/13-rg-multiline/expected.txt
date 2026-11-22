@@ -1,0 +1,4 @@
+ConnectionRefusedError: [Errno 61] Connection refused
+TimeoutError: migration lock not acquired in 30s
+KeyError: 'DATABASE_URL'
+PermissionError: [Errno 13] Permission denied: '/var/lib/nimbus/static'

@@ -1,0 +1,20 @@
+{
+  "title": "Config, minus the chatter",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "sed -e (multiple)",
+    "d command"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 153,
+  "hints": [
+    "First delete comments with `s/...//`, then delete lines that became empty.",
+    "`[[:space:]]*#.*` matches optional spaces, the `#`, and everything after it.",
+    "`/^$/d` deletes empty lines. Chain commands with `-e ... -e ...`."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Tuples & zip",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "tuples",
+    "zip",
+    "zipWith",
+    "lookup",
+    "unzip"
+  ],
+  "files": [
+    "Tuples.hs"
+  ],
+  "open": "Tuples.hs",
+  "check": "check.sh",
+  "hints": [
+    "zipWith (*) xs ys multiplies pairwise; then sum.",
+    "zip [1 ..] xs: zip stops at the shorter list, so the infinite range is safe."
+  ]
+}

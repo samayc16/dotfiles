@@ -1,0 +1,19 @@
+{
+  "title": "Revenue by currency",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "associative arrays",
+    "for (k in arr)"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 205,
+  "hints": [
+    "Use the currency as an array key: `s[$4] += $3`.",
+    "`for (k in arr)` order is unspecified (and differs between awks): pipe into `sort`."
+  ]
+}

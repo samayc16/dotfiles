@@ -1,0 +1,20 @@
+{
+  "title": "Codable: JSON in and out",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "Codable",
+    "JSONEncoder/JSONDecoder",
+    "CodingKeys",
+    "snake_case keys"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "struct Todo: Codable, Equatable { let id: Int; let title: String; let isDone: Bool; enum CodingKeys: String, CodingKey { case id, title, isDone = \"is_done\" } }",
+    "Decode: try JSONDecoder().decode([Todo].self, from: Data(json.utf8)).  Encode: try JSONEncoder().encode(todo)."
+  ]
+}

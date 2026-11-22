@@ -1,0 +1,21 @@
+{
+  "title": "BOSS: The Calculator Shrine",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "recursive ADTs",
+    "evaluation",
+    "recursive-descent parsing",
+    "Either monad"
+  ],
+  "files": [
+    "Calc.hs"
+  ],
+  "open": "Calc.hs",
+  "check": "check.sh",
+  "hints": [
+    "eval (Add a b) = (+) <$> eval a <*> eval b; only Div needs a do-block to check for zero.",
+    "parseSum: parse one product, then loop: while the next token is + or -, parse another product and wrap Add/Sub around what you have.",
+    "parseAtom (TOpen : rest): parse a sum, then expect TClose."
+  ]
+}

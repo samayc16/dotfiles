@@ -1,0 +1,22 @@
+{
+  "title": "Classes and inheritance",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "class",
+    "new()",
+    "virtual methods",
+    "extends/super",
+    "static members"
+  ],
+  "files": [
+    "packet_pkg.sv"
+  ],
+  "open": "packet_pkg.sv",
+  "check": "check.sh",
+  "hints": [
+    "`function new(bit [7:0] addr, bit [7:0] payload[4]); this.addr = addr; ... count++; endfunction`",
+    "Mark methods `virtual` in the base class so a base-class handle calls the derived version.",
+    "In the subclass constructor call `super.new(addr, payload);` first."
+  ]
+}

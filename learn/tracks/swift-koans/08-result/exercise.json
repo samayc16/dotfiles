@@ -1,0 +1,21 @@
+{
+  "title": "The Result type",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "Result",
+    "map",
+    "flatMap",
+    "get()",
+    "switch on Result"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "divide: b == 0 ? .failure(.divisionByZero) : .success(a / b).  Chain: divide(a, b).flatMap { divide($0, c) }",
+    "describe: switch result { case .success(let v): ... case .failure(let e): ... }"
+  ]
+}
