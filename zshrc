@@ -1,3 +1,6 @@
+# Portable zshrc: macOS (Homebrew) and Linux (distro packages, mise, user-local clones).
+# Machine-specific settings and secrets go in ~/.zshrc.local (sourced by zsh/common.zsh).
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -5,14 +8,53 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# ── Display (XQuartz) ─────────────────────────────────────────────────
-export DISPLAY=:0
+# The repo this file lives in (follows the ~/.zshrc symlink)
+export DOTFILES="${DOTFILES:-${${(%):-%N}:A:h}}"
+
+# ── Platform ──────────────────────────────────────────────────────────
+if [[ "$OSTYPE" == darwin* ]]; then
+  if [[ -z "$HOMEBREW_PREFIX" ]]; then
+    for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+      [[ -x $_brew ]] && eval "$($_brew shellenv zsh)" && break
+    done
+    unset _brew
+  fi
+  [[ -d /opt/homebrew/opt/trash/bin ]] && export PATH="/opt/homebrew/opt/trash/bin:$PATH"
+  [[ -d /Applications/Utilities/XQuartz.app ]] && export DISPLAY=:0 # X11 apps via XQuartz
+elif [[ -r /proc/version ]] && grep -qi microsoft /proc/version; then
+  # WSL: start in $HOME rather than the Windows directory, use kitty terminfo if present
+  [[ "$PWD" == /mnt/* ]] && cd ~
+  infocmp xterm-kitty &>/dev/null && export TERM=xterm-kitty
+fi
 
 # ── Path ──────────────────────────────────────────────────────────────
-export PATH="/opt/homebrew/opt/trash/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+# Swift on Linux (installed by swiftly)
+[[ -r "$HOME/.local/share/swiftly/env.sh" ]] && source "$HOME/.local/share/swiftly/env.sh"
+# Haskell on Linux (installed by ghcup)
+[[ -d "$HOME/.ghcup/bin" ]] && export PATH="$HOME/.ghcup/bin:$HOME/.cabal/bin:$PATH"
+
+# Source the first readable file among the candidates (plugins live in different
+# places: Homebrew, user-local clones from install.d/zsh.sh, distro packages).
+_source_first() {
+  local file
+  for file in "$@"; do
+    [[ -r "$file" ]] && { source "$file"; return 0; }
+  done
+  return 1
+}
+_zplug_dirs=(
+  ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share}
+  "$HOME/.local/share/zsh-plugins"
+  /usr/share/zsh/plugins
+  /usr/share
+)
 
 # ── Powerlevel10k ─────────────────────────────────────────────────────
-source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+_source_first \
+  ${^_zplug_dirs}/powerlevel10k/powerlevel10k.zsh-theme \
+  /usr/share/zsh-theme-powerlevel10k/powerlevel10k.zsh-theme \
+  "$HOME/.local/share/powerlevel10k/powerlevel10k.zsh-theme"
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # ── History ───────────────────────────────────────────────────────────
@@ -44,15 +86,30 @@ bindkey '^[f' forward-word
 mkcd() { mkdir -p "$1" && cd "$1" }
 
 # ── Aliases ───────────────────────────────────────────────────────────
-alias ls='eza --icons --group-directories-first'
-alias ll='eza -la --icons --group-directories-first'
-alias lt='eza --tree --icons --level=2'
-alias cat='bat --paging=never'
+# Debian/Ubuntu name some tools differently
+(( $+commands[batcat] && ! $+commands[bat] )) && alias bat='batcat'
+(( $+commands[fdfind] && ! $+commands[fd] )) && alias fd='fdfind'
+
+if (( $+commands[eza] )); then
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -la --icons --group-directories-first'
+  alias lt='eza --tree --icons --level=2'
+else
+  alias ls='ls --color=auto'
+  alias ll='ls -la'
+fi
+(( $+commands[bat] || $+commands[batcat] )) && alias cat='bat --paging=never'
+(( $+commands[nvim] )) && alias vim='nvim' vi='nvim'
+# rm → trash when available (macOS `trash`, Linux trash-cli), otherwise ask first
+if (( $+commands[trash] )); then
+  alias rm='trash'
+elif (( $+commands[trash-put] )); then
+  alias rm='trash-put'
+else
+  alias rm='rm -i'
+fi
+(( $+commands[kitten] )) && alias img='kitten icat'
 alias lg='lazygit'
-alias vim='nvim'
-alias vi='nvim'
-alias rm='trash'
-alias img='kitten icat'
 alias c='clear'
 alias 1='cd ..'
 alias 2='cd ../..'
@@ -61,41 +118,54 @@ alias 4='cd ../../../..'
 alias 5='cd ../../../../..'
 
 # ── Environment ───────────────────────────────────────────────────────
-export EDITOR='nvim'
-export VISUAL='nvim'
+if (( $+commands[nvim] )); then
+  export EDITOR='nvim' VISUAL='nvim'
+else
+  export EDITOR='vi' VISUAL='vi'
+fi
 export BAT_THEME='Monokai Extended'
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+(( $+commands[bat] )) && export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+# ── Mise (runtime version manager; provides the CLI tools on Linux) ──
+if (( $+commands[mise] )); then
+  eval "$(mise activate zsh)"
+elif [[ -x "$HOME/.local/bin/mise" ]]; then
+  eval "$("$HOME/.local/bin/mise" activate zsh)"
+fi
 
 # ── fzf ───────────────────────────────────────────────────────────────
-source <(fzf --zsh)
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
-export FZF_DEFAULT_OPTS='
-  --color=fg:#f8f8f2,bg:#272822,hl:#f92672
-  --color=fg+:#f8f8f2,bg+:#49483e,hl+:#f92672
-  --color=info:#a6e22e,prompt:#f92672,pointer:#66d9ef
-  --color=marker:#a6e22e,spinner:#ae81ff,header:#75715e
-  --height=40% --layout=reverse --border'
-
-# ── Mise (runtime version manager) ───────────────────────────────────
-eval "$(mise activate zsh)"
+if (( $+commands[fzf] )); then
+  source <(fzf --zsh)
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+  export FZF_DEFAULT_OPTS='
+    --color=fg:#f8f8f2,bg:#272822,hl:#f92672
+    --color=fg+:#f8f8f2,bg+:#49483e,hl+:#f92672
+    --color=info:#a6e22e,prompt:#f92672,pointer:#66d9ef
+    --color=marker:#a6e22e,spinner:#ae81ff,header:#75715e
+    --height=40% --layout=reverse --border'
+fi
 
 # ── Zoxide (must be after compinit) ──────────────────────────────────
-eval "$(zoxide init zsh)"
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 
 # ── Git delta ─────────────────────────────────────────────────────────
 # Delta is configured via ~/.gitconfig (see git config setup)
 
 # ── Shared config (keybindings, colors, helpers) ─────────────────────
-source "$HOME/dotfiles/zsh/common.zsh"
+source "$DOTFILES/zsh/common.zsh"
 
-# ── Plugins (keep at end) ─────────────────────────────────────────────
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# ── Plugins (keep at end; syntax highlighting last) ──────────────────
+_source_first ${^_zplug_dirs}/zsh-autosuggestions/zsh-autosuggestions.zsh
+_source_first ${^_zplug_dirs}/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+unset _zplug_dirs
 
 # ── OpenClaw ─────────────────────────────────────────────────────────
 [[ -f "$HOME/.openclaw/completions/openclaw.zsh" ]] && source "$HOME/.openclaw/completions/openclaw.zsh"
 
 # ── Antigravity ──────────────────────────────────────────────────────
 [[ -d "$HOME/.antigravity/antigravity/bin" ]] && export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
+# Keep the last status 0 so the first prompt isn't shown as an error
+true

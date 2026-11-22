@@ -1,0 +1,36 @@
+# Global mise tools, linked to ~/.config/mise/config.toml by install.sh.
+# (Named global.toml so mise never mistakes it for this repo's own project config.)
+#
+# Linux only: on macOS these come from Homebrew (install.d/brew.sh), so every entry
+# is limited to `os = ["linux"]` and mise stays out of the way there.
+# Everything installs user-locally under ~/.local/share/mise — no root needed, which
+# is what makes this work on locked-down SSH boxes where distro packages are ancient.
+#
+#   mise ls            what's installed      mise up       upgrade within these pins
+#   mise outdated      what could upgrade    mise doctor   diagnose PATH/activation
+
+[tools]
+# Editor: the nvim config targets 0.12 — bump deliberately after testing a new minor.
+neovim = { version = "0.12", os = ["linux"] }
+tree-sitter = { version = "latest", os = ["linux"] } # nvim-treesitter (main) needs CLI ≥ 0.26
+tmux = { version = "latest", os = ["linux"] } # official static builds (tmux/tmux-builds)
+
+# Shell tools used by the aliases, fzf widgets and lazygit config
+ripgrep = { version = "latest", os = ["linux"] }
+fd = { version = "latest", os = ["linux"] }
+fzf = { version = "latest", os = ["linux"] }
+bat = { version = "latest", os = ["linux"] }
+eza = { version = "latest", os = ["linux"] }
+delta = { version = "latest", os = ["linux"] }
+lazygit = { version = "latest", os = ["linux"] }
+zoxide = { version = "latest", os = ["linux"] }
+jq = { version = "latest", os = ["linux"] }
+gh = { version = "latest", os = ["linux"] }
+
+# Runtimes for language servers (mason installs npm/pip-based servers with these)
+node = { version = "lts", os = ["linux"] }
+uv = { version = "latest", os = ["linux"] }
+
+[settings]
+# Prefer prebuilt release binaries; never prompt (CI / unattended installs).
+yes = true

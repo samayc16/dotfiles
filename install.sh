@@ -1,100 +1,65 @@
-#!/bin/bash
-# Usage: ./install.sh [--link-only]
-#   --link-only  skip brew/package installs, just (re)create symlinks
-set -e
+#!/bin/sh
+# Dotfiles installer entry point (POSIX sh, so it runs before anything else exists).
+#
+# Finds Python ≥ 3.8 and hands over to install.py. Without one (minimal containers,
+# RHEL 8's 3.6, …) it installs python3 with the package manager when root/sudo works,
+# otherwise fetches a standalone Python with uv into ~/.local — no root needed.
+#
+#   ./install.sh --help        all options
+#   ./install.sh               install everything (profile full)
+set -eu
 
-LINK_ONLY=false
-[[ "${1:-}" == "--link-only" ]] && LINK_ONLY=true
+DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 
-echo "Installing dotfiles..."
-
-if ! $LINK_ONLY; then
-
-# ── Homebrew ──────────────────────────────────────────────────────────
-if ! command -v brew &>/dev/null; then
-  echo "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-# ── Packages ──────────────────────────────────────────────────────────
-echo "Installing packages..."
-brew install neovim zoxide zsh-autosuggestions zsh-syntax-highlighting \
-  powerlevel10k fzf ripgrep fd bat eza git-delta lazygit gh \
-  tldr jq htop trash mise tmux git-lfs
-
-# ── Font ──────────────────────────────────────────────────────────────
-echo "Installing MesloLGS Nerd Font..."
-brew install --cask font-meslo-lg-nerd-font raycast 2>/dev/null || true
-
-# ── Claude Code ──────────────────────────────────────────────────────
-echo "Installing Claude Code..."
-brew install claude-code
-
-fi # !LINK_ONLY
-
-# ── Symlinks ──────────────────────────────────────────────────────────
-DOTFILES="$(cd "$(dirname "$0")" && pwd)"
-
-link() {
-  local src="$1" dst="$2"
-  if [ "$(readlink "$dst" 2>/dev/null)" = "$src" ]; then
-    echo "  Already linked $dst"
-    return
-  fi
-  if [ -e "$dst" ] || [ -L "$dst" ]; then
-    echo "  Backing up existing $dst -> ${dst}.bak"
-    mv "$dst" "${dst}.bak"
-  fi
-  ln -sf "$src" "$dst"
-  echo "  Linked $src -> $dst"
+usable() {
+  command -v "$1" >/dev/null 2>&1 && "$1" -c 'import sys; sys.exit(sys.version_info < (3, 8))' 2>/dev/null
 }
 
-echo "Creating symlinks..."
-link "$DOTFILES/zshrc"          "$HOME/.zshrc"
-link "$DOTFILES/zsh/p10k.zsh"   "$HOME/.p10k.zsh"
-link "$DOTFILES/gitconfig"      "$HOME/.gitconfig"
-link "$DOTFILES/tmux.conf"      "$HOME/.tmux.conf"
+find_python() {
+  for py in python3 python3.13 python3.12 python3.11 python3.10 python3.9 python3.8 python; do
+    if usable "$py"; then command -v "$py"; return 0; fi
+  done
+  return 1
+}
 
-mkdir -p "$HOME/.config/git"
-link "$DOTFILES/git/ignore"     "$HOME/.config/git/ignore"
+privileged() {
+  case " $* " in *" --no-sudo "*) return 1 ;; esac
+  [ "$(id -u)" = 0 ] && return 0
+  command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null
+}
 
-# Personal scripts → ~/bin (on PATH via zsh/common.zsh)
-mkdir -p "$HOME/bin"
-for script in "$DOTFILES"/bin/*; do
-  link "$script" "$HOME/bin/$(basename "$script")"
-done
+as_root() { if [ "$(id -u)" = 0 ]; then "$@"; else sudo -n "$@"; fi; }
 
-mkdir -p "$HOME/.codex"
-link "$DOTFILES/codex/config.toml" "$HOME/.codex/config.toml"
+system_python() {
+  if command -v apt-get >/dev/null 2>&1; then as_root apt-get update -qq && as_root apt-get install -y -qq python3
+  elif command -v dnf >/dev/null 2>&1; then as_root dnf install -y -q python3
+  elif command -v pacman >/dev/null 2>&1; then as_root pacman -Sy --needed --noconfirm python
+  elif command -v zypper >/dev/null 2>&1; then as_root zypper --non-interactive install python3
+  else return 1
+  fi
+}
 
-mkdir -p "$HOME/.config/kitty"
-link "$DOTFILES/kitty/kitty.conf" "$HOME/.config/kitty/kitty.conf"
+uv_python() {
+  PATH="$HOME/.local/bin:$PATH"
+  export PATH
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "Fetching uv (user-local) to get a standalone Python…" >&2
+    if command -v curl >/dev/null 2>&1; then
+      curl -LsSf https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh >&2
+    else
+      wget -qO- https://astral.sh/uv/install.sh | UV_NO_MODIFY_PATH=1 sh >&2
+    fi
+  fi
+  uv python find 3.12 2>/dev/null || { uv python install 3.12 >&2 && uv python find 3.12; }
+}
 
-mkdir -p "$HOME/.config/lazygit"
-link "$DOTFILES/lazygit/config.yml" "$HOME/Library/Application Support/lazygit/config.yml"
-
-mkdir -p "$HOME/.config/nvim"
-link "$DOTFILES/nvim/init.lua"  "$HOME/.config/nvim/init.lua"
-# Link the lua directory (kickstart plugins, custom plugins)
-if [ -d "$DOTFILES/nvim/lua" ]; then
-  link "$DOTFILES/nvim/lua" "$HOME/.config/nvim/lua"
+PY=$(find_python) || PY=""
+if [ -z "$PY" ] && privileged "$@"; then
+  echo "No Python ≥ 3.8 — installing python3 with the system package manager…" >&2
+  system_python >&2 && PY=$(find_python) || PY=""
+fi
+if [ -z "$PY" ]; then
+  PY=$(uv_python) || { echo "Could not find or fetch Python ≥ 3.8 (need curl or wget)." >&2; exit 1; }
 fi
 
-# ── Claude Code config ──────────────────────────────────────────────
-echo "Linking Claude Code config..."
-mkdir -p "$HOME/.claude" "$HOME/.claude/plugins"
-link "$DOTFILES/claude/settings.json"           "$HOME/.claude/settings.json"
-link "$DOTFILES/claude/rules"                    "$HOME/.claude/rules"
-link "$DOTFILES/claude/agents"                   "$HOME/.claude/agents"
-link "$DOTFILES/claude/known_marketplaces.json"  "$HOME/.claude/plugins/known_marketplaces.json"
-link "$DOTFILES/claude/statusline-command.sh"    "$HOME/.claude/statusline-command.sh"
-link "$DOTFILES/claude/load-project-skills.sh"   "$HOME/.claude/load-project-skills.sh"
-
-echo ""
-echo "Done! Next steps:"
-echo "  1. Restart your terminal (prompt is preconfigured; 'p10k configure' to change it)"
-echo "  2. Put machine-specific secrets/paths in ~/.zshrc.local (untracked)"
-echo "  3. Open nvim to let lazy.nvim install plugins"
-echo "  4. In tmux, press prefix + I to install plugins"
-echo "  5. Run 'claude' and authenticate, then run ~/dotfiles/claude/install-plugins.sh"
+exec "$PY" "$DIR/install.py" "$@"

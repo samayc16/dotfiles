@@ -1,5 +1,5 @@
-# Shared zsh config sourced by both zshrc (macOS) and zshrc-arch (Linux).
-# Platform files own PATH, plugins and tool init; this file owns behaviour
+# Shared zsh config sourced by the portable zshrc (macOS + Linux).
+# zshrc owns PATH, plugins and tool init; this file owns behaviour
 # that should be identical everywhere.
 
 # ── Personal scripts (dotfiles/bin → ~/bin) ──────────────────────────
@@ -53,7 +53,11 @@ zle -N __copy_cmd_to_clipboard
 bindkey '^[y' __copy_cmd_to_clipboard
 
 # ── Aliases ───────────────────────────────────────────────────────────
-alias lrt='eza -la --icons --sort newest'   # long listing, newest last
+if (( $+commands[eza] )); then
+  alias lrt='eza -la --icons --sort newest'   # long listing, newest last
+else
+  alias lrt='ls -lart'
+fi
 
 # ── Functions ─────────────────────────────────────────────────────────
 # Attach to (or create) the tmux session named "main"
