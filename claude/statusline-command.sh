@@ -6,6 +6,13 @@
 # Segments auto-hide when their data is absent. All JSON fields are pulled in
 # one jq pass (the status line re-runs on every turn, so subprocess count matters).
 
+# Portable across macOS/Linux: only bash, jq, git, date +%s. Numbers are
+# formatted with printf, so pin the decimal separator (de_DE etc. use ",").
+# (LC_ALL would override it, so fold LC_ALL into LC_CTYPE first.)
+if [ -n "${LC_ALL:-}" ]; then export LC_CTYPE="$LC_ALL"; unset LC_ALL; fi
+export LC_NUMERIC=C
+command -v jq >/dev/null 2>&1 || exit 0   # no jq (minimal box): show nothing
+
 input=$(cat)
 
 {
@@ -90,7 +97,7 @@ fi
 if [[ -n "$cwd" ]]; then
   home="${HOME%/}"
   dir="$cwd"
-  [[ "$cwd" == "$home" || "$cwd" == "$home/"* ]] && dir="~${cwd#$home}"
+  [[ "$cwd" == "$home" || "$cwd" == "$home/"* ]] && dir="~${cwd#"$home"}"
   if [[ "$dir" == */* ]]; then
     add "${BLUE}${dir%/*}/${BOLD}${dir##*/}${RESET}"
   else

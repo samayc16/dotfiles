@@ -1,18 +1,42 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# Claude Code marketplaces + plugins. Idempotent; needs network, not a login.
+set -euo pipefail
 
-# Install Claude Code plugins after authentication.
-# Run this AFTER 'claude' has been authenticated on a fresh machine.
+marketplaces=(
+  anthropics/claude-plugins-official
+  affaan-m/everything-claude-code
+  nextlevelbuilder/ui-ux-pro-max-skill
+)
 
-echo "Installing Claude Code plugins..."
+# LSP plugins give Claude go-to-definition and diagnostics; each needs its server on PATH.
+plugins=(
+  clangd-lsp@claude-plugins-official  # clangd
+  swift-lsp@claude-plugins-official   # sourcekit-lsp
+  pyright-lsp@claude-plugins-official # pyright-langserver
+  lua-lsp@claude-plugins-official     # lua-language-server
+  everything-claude-code@everything-claude-code
+  ui-ux-pro-max@ui-ux-pro-max-skill
+)
 
-# Official plugins
-claude plugin install swift-lsp --marketplace claude-plugins-official
-claude plugin install clangd-lsp --marketplace claude-plugins-official
+command -v claude >/dev/null || { echo "claude is not installed" >&2; exit 1; }
+command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }
 
-# Community plugins
-claude plugin install everything-claude-code --marketplace everything-claude-code
-claude plugin install ui-ux-pro-max --marketplace ui-ux-pro-max-skill
+known="$(claude plugin marketplace list --json 2>/dev/null | jq -r '.[].repo // empty')"
+for repo in "${marketplaces[@]}"; do
+  if grep -qx "$repo" <<<"$known"; then
+    echo "  marketplace $repo"
+  else
+    claude plugin marketplace add "$repo"
+  fi
+done
 
-echo ""
-echo "Plugins installed. Restart Claude Code to activate."
+installed="$(claude plugin list --json 2>/dev/null | jq -r '.[].id')"
+for plugin in "${plugins[@]}"; do
+  if grep -qx "$plugin" <<<"$installed"; then
+    echo "  plugin $plugin"
+  else
+    claude plugin install "$plugin" --scope user
+  fi
+done
+
+echo "Plugins ready. Restart Claude Code to load new ones."

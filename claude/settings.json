@@ -51,7 +51,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5-1[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -73,11 +73,18 @@
     "clangd-lsp@claude-plugins-official": true,
     "everything-claude-code@everything-claude-code": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
-    "telegram@claude-plugins-official": true
+    "telegram@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true
   },
   "feedbackSurveyRate": 0,
   "alwaysThinkingEnabled": true,
   "effortLevel": "high",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "xhigh"
+    }
+  },
   "awaySummaryEnabled": true,
   "showClearContextOnPlanAccept": true,
   "tui": "fullscreen",
@@ -90,6 +97,7 @@
   "showThinkingSummaries": true,
   "skipDangerousModePermissionPrompt": true,
   "preferredNotifChannel": "kitty",
+  "remoteControlAtStartup": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true
