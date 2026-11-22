@@ -1,0 +1,9 @@
+{
+  "name": "dotfiles-snippets",
+  "description": "Custom snippets loaded by LuaSnip (see lua/plugins/completion.lua)",
+  "contributes": {
+    "snippets": [
+      { "language": ["systemverilog", "verilog"], "path": "./systemverilog.json" }
+    ]
+  }
+}
