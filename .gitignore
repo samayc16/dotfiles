@@ -1,0 +1,7 @@
+__pycache__/
+*.py[co]
+.DS_Store
+*.swp
+*.vcd
+*.fst
+obj_dir/
