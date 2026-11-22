@@ -1,0 +1,129 @@
+# Install the dotfiles from scratch on fresh Linux containers (as root, and as a user
+# with no sudo — the locked-down SSH box case) and check the result; macOS gets a dry
+# run + link check. Runs on changes to anything the installer touches.
+name: install
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - install.sh
+      - install.py
+      - installer/**
+      - install.d/**
+      - mise/**
+      - zshrc
+      - zsh/**
+      - nvim/**
+      - clangd/**
+      - .github/workflows/install.yml
+  pull_request:
+    paths:
+      - install.sh
+      - install.py
+      - installer/**
+      - install.d/**
+      - mise/**
+      - zshrc
+      - zsh/**
+      - nvim/**
+      - clangd/**
+      - .github/workflows/install.yml
+  workflow_dispatch:
+
+concurrency:
+  group: install-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests (installer, stdlib unittest)
+        run: python3 -m unittest discover -s installer/tests -t . -v
+      - name: shellcheck
+        run: |
+          shellcheck -x -P install.d -s bash install.d/*.sh
+          shellcheck -s sh install.sh install-arch.sh
+      - name: zsh syntax
+        run: sudo apt-get install -y -qq zsh >/dev/null && zsh -n zshrc && zsh -n zsh/common.zsh
+
+  linux:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [ubuntu:24.04, debian:12, fedora:latest, rockylinux:9, archlinux:latest]
+        mode: [root, user]
+        include:
+          # EPEL on Rocky 9 has no Verilator ≥ 5; a 20-minute source build isn't worth CI time
+          - image: rockylinux:9
+            mode: root
+            extra: --skip hdl
+    container: ${{ matrix.image }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
+      NO_COLOR: "1"
+    steps:
+      - name: Minimal base for the no-root user (git, curl, zsh, compiler — no Python, no sudo)
+        if: matrix.mode == 'user'
+        run: |
+          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils unzip make gcc util-linux >/dev/null
+          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz unzip make gcc util-linux findutils
+          elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl zsh tar xz unzip make gcc util-linux
+          fi
+          useradd -m -s /bin/bash tester
+      - uses: actions/checkout@v4
+
+      - name: Install as root (profile dev)
+        if: matrix.mode == 'root'
+        run: ./install.sh --profile dev --without hdl-src --no-log ${{ matrix.extra }}
+
+      - name: Install as a user without sudo (profile cli)
+        if: matrix.mode == 'user'
+        run: |
+          cp -r "$GITHUB_WORKSPACE" /home/tester/dotfiles && chown -R tester: /home/tester/dotfiles
+          runuser -u tester -- env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
+            bash -c 'cd ~/dotfiles && ./install.sh --no-sudo --profile cli --no-log'
+
+      - name: Verify
+        run: |
+          cat >/tmp/verify.sh <<'EOF'
+          set -eu
+          export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+          echo "nvim: $(nvim --version | head -n1)"
+          v=$(nvim --version | head -n1 | sed 's/^NVIM v//; s/-.*//')
+          [ "$(printf '%s\n0.12.0\n' "$v" | sort -V | head -n1)" = 0.12.0 ] || { echo "nvim too old: $v"; exit 1; }
+          for t in rg fd fzf bat eza delta lazygit zoxide tree-sitter; do printf '%-12s ' "$t"; "$t" --version 2>&1 | head -n1; done
+          printf '%-12s ' tmux; tmux -V
+          for l in .zshrc .tmux.conf .gitconfig .config/nvim .config/mise/config.toml .config/clangd/config.yaml; do
+            [ -L "$HOME/$l" ] && [ -e "$HOME/$l" ] || { echo "missing link: ~/$l"; exit 1; }
+          done
+          if command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; exit'" /dev/null 2>&1)
+          else out=$(zsh -ic 'echo ZSH_OK' 2>&1 | grep -v "can't change option: zle"); fi
+          echo "$out" | grep -q ZSH_OK || { echo "zsh failed: $out"; exit 1; }
+          if echo "$out" | grep -E -i 'not found|error|no such file'; then echo "zsh startup printed errors"; exit 1; fi
+          nvim --headless "+Lazy! restore" +qa
+          echo "verify: all good"
+          EOF
+          if [ "${{ matrix.mode }}" = user ]; then runuser -u tester -- env HOME=/home/tester sh /tmp/verify.sh; else sh /tmp/verify.sh; fi
+
+  macos:
+    needs: lint
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -m unittest discover -s installer/tests -t .
+      - name: Plan + dry run
+        run: ./install.sh --list-steps && ./install.sh --dry-run --no-log --skip smoke
+      - name: Link into a fresh HOME
+        run: |
+          export HOME="$(mktemp -d)"
+          ./install.sh --link-only --no-log
+          for l in .zshrc .tmux.conf .config/nvim .config/mise/config.toml "Library/Preferences/clangd/config.yaml" "Library/Application Support/lazygit/config.yml"; do
+            [ -L "$HOME/$l" ] || { echo "missing link: ~/$l"; exit 1; }
+          done
