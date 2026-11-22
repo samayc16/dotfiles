@@ -1,0 +1,148 @@
+#!/bin/bash
+# play — fzf menu of every installed offline game / trainer, training first.
+#
+#   play            pick from the menu
+#   play <words>    jump straight to the best match (e.g. `play doom`, `play sed`)
+#   play --list     print what's installed
+#
+# Install the games with ~/dotfiles/games/install.sh; nvim ones come with the nvim config.
+set -uo pipefail
+
+GAMES_DIR="${GAMES_DIR:-$HOME/games}"
+NVIM_LAZY="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/lazy"
+NVIM_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+export GAMES_DIR PATH="$GAMES_DIR/bin:$PATH"
+
+# Monokai Pro
+GREEN=$'\033[38;2;169;220;118m' CYAN=$'\033[38;2;120;220;232m' PINK=$'\033[38;2;255;97;136m'
+GRAY=$'\033[38;2;114;112;114m' RESET=$'\033[0m'
+
+ENTRIES=() NAMES=() COMMANDS=()
+# add <group> <name> <description> <command>
+add() {
+  NAMES+=("$2")
+  COMMANDS+=("$4")
+  local color
+  case "$1" in
+    'Train: nvim') color=$GREEN ;;
+    'Train: terminal') color=$CYAN ;;
+    *) color=$PINK ;;
+  esac
+  ENTRIES+=("$(printf '%s%-16s%s %-16s %s%s%s' "$color" "$1" "$RESET" "$2" "$GRAY" "$3" "$RESET")"$'\t'"$4")
+}
+
+have() { command -v "$1" >/dev/null 2>&1; }
+have_plugin() { [[ -d "$NVIM_LAZY/$1" ]]; }
+have_dir() { [[ -e "$GAMES_DIR/$1" ]]; }
+# :Dojo lives elsewhere in the nvim config; games.lua only references it in its menu.
+have_dojo() { grep -Rqs --include='*.lua' --exclude='games.lua' -E "['\"]Dojo['\"]" "$NVIM_CONFIG/" 2>/dev/null; }
+
+# Linux-flavoured grep/sed/awk/coreutils for the exercise apps (no-op off Homebrew).
+with_gnu() {
+  local prefix="${HOMEBREW_PREFIX:-/opt/homebrew}" tool
+  for tool in coreutils gawk gnu-sed grep; do
+    [[ -d "$prefix/opt/$tool/libexec/gnubin" ]] && PATH="$prefix/opt/$tool/libexec/gnubin:$PATH"
+  done
+  "$@"
+}
+
+# GameShell writes gameshell-save*.sh on exit; resume the newest one if there is one.
+gameshell() {
+  cd "$GAMES_DIR/gameshell" || return 1
+  local save
+  save=$(ls gameshell-save*.sh 2>/dev/null | sort | tail -n 1)
+  BASH_SILENCE_DEPRECATION_WARNING=1 bash "${save:-gameshell.sh}"
+}
+
+# Drop into an interactive shell inside a game directory.
+shell_in() {
+  local dir="$1" hint="$2"
+  cd "$dir" || return 1
+  clear
+  printf '%s%s%s\n%s(subshell in %s — type exit to leave)%s\n\n' "$GREEN" "$hint" "$RESET" "$GRAY" "$dir" "$RESET"
+  exec "${SHELL:-/bin/bash}" -i
+}
+
+build_menu() {
+  have_dojo && add 'Train: nvim' 'dojo' 'vim-golf dojo: motions + your own keymaps' 'nvim +Dojo'
+  add 'Train: nvim' 'tutor' 'built-in Vim tutor (2 lessons)' 'nvim +Tutor'
+  have_plugin vim-be-good && add 'Train: nvim' 'vim-be-good' 'motion drills: relative jumps, ci{, whack-a-mole' 'nvim +VimBeGood'
+  if have_plugin train.nvim; then
+    # train.nvim marks where each motion lands in the current buffer, so give it text:
+    # nvim's own motion.txt, read-only.
+    local practice='-R -c "edit \$VIMRUNTIME/doc/motion.txt" -c "normal! 40%"'
+    add 'Train: nvim' 'train-updown' 'see where j / k / H / M / L / gg land' "nvim $practice -c TrainUpDown"
+    add 'Train: nvim' 'train-word' 'see where w / b / e / ge / W / B land' "nvim $practice -c TrainWord"
+    add 'Train: nvim' 'train-textobj' 'see where ( ) { } [[ ]] land' "nvim $practice -c TrainTextObj"
+  fi
+  have_plugin typr && add 'Train: nvim' 'typr' 'typing practice (+ :TyprStats dashboard)' 'nvim +Typr'
+  have_plugin speedtyper.nvim && add 'Train: nvim' 'speedtyper' 'timed typing game' 'nvim +Speedtyper'
+  add 'Train: nvim' 'nvim-games' 'everything above + nvim games, via :Games' 'nvim +Games'
+
+  have learn && add 'Train: terminal' 'learn' 'gamified tracks: shell grep/rg/sed/awk + languages' 'learn'
+  have grepexercises && add 'Train: terminal' 'grep-exercises' '50+ GNU grep puzzles' 'with_gnu grepexercises'
+  have sedexercises && add 'Train: terminal' 'sed-exercises' '50+ GNU sed puzzles' 'with_gnu sedexercises'
+  have awkexercises && add 'Train: terminal' 'awk-exercises' '80+ GNU awk puzzles' 'with_gnu awkexercises'
+  have awktutorial && add 'Train: terminal' 'awk-tutorial' 'interactive tour of awk' 'with_gnu awktutorial'
+  have cliexercises && add 'Train: terminal' 'cli-exercises' '70+ mixed text-processing puzzles' 'with_gnu cliexercises'
+  have_dir gameshell/gameshell.sh && add 'Train: terminal' 'gameshell' 'shell missions: files, pipes, jobs, processes' 'gameshell'
+  have_dir clmystery && add 'Train: terminal' 'murder-mystery' 'solve a murder with grep / head / awk' 'shell_in "$GAMES_DIR/clmystery" "Start with: cat instructions"'
+  have_dir bashcrawl && add 'Train: terminal' 'bashcrawl' 'dungeon crawl with cd / ls / cat' 'shell_in "$GAMES_DIR/bashcrawl/entrance" "Start with: cat scroll"'
+
+  have_plugin actually-doom.nvim && add 'Play' 'doom' 'DOOM in nvim. arrows, x fire, space use' 'nvim "+Doom $NVIM_LAZY/actually-doom.nvim/iwad/DOOM1.WAD"'
+  have nethack && add 'Play' 'nethack' 'the classic roguelike' 'nethack'
+  have angband && add 'Play' 'angband' 'roguelike: 100 levels down to Morgoth' 'angband'
+  have_dir zork/zork1.z3 && have frotz && {
+    add 'Play' 'zork1' 'Zork I: The Great Underground Empire' 'cd "$GAMES_DIR/zork" && frotz zork1.z3'
+    add 'Play' 'zork2' 'Zork II: The Wizard of Frobozz' 'cd "$GAMES_DIR/zork" && frotz zork2.z3'
+    add 'Play' 'zork3' 'Zork III: The Dungeon Master' 'cd "$GAMES_DIR/zork" && frotz zork3.z3'
+  }
+  have curseofwar && add 'Play' 'curseofwar' 'real-time strategy' 'curseofwar'
+  have tetris && add 'Play' 'vitetris' 'Tetris' 'tetris'
+  have_plugin nvim-tetris && add 'Play' 'nvim-tetris' 'Tetris in nvim' 'nvim +Tetris'
+  have_dir sedtris && add 'Play' 'sedtris' 'Tetris written in sed' 'with_gnu bash "$GAMES_DIR/sedtris/sedtris.sh"'
+  have_dir awkaster && have gawk && add 'Play' 'awkaster' 'Wolfenstein-style shooter written in awk' 'gawk -f "$GAMES_DIR/awkaster/awkaster.awk"'
+  have myman && add 'Play' 'myman' 'Pac-Man' 'myman'
+  have nInvaders && add 'Play' 'ninvaders' 'Space Invaders' 'nInvaders'
+  have nsnake && add 'Play' 'nsnake' 'Snake' 'nsnake'
+  have moon-buggy && add 'Play' 'moon-buggy' 'jump the craters' 'moon-buggy'
+  have 2048 && add 'Play' '2048' '2048' '2048'
+  have ttysolitaire && add 'Play' 'solitaire' 'Klondike' 'ttysolitaire'
+  have_plugin playtime.nvim && add 'Play' 'playtime' 'card games in nvim: freecell, spider, ...' 'nvim +Playtime'
+  have_plugin killersheep.nvim && add 'Play' 'killersheep' 'shoot the sheep (needs a 60x35 window)' 'nvim +KillKillKill'
+  have_plugin nvimesweeper && add 'Play' 'minesweeper' 'Minesweeper in nvim' 'nvim +Nvimesweeper'
+  have_plugin sudoku.nvim && add 'Play' 'sudoku' 'Sudoku in nvim' 'nvim +Sudoku'
+  have_plugin 2048.nvim && add 'Play' '2048-nvim' '2048 in nvim' 'nvim +Play2048'
+  have_plugin blackjack.nvim && add 'Play' 'blackjack' 'Blackjack in nvim' 'nvim +BlackJackNewGame'
+  have sl && add 'Play' 'sl' 'choo choo' 'sl'
+}
+
+main() {
+  build_menu
+  if [[ "${1:-}" == "--list" ]]; then
+    printf '%s\n' "${ENTRIES[@]}" | cut -f1
+    return
+  fi
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+    return
+  fi
+  # `play <exact name>` launches without the menu.
+  local i
+  for i in "${!NAMES[@]}"; do
+    if [[ "${NAMES[$i]}" == "$*" ]]; then
+      eval "${COMMANDS[$i]}"
+      return
+    fi
+  done
+
+  have fzf || { echo "play: fzf is required" >&2; return 1; }
+
+  local choice
+  choice=$(printf '%s\n' "${ENTRIES[@]}" | fzf --ansi --no-sort --layout=reverse --height=~100% \
+    --delimiter=$'\t' --with-nth=1 --query="$*" --select-1 --exit-0 \
+    --prompt='play › ' --header='enter: launch   esc: quit') || return 0
+  eval "${choice#*$'\t'}"
+}
+
+main "$@"
