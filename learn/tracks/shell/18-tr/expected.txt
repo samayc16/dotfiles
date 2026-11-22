@@ -1,0 +1,8 @@
+api-01.nimbus.example
+api-02.nimbus.example
+api-03.nimbus.example
+api-04.nimbus.example
+cache-01.nimbus.example
+db-01.nimbus.example
+edge.nimbus.example
+worker-01.nimbus.example

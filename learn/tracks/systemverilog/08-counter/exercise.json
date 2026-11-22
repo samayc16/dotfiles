@@ -1,0 +1,20 @@
+{
+  "title": "Counter",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "registers + next-state logic",
+    "wrap-around",
+    "terminal count"
+  ],
+  "files": [
+    "counter.sv"
+  ],
+  "open": "counter.sv",
+  "check": "check.sh",
+  "hints": [
+    "Priority: reset, then load, then count when enabled.",
+    "Wrap: `count <= (count == MAX) ? '0 : count + 1'b1;`",
+    "`tc` is combinational: `en && count == MAX`."
+  ]
+}

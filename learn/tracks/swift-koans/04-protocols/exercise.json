@@ -1,0 +1,20 @@
+{
+  "title": "Protocols and extensions",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "protocol",
+    "default implementation",
+    "extension",
+    "protocol conformance"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "protocol Describable { var summary: String { get } }  extension Describable { func shout() -> String { summary.uppercased() + \"!\" } }",
+    "Conform: struct Book: Describable { ... var summary: String { \"\\(title) by \\(author)\" } }.  extension Int { var isEven: Bool { self % 2 == 0 } }"
+  ]
+}

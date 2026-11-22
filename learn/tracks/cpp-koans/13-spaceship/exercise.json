@@ -1,0 +1,20 @@
+{
+  "title": "The spaceship operator <=>",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "operator<=>",
+    "defaulted comparisons",
+    "std::weak_ordering",
+    "custom ordering"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "auto operator<=>(const Version&) const = default; generates <, <=, >, >= and (with = default ==) equality, member by member.",
+    "Case-insensitive: std::weak_ordering operator<=>(const CiString& o) const { return lower(text) <=> lower(o.text); } and bool operator==(const CiString& o) const { return lower(text) == lower(o.text); }"
+  ]
+}

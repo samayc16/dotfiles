@@ -1,0 +1,20 @@
+{
+  "title": "Context managers",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "with",
+    "__enter__/__exit__",
+    "@contextmanager",
+    "try/finally"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "Class-based: __enter__ returns self (record start), __exit__(self, *exc) records elapsed and returns None (don't swallow errors).",
+    "@contextmanager def working_dir(path): old = os.getcwd(); os.chdir(path); try: yield path; finally: os.chdir(old)"
+  ]
+}

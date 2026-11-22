@@ -1,0 +1,22 @@
+{
+  "title": "Laziness & infinite lists",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "lazy evaluation",
+    "infinite lists",
+    "take/takeWhile",
+    "iterate",
+    "zipWith self-reference"
+  ],
+  "files": [
+    "Lazy.hs"
+  ],
+  "open": "Lazy.hs",
+  "check": "check.sh",
+  "hints": [
+    "[0 ..] never ends, but take 5 only asks for five.",
+    "fibs = 0 : 1 : zipWith (+) fibs (tail fibs)",
+    "collatz: takeWhile (/= 1) (iterate step n) ++ [1]"
+  ]
+}

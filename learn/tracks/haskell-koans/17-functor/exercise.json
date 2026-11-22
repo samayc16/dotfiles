@@ -1,0 +1,22 @@
+{
+  "title": "Functor: mapping inside a box",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "Functor",
+    "fmap",
+    "<$>",
+    "instances for your own types",
+    "trees"
+  ],
+  "files": [
+    "Functors.hs"
+  ],
+  "open": "Functors.hs",
+  "check": "check.sh",
+  "hints": [
+    "fmap f (Box a) = Box (f a)",
+    "For Tree, fmap recursively into both subtrees.",
+    "<$> is just infix fmap."
+  ]
+}

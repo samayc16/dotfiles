@@ -1,0 +1,6 @@
+[database]
+host = db.internal.example
+port = 5432
+user = nimbus
+pool_size = 20   # max open connections
+timeout = 30

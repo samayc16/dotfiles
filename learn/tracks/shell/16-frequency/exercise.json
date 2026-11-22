@@ -1,0 +1,20 @@
+{
+  "title": "Where are our users?",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "uniq -c",
+    "sort -rn"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 162,
+  "hints": [
+    "`uniq -c` counts *adjacent* duplicates, so sort first.",
+    "`sort -rn` sorts numerically, highest first.",
+    "Padding before the count doesn't matter on this level."
+  ]
+}

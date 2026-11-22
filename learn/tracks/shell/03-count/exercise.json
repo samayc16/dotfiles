@@ -1,0 +1,18 @@
+{
+  "title": "How bad is it?",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "grep -c"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 118,
+  "hints": [
+    "You could pipe into `wc -l`... or grep can count by itself.",
+    "`-c` counts matching lines."
+  ]
+}

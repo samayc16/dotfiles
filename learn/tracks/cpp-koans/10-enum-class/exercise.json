@@ -1,0 +1,20 @@
+{
+  "title": "enum class, to_underlying, using enum",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "enum class",
+    "underlying type",
+    "std::to_underlying",
+    "using enum"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "enum class Level : std::uint8_t { Debug, Info, Warn, Error };  scoped: no implicit int conversion.",
+    "std::to_underlying(level) gives the integer. Inside a switch: using enum Level; case Debug: ... (C++20)."
+  ]
+}

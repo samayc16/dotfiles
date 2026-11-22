@@ -1,0 +1,20 @@
+{
+  "title": "Malformed metrics",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "NF (field count)",
+    "NR (record number)"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 150,
+  "hints": [
+    "`NF` is the number of fields on the line, `NR` the line number.",
+    "Use `-F'\\t'` for tabs.",
+    "`$0` is the whole line."
+  ]
+}

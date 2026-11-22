@@ -1,0 +1,21 @@
+{
+  "name": "Swift \u00b7 Koans (Swift 6)",
+  "slug": "swift-koans",
+  "language": "swift",
+  "description": "Optionals, value types, enums, protocols, generics, closures, typed throws, Codable, async/await and actors.",
+  "order": [
+    "01-optionals",
+    "02-value-vs-reference",
+    "03-enums",
+    "04-protocols",
+    "05-generics",
+    "06-closures",
+    "07-errors",
+    "08-result",
+    "09-collections",
+    "10-property-wrappers",
+    "11-codable",
+    "12-async-await",
+    "13-actors"
+  ]
+}

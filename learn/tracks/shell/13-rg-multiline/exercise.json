@@ -1,0 +1,20 @@
+{
+  "title": "Read the tracebacks",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "rg -U multiline",
+    "non-capturing groups (?:)"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 158,
+  "hints": [
+    "`-U` lets a pattern span lines; write newlines as `\\n`.",
+    "A traceback is `Traceback...` then indented lines (two leading spaces), then the exception line.",
+    "`(?:  .*\\n)+` repeats indented lines without capturing; capture the next line with `(.+)`."
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Synchronous FIFO",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "memories (arrays)",
+    "read/write pointers",
+    "full/empty/count"
+  ],
+  "files": [
+    "fifo.sv"
+  ],
+  "open": "fifo.sv",
+  "check": "check.sh",
+  "hints": [
+    "Track `count`; full = (count == DEPTH), empty = (count == 0).",
+    "`do_push = push && !full; do_pop = pop && !empty;` and update count by +1, -1 or 0.",
+    "Pointers wrap at DEPTH; `dout = mem[rd_ptr]` (show-ahead)."
+  ]
+}

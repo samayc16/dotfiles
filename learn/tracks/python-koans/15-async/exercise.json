@@ -1,0 +1,21 @@
+{
+  "title": "async/await: gather, TaskGroup, timeouts",
+  "difficulty": 4,
+  "xp": 35,
+  "concepts": [
+    "async def",
+    "await",
+    "asyncio.gather",
+    "TaskGroup",
+    "asyncio.timeout"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "Concurrency: return list(await asyncio.gather(*(fetch(n, delay) for n in names))) — all sleeps overlap.",
+    "async with asyncio.TaskGroup() as tg: tasks = [tg.create_task(...)]; then [t.result() for t in tasks]. Timeout: try: async with asyncio.timeout(s): return await coro  except TimeoutError: return None"
+  ]
+}

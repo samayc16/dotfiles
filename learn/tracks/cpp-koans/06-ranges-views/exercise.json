@@ -1,0 +1,22 @@
+{
+  "title": "Ranges and views",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "std::views::filter",
+    "transform",
+    "iota",
+    "take",
+    "zip",
+    "std::ranges::to"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "Pipelines read left to right: values | std::views::filter(is_even) | std::views::transform(square) | std::ranges::to<std::vector>()",
+    "Infinite source: std::views::iota(2) | std::views::filter(is_prime) | std::views::take(n). zip pairs two ranges: for (auto [a, b] : std::views::zip(xs, ys))."
+  ]
+}

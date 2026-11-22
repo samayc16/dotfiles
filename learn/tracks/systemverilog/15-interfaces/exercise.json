@@ -1,0 +1,21 @@
+{
+  "title": "Interfaces and modports",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "interface",
+    "modport",
+    "valid/ready handshake"
+  ],
+  "files": [
+    "stream_if.sv",
+    "summer.sv"
+  ],
+  "open": "summer.sv",
+  "check": "check.sh",
+  "hints": [
+    "A modport lists each signal with its direction from that side: `modport sink (input valid, data, output ready);`",
+    "A beat transfers on a clock edge where `valid && ready`.",
+    "Drive `s.ready = !stall;`"
+  ]
+}

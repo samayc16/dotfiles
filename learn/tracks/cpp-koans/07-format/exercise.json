@@ -1,0 +1,20 @@
+{
+  "title": "std::format and custom formatters",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "format spec",
+    "hex/binary",
+    "fill & align",
+    "std::formatter specialization"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "Specs: {:08.3f} zero-pads, {:#x} hex with 0x, {:08b} 8-digit binary, {:*^9} centres with * fill.",
+    "Custom type: template <> struct std::formatter<Point> : std::formatter<std::string> { auto format(const Point& p, auto& ctx) const { return std::formatter<std::string>::format(std::format(\"({}, {})\", p.x, p.y), ctx); } };"
+  ]
+}

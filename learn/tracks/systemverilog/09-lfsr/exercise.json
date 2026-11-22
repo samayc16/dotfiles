@@ -1,0 +1,19 @@
+{
+  "title": "LFSR",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "shift registers",
+    "feedback taps",
+    "pseudo-random sequences"
+  ],
+  "files": [
+    "lfsr.sv"
+  ],
+  "open": "lfsr.sv",
+  "check": "check.sh",
+  "hints": [
+    "Feedback = XOR of the tap bits: `q[7] ^ q[5] ^ q[4] ^ q[3]`.",
+    "Shift left and insert the feedback at bit 0: `q <= {q[6:0], fb};`"
+  ]
+}

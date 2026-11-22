@@ -1,0 +1,22 @@
+{
+  "title": "optional, variant, expected",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "std::optional",
+    "std::variant",
+    "std::visit",
+    "overloaded pattern",
+    "std::expected",
+    "and_then/transform"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "parse_int: use std::from_chars(s.data(), s.data() + s.size(), value); success when ec == std::errc{} and ptr == end.",
+    "Overloaded visitor: template <class... Fs> struct overloaded : Fs... { using Fs::operator()...; };  std::visit(overloaded{[](int i) {...}, [](const std::string& s) {...}}, v).  Errors: return std::unexpected{\"divide by zero\"};"
+  ]
+}

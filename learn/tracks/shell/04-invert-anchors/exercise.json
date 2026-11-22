@@ -1,0 +1,21 @@
+{
+  "title": "Strip the noise",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "grep -v",
+    "^ and $ anchors",
+    "multiple -e"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 135,
+  "hints": [
+    "`-v` inverts the match: print lines that do NOT match.",
+    "`^` anchors to the start of a line, `$` to the end. `^$` is an empty line.",
+    "Give grep several patterns with repeated `-e`."
+  ]
+}

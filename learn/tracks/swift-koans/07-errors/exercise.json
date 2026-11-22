@@ -1,0 +1,21 @@
+{
+  "title": "Error handling and typed throws",
+  "difficulty": 3,
+  "xp": 25,
+  "concepts": [
+    "Error",
+    "throws",
+    "typed throws (Swift 6)",
+    "do/catch",
+    "try?"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "func parseAge(_ text: String) throws(AgeError) -> Int { guard !text.isEmpty else { throw .empty }; guard let n = Int(text) else { throw .notANumber(text) }; ... }",
+    "With typed throws, `catch` gives you an AgeError directly: do { ... } catch { switch error { case .empty: ... } }.  try? turns a throw into nil."
+  ]
+}

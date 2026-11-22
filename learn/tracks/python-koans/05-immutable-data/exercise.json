@@ -1,0 +1,20 @@
+{
+  "title": "Immutable data: frozen dataclasses, slots, replace()",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "frozen=True",
+    "slots=True",
+    "dataclasses.replace",
+    "hashability"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "@dataclass(frozen=True, slots=True). Frozen instances raise FrozenInstanceError on assignment and become hashable.",
+    "Return modified copies: return replace(self, x=self.x + dx, y=self.y + dy). For the tuple field: replace(self, items=(*self.items, item))."
+  ]
+}

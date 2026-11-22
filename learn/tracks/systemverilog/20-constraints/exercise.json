@@ -1,0 +1,23 @@
+{
+  "title": "Constrained random",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "rand",
+    "constraint blocks",
+    "inside",
+    "implication ->",
+    "dist",
+    "randomize() with"
+  ],
+  "files": [
+    "txn_pkg.sv"
+  ],
+  "open": "txn_pkg.sv",
+  "check": "check.sh",
+  "hints": [
+    "`constraint c_align { addr[1:0] == 0; }`",
+    "`constraint c_len { (kind == IDLE) -> len == 0; (kind != IDLE) -> len inside {[1:8]}; }`",
+    "`constraint c_kind { kind dist { READ := 4, WRITE := 4, IDLE := 2 }; }`"
+  ]
+}

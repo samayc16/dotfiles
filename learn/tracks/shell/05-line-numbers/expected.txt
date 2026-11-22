@@ -1,0 +1,4 @@
+301:2026-03-14T10:21:44Z ERROR api     request_id=23b51d user=u042 path=/api/orders status=503 ms=1130 msg="panic: nil pointer dereference"
+308:2026-03-14T10:23:42Z ERROR auth    request_id=59961c user=u050 path=/api/users status=503 ms=3235 msg="panic: nil pointer dereference"
+354:2026-03-14T10:36:50Z ERROR billing request_id=6d62ab user=u042 path=/api/users status=504 ms=1049 msg="panic: nil pointer dereference"
+626:2026-03-14T11:55:04Z ERROR worker  request_id=4a054a user=u028 path=/api/orders status=500 ms=4391 msg="panic: nil pointer dereference"

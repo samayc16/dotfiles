@@ -1,0 +1,22 @@
+{
+  "title": "Maybe: values that might be missing",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "Maybe",
+    "Just/Nothing",
+    "lookup",
+    "fromMaybe",
+    "maybe"
+  ],
+  "files": [
+    "Maybes.hs"
+  ],
+  "open": "Maybes.hs",
+  "check": "check.sh",
+  "hints": [
+    "Pattern-match the zero case first: safeDiv _ 0 = Nothing",
+    "lookup :: Eq a => a -> [(a, b)] -> Maybe b",
+    "For totalPrice, recurse and `case` on both Maybes. (Later: `mapM priceOf items` does it in one go!)"
+  ]
+}

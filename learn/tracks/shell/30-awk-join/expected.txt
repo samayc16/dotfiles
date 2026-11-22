@@ -1,0 +1,5 @@
+payments 4986.85
+platform 4267.61
+growth 3164.37
+search 2946.32
+infra 1640.92

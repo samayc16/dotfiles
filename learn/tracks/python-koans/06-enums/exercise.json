@@ -1,0 +1,21 @@
+{
+  "title": "Enums",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "Enum",
+    "auto",
+    "IntEnum",
+    "StrEnum",
+    "methods on enums"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "class Color(Enum): RED = auto(). Methods work like on any class: def complement(self) -> Color: ...",
+    "StrEnum members ARE strings: Status('done') looks a member up by value; IntEnum members compare with ints."
+  ]
+}

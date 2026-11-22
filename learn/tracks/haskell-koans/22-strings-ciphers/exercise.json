@@ -1,0 +1,21 @@
+{
+  "title": "Strings & ciphers",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "Data.Char",
+    "ord/chr",
+    "String as [Char]",
+    "words/unwords"
+  ],
+  "files": [
+    "Ciphers.hs"
+  ],
+  "open": "Ciphers.hs",
+  "check": "check.sh",
+  "hints": [
+    "Shift relative to 'a' or 'A': chr (ord base + (ord c - ord base + n) `mod` 26)",
+    "`mod` in Haskell is always non-negative for a positive divisor, so negative shifts just work.",
+    "unwords . map capitalize . words"
+  ]
+}

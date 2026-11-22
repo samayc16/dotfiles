@@ -1,0 +1,21 @@
+{
+  "title": "RAII and smart pointers",
+  "difficulty": 2,
+  "xp": 25,
+  "concepts": [
+    "std::unique_ptr",
+    "std::make_unique",
+    "std::shared_ptr",
+    "std::weak_ptr",
+    "ownership"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "push_front: auto node = std::make_unique<Node>(value); node->next = std::move(head); head = std::move(node);",
+    "length: for (const Node* n = head.get(); n; n = n->next.get()) ++count;  A weak_ptr doesn't keep the object alive: .expired() becomes true once the last shared_ptr dies."
+  ]
+}

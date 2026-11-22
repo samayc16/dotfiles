@@ -1,0 +1,19 @@
+{
+  "title": "How many people noticed?",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "wc -l",
+    "pipeline composition"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 161,
+  "hints": [
+    "Combine: filter lines, extract the user, dedupe, count.",
+    "`wc -l` counts lines."
+  ]
+}

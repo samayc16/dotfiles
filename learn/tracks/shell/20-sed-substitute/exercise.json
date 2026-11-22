@@ -1,0 +1,20 @@
+{
+  "title": "Privacy, please",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "sed s///",
+    "negated classes [^,]"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 129,
+  "hints": [
+    "`sed 's/OLD/NEW/' file` replaces the first match on each line.",
+    "Match from a comma up to the `@`: `,[^,]*@`. `[^,]` means \"anything except a comma\".",
+    "Put the comma back in the replacement."
+  ]
+}

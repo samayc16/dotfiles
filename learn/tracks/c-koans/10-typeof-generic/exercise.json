@@ -1,0 +1,20 @@
+{
+  "title": "typeof and _Generic: type-aware macros",
+  "difficulty": 4,
+  "xp": 30,
+  "concepts": [
+    "typeof (C23)",
+    "_Generic",
+    "macro hygiene",
+    "do { } while (0)"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "#define SWAP(a, b) do { typeof(a) tmp_ = (a); (a) = (b); (b) = tmp_; } while (0)",
+    "#define TYPE_NAME(x) _Generic((x), int: \"int\", double: \"double\", char *: \"char *\", default: \"other\")"
+  ]
+}

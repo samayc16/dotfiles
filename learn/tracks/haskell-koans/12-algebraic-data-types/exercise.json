@@ -1,0 +1,20 @@
+{
+  "title": "Algebraic data types",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "data declarations",
+    "constructors with fields",
+    "deriving",
+    "Enum/Bounded"
+  ],
+  "files": [
+    "Shapes.hs"
+  ],
+  "open": "Shapes.hs",
+  "check": "check.sh",
+  "hints": [
+    "One equation per constructor: area (Circle r) = pi * r * r",
+    "Data.List.maximumBy (comparing area) picks by a key, like Python's max(key=...)."
+  ]
+}

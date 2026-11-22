@@ -1,0 +1,21 @@
+{
+  "title": "Move semantics and the rule of five",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "move constructor",
+    "move assignment",
+    "noexcept",
+    "std::exchange",
+    "deleted copy"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "Without a move constructor, moving falls back to the implicit copy: two Buffers own the same array and both delete it (ASan: double-free).",
+    "Buffer(Buffer&& other) noexcept : data_{std::exchange(other.data_, nullptr)}, size_{std::exchange(other.size_, 0)} {}  plus = delete for copies, and a move-assign that deletes[] the old data first."
+  ]
+}

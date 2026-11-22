@@ -1,0 +1,18 @@
+{
+  "title": "Timeout, TIMEOUT, timeout",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "grep -i"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 120,
+  "hints": [
+    "One flag makes grep case-insensitive.",
+    "`man grep` and search for `ignore-case` (type `/ignore`)."
+  ]
+}

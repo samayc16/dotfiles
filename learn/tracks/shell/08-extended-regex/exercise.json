@@ -1,0 +1,21 @@
+{
+  "title": "Five hundreds",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "grep -E",
+    "{n} repetition",
+    "regex literals"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 131,
+  "hints": [
+    "Extended regex (`-E`) gives you `{2}`, `+`, `?`, `|` and `()` without backslashes.",
+    "Anchor on the closing quote and spaces: `\" 5..` followed by a space.",
+    "Single-quote the pattern so the shell leaves the double quote alone."
+  ]
+}

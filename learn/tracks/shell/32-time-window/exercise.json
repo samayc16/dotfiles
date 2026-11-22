@@ -1,0 +1,21 @@
+{
+  "title": "The 15 minutes that mattered",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "substr()",
+    "string comparison",
+    "split()"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 277,
+  "hints": [
+    "`substr($1, 12, 8)` cuts `HH:MM:SS` out of `2026-03-14T10:16:03Z`.",
+    "Zero-padded times compare correctly as strings.",
+    "`split($6, p, \"=\")` puts the part after `=` into `p[2]`."
+  ]
+}

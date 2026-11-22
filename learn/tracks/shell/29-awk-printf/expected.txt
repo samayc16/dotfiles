@@ -1,0 +1,7 @@
+TEAM       USERS
+growth        10
+infra          8
+payments      14
+platform      16
+search        12
+TOTAL         60

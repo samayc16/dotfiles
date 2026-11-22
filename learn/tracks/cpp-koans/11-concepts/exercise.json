@@ -1,0 +1,20 @@
+{
+  "title": "Templates and concepts",
+  "difficulty": 4,
+  "xp": 35,
+  "concepts": [
+    "concepts",
+    "requires-expressions",
+    "constrained templates",
+    "fold expressions"
+  ],
+  "files": [
+    "koan.cpp"
+  ],
+  "open": "koan.cpp",
+  "check": "check.sh",
+  "hints": [
+    "template <class T> concept Shape = requires(const T& s) { { s.area() } -> std::convertible_to<double>; };",
+    "Variadic + fold: template <Shape... Ts> double total_area(const Ts&... shapes) { return (0.0 + ... + shapes.area()); }"
+  ]
+}

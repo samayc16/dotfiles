@@ -1,0 +1,20 @@
+{
+  "title": "Lambdas, sorting and higher-order functions",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "lambda",
+    "sorted key",
+    "closures",
+    "map/filter"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "sorted(people, key=lambda p: (p['age'], p['name'])) sorts by age, then name.",
+    "A closure: def make_multiplier(n): return lambda x: x * n. For apply_all: [f(x) for f in funcs]."
+  ]
+}

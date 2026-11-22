@@ -1,0 +1,22 @@
+{
+  "title": "IO & do-notation",
+  "difficulty": 4,
+  "xp": 40,
+  "concepts": [
+    "IO actions",
+    "do-notation",
+    "mapM_ / forM_",
+    "when",
+    "returning values from IO"
+  ],
+  "files": [
+    "Effects.hs"
+  ],
+  "open": "Effects.hs",
+  "check": "check.sh",
+  "hints": [
+    "forM_ [n, n - 1 .. 1] print, then putStrLn \"liftoff!\"",
+    "The last line of a do-block is its result: pure (length names)",
+    "sequence :: [IO a] -> IO [a]"
+  ]
+}

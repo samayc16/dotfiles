@@ -1,0 +1,20 @@
+{
+  "title": "Dynamic memory: a growable vector",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "malloc/realloc/free",
+    "amortized growth",
+    "ownership",
+    "ASan"
+  ],
+  "files": [
+    "koan.c"
+  ],
+  "open": "koan.c",
+  "check": "check.sh",
+  "hints": [
+    "When len == cap, grow: size_t new_cap = cap ? cap * 2 : 4; int *p = realloc(v->data, new_cap * sizeof *p); check p != nullptr before overwriting v->data.",
+    "vec_free: free(v->data); then reset the struct to {0} so a double free is harmless. ASan will flag any write past the end."
+  ]
+}

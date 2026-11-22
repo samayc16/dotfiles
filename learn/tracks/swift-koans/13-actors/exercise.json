@@ -1,0 +1,21 @@
+{
+  "title": "Actors and Sendable: data-race safety",
+  "difficulty": 5,
+  "xp": 40,
+  "concepts": [
+    "actor",
+    "isolation",
+    "await on actor methods",
+    "Sendable",
+    "Swift 6 strict concurrency"
+  ],
+  "files": [
+    "Koan.swift"
+  ],
+  "open": "Koan.swift",
+  "check": "check.sh",
+  "hints": [
+    "Swift 6 refuses to compile the class version: a mutable class shared between tasks is a data race. Change `final class BankAccount` to `actor BankAccount`.",
+    "Outside the actor, calls need await: await account.deposit(1). Inside withTaskGroup, each addTask can safely call the actor. Transaction is a struct of Sendable fields, so mark it `: Sendable`."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Final boss: find the culprit",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "command substitution $( )",
+    "joins",
+    "everything"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 256,
+  "hints": [
+    "Step 1: get the top user ID with the frequency pipeline from earlier levels.",
+    "Store it with `id=$( ... )`, then look it up: `grep \"^$id,\"`.",
+    "Golfers: one awk can do the whole thing with an NR==FNR join."
+  ]
+}

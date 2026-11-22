@@ -1,0 +1,22 @@
+{
+  "title": "map, filter & folds",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "map",
+    "filter",
+    "foldr",
+    "foldl",
+    "Maybe for empty input"
+  ],
+  "files": [
+    "Folds.hs"
+  ],
+  "open": "Folds.hs",
+  "check": "check.sh",
+  "hints": [
+    "map (^ 2) (filter odd xs)",
+    "foldl walks left to right with an accumulator: foldl pick \"\" (words s)",
+    "Pattern-match [] first in average, then divide by fromIntegral (length xs)."
+  ]
+}

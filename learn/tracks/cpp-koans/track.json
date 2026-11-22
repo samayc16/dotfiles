@@ -1,0 +1,22 @@
+{
+  "name": "C++ \u00b7 Koans (C++26)",
+  "slug": "cpp-koans",
+  "language": "cpp",
+  "description": "RAII, move semantics, lambdas, ranges, std::expected, concepts, constexpr and C++26 pack indexing.",
+  "order": [
+    "01-modern-basics",
+    "02-move-semantics",
+    "03-smart-pointers",
+    "04-lambdas",
+    "05-containers-algorithms",
+    "06-ranges-views",
+    "07-format",
+    "08-optional-variant-expected",
+    "09-string-view-span",
+    "10-enum-class",
+    "11-concepts",
+    "12-constexpr",
+    "13-spaceship",
+    "14-cpp26-preview"
+  ]
+}

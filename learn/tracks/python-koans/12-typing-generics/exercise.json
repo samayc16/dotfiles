@@ -1,0 +1,21 @@
+{
+  "title": "Typing: generics (PEP 695), Protocol, TypedDict",
+  "difficulty": 4,
+  "xp": 30,
+  "concepts": [
+    "PEP 695 generics",
+    "Protocol",
+    "runtime_checkable",
+    "TypedDict",
+    "Self"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "class Stack[T]: def __init__(self) -> None: self._items: list[T] = [] ... def __len__(self) -> int, def __bool__(self) -> bool.",
+    "@runtime_checkable class HasArea(Protocol): def area(self) -> float: ...  — any class with an area() method matches, no inheritance needed."
+  ]
+}

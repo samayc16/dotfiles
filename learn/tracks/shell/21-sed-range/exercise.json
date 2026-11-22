@@ -1,0 +1,20 @@
+{
+  "title": "Just the database bits",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "sed -n ... p",
+    "address ranges /a/,/b/"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 149,
+  "hints": [
+    "`sed -n` prints nothing unless told to; `p` prints.",
+    "`/START/,/END/` selects a range of lines. Escape the brackets: `\\[database\\]`.",
+    "Inside the range, only print non-empty lines: `{/./p;}`."
+  ]
+}

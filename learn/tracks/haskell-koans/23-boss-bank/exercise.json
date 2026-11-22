@@ -1,0 +1,22 @@
+{
+  "title": "BOSS: The Bank of Lambda",
+  "difficulty": 5,
+  "xp": 60,
+  "concepts": [
+    "ADTs",
+    "Either for errors",
+    "Data.Map",
+    "foldM",
+    "modelling a domain"
+  ],
+  "files": [
+    "Bank.hs"
+  ],
+  "open": "Bank.hs",
+  "check": "check.sh",
+  "hints": [
+    "Write a helper balanceOf :: Accounts -> String -> Either BankError Int using Map.lookup.",
+    "In an Either do-block, `when (bal < amt) (Left ...)` aborts with that error.",
+    "applyAll = foldM apply Map.empty"
+  ]
+}

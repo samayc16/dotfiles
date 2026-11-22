@@ -1,0 +1,21 @@
+{
+  "title": "Flip-flops and resets",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "always_ff",
+    "nonblocking <=",
+    "async vs sync reset",
+    "enable"
+  ],
+  "files": [
+    "regs.sv"
+  ],
+  "open": "regs.sv",
+  "check": "check.sh",
+  "hints": [
+    "Async reset goes in the sensitivity list: `always_ff @(posedge clk or negedge rst_n)`.",
+    "Sync reset is just an `if` inside `always_ff @(posedge clk)`.",
+    "Always use `<=` (nonblocking) in always_ff."
+  ]
+}

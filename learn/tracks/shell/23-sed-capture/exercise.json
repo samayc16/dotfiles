@@ -1,0 +1,19 @@
+{
+  "title": "Dates for the Berlin office",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "sed -E",
+    "capture groups \\1"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 165,
+  "hints": [
+    "`sed -E` enables extended regex: `( )` groups and `{4}`, the same on macOS and Linux.",
+    "Refer to groups in the replacement with `\\1`, `\\2`, `\\3`."
+  ]
+}

@@ -1,0 +1,22 @@
+[web]
+host = 0.0.0.0
+port = 8000
+debug = false
+workers = 4
+[database]
+host = db.internal.example
+port = 5432
+user = nimbus
+pool_size = 20
+timeout = 30
+[cache]
+host = cache.internal.example
+port = 6379
+ttl = 300
+[worker]
+concurrency = 8
+debug = false
+queue = default
+[logging]
+level = info
+format = json

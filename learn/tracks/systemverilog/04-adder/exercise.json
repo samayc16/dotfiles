@@ -1,0 +1,20 @@
+{
+  "title": "Parameterized adder",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "parameter",
+    "width extension",
+    "casts N'(x)",
+    "overflow"
+  ],
+  "files": [
+    "adder.sv"
+  ],
+  "open": "adder.sv",
+  "check": "check.sh",
+  "hints": [
+    "Widen before adding: `{1'b0, a} + {1'b0, b}`.",
+    "Signed overflow: operands share a sign bit, but the sum's sign bit differs from it."
+  ]
+}

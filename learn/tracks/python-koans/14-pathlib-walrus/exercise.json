@@ -1,0 +1,20 @@
+{
+  "title": "pathlib and the walrus operator",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "pathlib.Path",
+    "glob",
+    "read_text",
+    ":= (walrus)"
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "sum(len(p.read_text().splitlines()) for p in folder.glob(pattern)). max(path.read_text().splitlines(), key=len, default='').",
+    "while (chunk := stream.read(size)): yield chunk"
+  ]
+}

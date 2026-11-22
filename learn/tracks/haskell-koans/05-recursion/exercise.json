@@ -1,0 +1,21 @@
+{
+  "title": "Recursion on lists",
+  "difficulty": 2,
+  "xp": 20,
+  "concepts": [
+    "recursion",
+    "base case",
+    "cons (:)",
+    "lists"
+  ],
+  "files": [
+    "Recursion.hs"
+  ],
+  "open": "Recursion.hs",
+  "check": "check.sh",
+  "hints": [
+    "Write one equation for [] and one for (x : rest).",
+    "myReverse (x : rest) = myReverse rest ++ [x]",
+    "myZip needs both lists non-empty to continue; anything else is the end."
+  ]
+}

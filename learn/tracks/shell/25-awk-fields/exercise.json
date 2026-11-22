@@ -1,0 +1,21 @@
+{
+  "title": "Who pays us?",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "awk -F",
+    "$N fields",
+    "pattern {action}"
+  ],
+  "files": [
+    "solution.sh"
+  ],
+  "open": "solution.sh",
+  "check": "check.sh",
+  "par": 154,
+  "hints": [
+    "`awk -F, 'CONDITION {ACTION}'` runs ACTION on lines where CONDITION holds.",
+    "Fields are `$1`, `$2`, ...; compare strings with `==`.",
+    "Juxtaposition concatenates: `print $2 \" <\" $3 \">\"`."
+  ]
+}

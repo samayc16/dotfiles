@@ -1,0 +1,21 @@
+{
+  "title": "Sequence detector FSM",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "typedef enum",
+    "Moore FSM",
+    "next-state logic",
+    "overlap"
+  ],
+  "files": [
+    "seq_det.sv"
+  ],
+  "open": "seq_det.sv",
+  "check": "check.sh",
+  "hints": [
+    "States = how much of `1011` you've seen: IDLE, S1, S10, S101, S1011.",
+    "From S1011, a `1` means you've seen `...1` (S1) and a `0` means `...10` (S10). That's the overlap.",
+    "Two processes: `always_ff` for `state <= next;`, `always_comb` for `next` (default `next = state`)."
+  ]
+}

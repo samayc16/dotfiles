@@ -1,0 +1,21 @@
+{
+  "title": "newtype, Semigroup & Monoid",
+  "difficulty": 3,
+  "xp": 30,
+  "concepts": [
+    "newtype",
+    "Semigroup (<>)",
+    "Monoid (mempty, mconcat)",
+    "smart constructors"
+  ],
+  "files": [
+    "Monoids.hs"
+  ],
+  "open": "Monoids.hs",
+  "check": "check.sh",
+  "hints": [
+    "Score a <> Score b = Score (a + b)",
+    "mconcat folds a list with <> starting from mempty.",
+    "foldr1 (<>) needs a non-empty list, so handle [] first."
+  ]
+}

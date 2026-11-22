@@ -1,0 +1,19 @@
+{
+  "title": "f-strings",
+  "difficulty": 1,
+  "xp": 10,
+  "concepts": [
+    "f-strings",
+    "format spec",
+    "debug ="
+  ],
+  "files": [
+    "koan.py"
+  ],
+  "open": "koan.py",
+  "check": "check.sh",
+  "hints": [
+    "Format spec goes after a colon: f'{value:<12}' left-aligns in 12 columns, f'{x:>8.2f}' right-aligns a 2-decimal float.",
+    "Percent: f'{0.256:.1%}' → '25.6%'. Self-documenting: f'{x=}' → 'x=42'."
+  ]
+}

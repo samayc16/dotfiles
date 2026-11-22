@@ -1,0 +1,23 @@
+{
+  "name": "Python \u00b7 Koans (modern features)",
+  "slug": "python-koans",
+  "language": "python",
+  "description": "Fix the code until the checks pass: f-strings \u2192 dataclasses \u2192 match \u2192 generators \u2192 typing \u2192 async.",
+  "order": [
+    "01-fstrings",
+    "02-comprehensions",
+    "03-lambdas",
+    "04-dataclasses",
+    "05-immutable-data",
+    "06-enums",
+    "07-match",
+    "08-generators",
+    "09-itertools-functools",
+    "10-decorators",
+    "11-context-managers",
+    "12-typing-generics",
+    "13-exceptions",
+    "14-pathlib-walrus",
+    "15-async"
+  ]
+}

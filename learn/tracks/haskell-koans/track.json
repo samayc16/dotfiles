@@ -1,0 +1,32 @@
+{
+  "name": "Haskell koans",
+  "slug": "haskell-koans",
+  "language": "haskell",
+  "description": "24 koans at the Lambda Monastery, from expressions to a parser and a bank. For people who know Python or C. Runs offline with GHC's bundled libraries.",
+  "order": [
+    "01-expressions",
+    "02-functions",
+    "03-lambdas-sections",
+    "04-pattern-matching",
+    "05-recursion",
+    "06-map-filter-fold",
+    "07-comprehensions",
+    "08-tuples-zip",
+    "09-where-let",
+    "10-maybe",
+    "11-either-errors",
+    "12-algebraic-data-types",
+    "13-records",
+    "14-type-classes",
+    "15-polymorphism",
+    "16-newtype-monoid",
+    "17-functor",
+    "18-applicative-monad",
+    "19-io-do",
+    "20-laziness",
+    "21-data-map",
+    "22-strings-ciphers",
+    "23-boss-bank",
+    "24-boss-calculator"
+  ]
+}
