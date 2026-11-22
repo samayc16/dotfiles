@@ -1,22 +1,62 @@
-#!/bin/bash
-# Copy stdin to clipboard via OSC-52 (works over SSH, in tmux, etc.)
-# Streams output in real-time, then copies everything to clipboard at the end
-tmpfile=$(mktemp)
-trap "rm -f $tmpfile" EXIT
+#!/usr/bin/env bash
+# Copy stdin to the clipboard while streaming it through:  cmd | copy
+#   copy      strip one trailing newline (default)
+#   copy -n   keep it
+#
+# Clipboard paths, all best-effort:
+#   - OSC52 escape to the terminal: works locally, over SSH and inside tmux
+#     (kitty, iTerm2, WezTerm, Alacritty, Windows Terminal, …)
+#   - native clipboard when local (not over SSH), for terminals without OSC52:
+#     pbcopy / wl-copy / xclip / xsel / clip.exe via scripts/tmux-clipboard.sh
+#
+# Portable: bash 3.2+, no perl, base64 or openssl, GNU or BSD userland.
 
-# Stream to stdout while saving to temp file
+set -u
+
+keep_newline=false
+[ "${1:-}" = "-n" ] && keep_newline=true
+
+tmpfile=$(mktemp "${TMPDIR:-/tmp}/copy.XXXXXX") || exit 1
+trap 'rm -f "$tmpfile"' EXIT
+
+# Stream to stdout while saving a copy
 tee "$tmpfile"
 
-# Strip trailing newline by default, use -n to keep it
-if [[ "$1" != "-n" ]]; then
-    perl -pi -e 'chomp if eof' "$tmpfile"
+if ! $keep_newline; then
+  # Drop exactly one trailing newline. The "x" keeps $(…) from eating them all.
+  content=$(cat "$tmpfile"; printf x)
+  content=${content%x}
+  content=${content%$'\n'}
+  printf '%s' "$content" > "$tmpfile"
 fi
 
-encoded=$(base64 < "$tmpfile" | tr -d '\n')
+b64() {
+  if command -v base64 >/dev/null 2>&1; then
+    base64 | tr -d '\r\n'          # GNU wraps at 76 cols, BSD doesn't
+  else
+    openssl base64 -A
+  fi
+}
+encoded=$(b64 < "$tmpfile")
 
-# Handle tmux - need to wrap the escape sequence
-if [[ -n "$TMUX" ]]; then
-    printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded"
+# OSC52 goes to the terminal itself, not stdout, so `cmd | copy | other`
+# doesn't receive escape codes. Falls back to stdout without a tty.
+out=/dev/tty
+{ : > /dev/tty; } 2>/dev/null || out=/dev/stdout
+
+if [ -n "${TMUX:-}" ]; then
+  # tmux passthrough (needs `allow-passthrough on`, set in tmux.conf)
+  # shellcheck disable=SC1003  # the backslashes are the DCS/ST terminators
+  printf '\033Ptmux;\033\033]52;c;%s\033\033\\\033\\' "$encoded" > "$out"
 else
-    printf '\033]52;c;%s\a' "$encoded"
+  printf '\033]52;c;%s\a' "$encoded" > "$out"
 fi
+
+# Native clipboard too when running locally. The helper lives in the dotfiles
+# repo; find it through this script's symlink (~/bin/copy -> dotfiles/bin/copy).
+if [ -z "${SSH_CONNECTION:-}" ]; then
+  self=$(readlink "$0" 2>/dev/null || printf '%s' "$0")
+  native="$(dirname "$self")/../scripts/tmux-clipboard.sh"
+  [ -x "$native" ] && "$native" < "$tmpfile"
+fi
+exit 0

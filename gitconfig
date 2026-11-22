@@ -1,8 +1,6 @@
-[user]
-	name = Samay Chandna
-	email = 93499797+samayc16@users.noreply.github.com
 [core]
-	pager = delta
+	# delta when installed, plain less otherwise (headless boxes)
+	pager = "command -v delta >/dev/null 2>&1 && exec delta || exec less"
 	excludesfile = ~/.config/git/ignore
 [init]
 	defaultBranch = main
@@ -20,7 +18,7 @@
 	undo = reset --soft HEAD~1
 	stash-all = stash push --include-untracked
 [interactive]
-	diffFilter = delta --color-only
+	diffFilter = "command -v delta >/dev/null 2>&1 && exec delta --color-only || exec cat"
 [delta]
 	navigate = true
 	syntax-theme = Monokai Extended
@@ -30,12 +28,17 @@
 	conflictstyle = diff3
 [diff]
 	colorMoved = default
+# gh from PATH; silently skipped (git falls back to prompting) where gh isn't installed
 [credential "https://github.com"]
-	helper = !gh auth git-credential
+	helper = "!f() { command -v gh >/dev/null 2>&1 || exit 0; gh auth git-credential \"$@\"; }; f"
 [credential "https://gist.github.com"]
-	helper = !gh auth git-credential
+	helper = "!f() { command -v gh >/dev/null 2>&1 || exit 0; gh auth git-credential \"$@\"; }; f"
 [filter "lfs"]
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
+# Identity ([user] name/email) and machine-specific settings live in this
+# untracked file (the repo is public); ignored if missing.
+[include]
+	path = ~/.gitconfig.local

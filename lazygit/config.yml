@@ -28,9 +28,14 @@ gui:
     defaultFgColor:
       - "#fcfcfa"   # white
 git:
-  paging:
-    colorArg: always
-    pager: delta --paging=never
+  # lazygit ≥ 0.5x replaced git.paging with diffRenderers (cycle with `|`).
+  # delta when installed, plain coloured git diff otherwise (headless boxes).
+  diffRenderers:
+    - name: delta
+      colorArg: always
+      command: command -v delta >/dev/null 2>&1 && exec delta --paging=never || exec cat
+    - name: git
+      type: rawGit
   autoFetch: true
   autoRefresh: true
 os:
