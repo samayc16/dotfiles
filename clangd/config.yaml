@@ -1,0 +1,12 @@
+# User-level clangd config (linked by the installer to the per-OS clangd config dir).
+# The C/C++ standard for standalone files comes from nvim (newest the compiler accepts);
+# projects use their own compile_commands.json flags.
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
+  Designators: true
+Hover:
+  ShowAKA: true
+Diagnostics:
+  UnusedIncludes: Strict

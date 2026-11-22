@@ -1,0 +1,484 @@
+{
+  "module": {
+    "prefix": "mod",
+    "description": "module with ANSI ports",
+    "body": [
+      "module ${1:${TM_FILENAME_BASE}} (",
+      "  input  logic clk_i,",
+      "  input  logic rst_ni,",
+      "  $2",
+      ");",
+      "  $0",
+      "endmodule : $1"
+    ]
+  },
+  "module with parameters": {
+    "prefix": "modp",
+    "description": "parameterized module",
+    "body": [
+      "module ${1:${TM_FILENAME_BASE}} #(",
+      "  parameter int unsigned ${2:Width} = ${3:8}",
+      ") (",
+      "  input  logic             clk_i,",
+      "  input  logic             rst_ni,",
+      "  input  logic [$2-1:0] ${4:data_i},",
+      "  output logic [$2-1:0] ${5:data_o}",
+      ");",
+      "  $0",
+      "endmodule : $1"
+    ]
+  },
+  "always_ff async reset": {
+    "prefix": "aff",
+    "description": "always_ff with active-low async reset",
+    "body": [
+      "always_ff @(posedge ${1:clk_i} or negedge ${2:rst_ni}) begin",
+      "  if (!$2) begin",
+      "    ${3:q} <= '0;",
+      "  end else begin",
+      "    $3 <= ${4:d};",
+      "  end",
+      "end"
+    ]
+  },
+  "always_ff sync reset": {
+    "prefix": "affs",
+    "description": "always_ff with synchronous reset",
+    "body": [
+      "always_ff @(posedge ${1:clk_i}) begin",
+      "  if (${2:rst_i}) ${3:q} <= '0;",
+      "  else ${3} <= ${4:d};",
+      "end"
+    ]
+  },
+  "always_comb": {
+    "prefix": "acomb",
+    "description": "always_comb block",
+    "body": ["always_comb begin", "  ${1:y} = ${2:'0};", "  $0", "end"]
+  },
+  "FSM": {
+    "prefix": "fsm",
+    "description": "two-process enum state machine",
+    "body": [
+      "typedef enum logic [${1:1}:0] {",
+      "  ${2:Idle},",
+      "  ${3:Busy},",
+      "  ${4:Done}",
+      "} ${5:state_e};",
+      "",
+      "$5 state_q, state_d;",
+      "",
+      "always_ff @(posedge clk_i or negedge rst_ni) begin",
+      "  if (!rst_ni) state_q <= $2;",
+      "  else         state_q <= state_d;",
+      "end",
+      "",
+      "always_comb begin",
+      "  state_d = state_q;",
+      "  unique case (state_q)",
+      "    $2: if (${6:start_i}) state_d = $3;",
+      "    $3: if (${7:finish_i}) state_d = $4;",
+      "    $4: state_d = $2;",
+      "    default: state_d = $2;",
+      "  endcase",
+      "end"
+    ]
+  },
+  "interface": {
+    "prefix": "intf",
+    "description": "interface with modports",
+    "body": [
+      "interface ${1:bus_if} #(parameter int Width = ${2:32}) (input logic clk);",
+      "  logic             valid;",
+      "  logic             ready;",
+      "  logic [Width-1:0] data;",
+      "",
+      "  modport source (output valid, data, input  ready);",
+      "  modport sink   (input  valid, data, output ready);",
+      "endinterface : $1"
+    ]
+  },
+  "package": {
+    "prefix": "pkg",
+    "description": "package",
+    "body": ["package ${1:${TM_FILENAME_BASE}};", "  $0", "endpackage : $1"]
+  },
+  "typedef struct packed": {
+    "prefix": "struct",
+    "description": "packed struct typedef",
+    "body": ["typedef struct packed {", "  logic [${1:7}:0] ${2:field};", "  $0", "} ${3:name}_t;"]
+  },
+  "typedef enum": {
+    "prefix": "enum",
+    "description": "enum typedef",
+    "body": ["typedef enum logic [${1:1}:0] {", "  ${2:A},", "  ${3:B}", "} ${4:name}_e;"]
+  },
+  "generate for": {
+    "prefix": "genfor",
+    "description": "generate for loop",
+    "body": ["for (genvar ${1:i} = 0; $1 < ${2:N}; $1++) begin : ${3:g_loop}", "  $0", "end"]
+  },
+  "testbench": {
+    "prefix": "tb",
+    "description": "self-checking testbench skeleton (Verilator --timing / Icarus)",
+    "body": [
+      "module tb;",
+      "  logic clk = 0;",
+      "  logic rst_n = 0;",
+      "  always #5 clk = ~clk;",
+      "",
+      "  ${1:dut} dut (.clk_i(clk), .rst_ni(rst_n)$2);",
+      "",
+      "  int errors = 0;",
+      "  task automatic check(input logic [63:0] got, input logic [63:0] exp, input string what);",
+      "    if (got !== exp) begin",
+      "      errors++;",
+      "      \\$display(\"FAIL %s: got %0h expected %0h\", what, got, exp);",
+      "    end",
+      "  endtask",
+      "",
+      "  initial begin",
+      "    \\$dumpfile(\"tb.vcd\");",
+      "    \\$dumpvars(0, tb);",
+      "    repeat (2) @(posedge clk);",
+      "    rst_n = 1;",
+      "    $0",
+      "    if (errors == 0) \\$display(\"PASS\");",
+      "    else \\$fatal(1, \"%0d check(s) failed\", errors);",
+      "    \\$finish;",
+      "  end",
+      "endmodule"
+    ]
+  },
+  "assert property": {
+    "prefix": "assertp",
+    "description": "concurrent assertion",
+    "body": [
+      "${1:a_name}: assert property (@(posedge ${2:clk_i}) disable iff (!${3:rst_ni})",
+      "  ${4:req} |-> ##[1:${5:3}] ${6:ack}",
+      ") else \\$error(\"$1 failed\");"
+    ]
+  },
+  "cover property": {
+    "prefix": "coverp",
+    "description": "cover property",
+    "body": ["${1:c_name}: cover property (@(posedge ${2:clk_i}) ${3:expr});"]
+  },
+  "covergroup": {
+    "prefix": "cg",
+    "description": "covergroup with coverpoint + cross",
+    "body": [
+      "covergroup ${1:cg_name} @(posedge ${2:clk});",
+      "  cp_${3:a}: coverpoint ${3} { bins low = {[0:3]}; bins high = {[4:\\$]}; }",
+      "  cp_${4:b}: coverpoint ${4};",
+      "  x_$3_$4: cross cp_$3, cp_$4;",
+      "endgroup",
+      "$1 ${5:cov} = new();"
+    ]
+  },
+  "class": {
+    "prefix": "class",
+    "description": "class with constructor",
+    "body": [
+      "class ${1:name}${2: extends ${3:base}};",
+      "  ${4:int} ${5:field};",
+      "",
+      "  function new(${6});",
+      "    ${7:super.new();}",
+      "  endfunction",
+      "  $0",
+      "endclass : $1"
+    ]
+  },
+  "function": {
+    "prefix": "func",
+    "description": "automatic function",
+    "body": ["function automatic ${1:logic} ${2:name}(${3:input logic a});", "  return ${4:a};", "endfunction"]
+  },
+  "task": {
+    "prefix": "task",
+    "description": "automatic task",
+    "body": ["task automatic ${1:name}(${2:input int n});", "  $0", "endtask"]
+  },
+  "fork join": {
+    "prefix": "fork",
+    "description": "fork / join variants",
+    "body": ["fork", "  begin", "    $1", "  end", "  begin", "    $2", "  end", "join${3|,_any,_none|}"]
+  },
+  "uvm_object": {
+    "prefix": "uvm_object",
+    "description": "uvm_object with factory registration",
+    "body": [
+      "class ${1:my_obj} extends uvm_object;",
+      "  `uvm_object_utils($1)",
+      "",
+      "  function new(string name = \"$1\");",
+      "    super.new(name);",
+      "  endfunction",
+      "  $0",
+      "endclass : $1"
+    ]
+  },
+  "uvm_sequence_item": {
+    "prefix": "uvm_item",
+    "description": "transaction (uvm_sequence_item)",
+    "body": [
+      "class ${1:my_item} extends uvm_sequence_item;",
+      "  rand logic [${2:31}:0] ${3:data};",
+      "  rand bit              ${4:write};",
+      "",
+      "  constraint c_${3} { ${3} inside {[0:${5:255}]}; }",
+      "",
+      "  `uvm_object_utils_begin($1)",
+      "    `uvm_field_int($3, UVM_ALL_ON)",
+      "    `uvm_field_int($4, UVM_ALL_ON)",
+      "  `uvm_object_utils_end",
+      "",
+      "  function new(string name = \"$1\");",
+      "    super.new(name);",
+      "  endfunction",
+      "endclass : $1"
+    ]
+  },
+  "uvm_sequence": {
+    "prefix": "uvm_seq",
+    "description": "uvm_sequence with body()",
+    "body": [
+      "class ${1:my_seq} extends uvm_sequence #(${2:my_item});",
+      "  `uvm_object_utils($1)",
+      "",
+      "  rand int unsigned n_items = ${3:10};",
+      "",
+      "  function new(string name = \"$1\");",
+      "    super.new(name);",
+      "  endfunction",
+      "",
+      "  task body();",
+      "    repeat (n_items) begin",
+      "      $2 req = $2::type_id::create(\"req\");",
+      "      start_item(req);",
+      "      if (!req.randomize()) `uvm_error(\"RAND\", \"randomize failed\")",
+      "      finish_item(req);",
+      "    end",
+      "  endtask",
+      "endclass : $1"
+    ]
+  },
+  "uvm_driver": {
+    "prefix": "uvm_drv",
+    "description": "uvm_driver pulling from the sequencer",
+    "body": [
+      "class ${1:my_driver} extends uvm_driver #(${2:my_item});",
+      "  `uvm_component_utils($1)",
+      "",
+      "  virtual ${3:bus_if} vif;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "  endfunction",
+      "",
+      "  function void build_phase(uvm_phase phase);",
+      "    super.build_phase(phase);",
+      "    if (!uvm_config_db#(virtual $3)::get(this, \"\", \"vif\", vif))",
+      "      `uvm_fatal(\"NOVIF\", \"virtual interface not set\")",
+      "  endfunction",
+      "",
+      "  task run_phase(uvm_phase phase);",
+      "    forever begin",
+      "      seq_item_port.get_next_item(req);",
+      "      $0// drive req onto vif",
+      "      seq_item_port.item_done();",
+      "    end",
+      "  endtask",
+      "endclass : $1"
+    ]
+  },
+  "uvm_monitor": {
+    "prefix": "uvm_mon",
+    "description": "uvm_monitor with analysis port",
+    "body": [
+      "class ${1:my_monitor} extends uvm_monitor;",
+      "  `uvm_component_utils($1)",
+      "",
+      "  virtual ${2:bus_if} vif;",
+      "  uvm_analysis_port #(${3:my_item}) ap;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "    ap = new(\"ap\", this);",
+      "  endfunction",
+      "",
+      "  function void build_phase(uvm_phase phase);",
+      "    super.build_phase(phase);",
+      "    if (!uvm_config_db#(virtual $2)::get(this, \"\", \"vif\", vif))",
+      "      `uvm_fatal(\"NOVIF\", \"virtual interface not set\")",
+      "  endfunction",
+      "",
+      "  task run_phase(uvm_phase phase);",
+      "    forever begin",
+      "      @(posedge vif.clk);",
+      "      $0// sample vif into a new $3 and ap.write(item)",
+      "    end",
+      "  endtask",
+      "endclass : $1"
+    ]
+  },
+  "uvm_agent": {
+    "prefix": "uvm_agent",
+    "description": "active/passive agent",
+    "body": [
+      "class ${1:my_agent} extends uvm_agent;",
+      "  `uvm_component_utils($1)",
+      "",
+      "  ${2:my_driver}    drv;",
+      "  ${3:my_monitor}   mon;",
+      "  uvm_sequencer #(${4:my_item}) sqr;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "  endfunction",
+      "",
+      "  function void build_phase(uvm_phase phase);",
+      "    super.build_phase(phase);",
+      "    mon = $3::type_id::create(\"mon\", this);",
+      "    if (get_is_active() == UVM_ACTIVE) begin",
+      "      drv = $2::type_id::create(\"drv\", this);",
+      "      sqr = uvm_sequencer#($4)::type_id::create(\"sqr\", this);",
+      "    end",
+      "  endfunction",
+      "",
+      "  function void connect_phase(uvm_phase phase);",
+      "    if (get_is_active() == UVM_ACTIVE) drv.seq_item_port.connect(sqr.seq_item_export);",
+      "  endfunction",
+      "endclass : $1"
+    ]
+  },
+  "uvm_scoreboard": {
+    "prefix": "uvm_sb",
+    "description": "scoreboard with analysis imp",
+    "body": [
+      "class ${1:my_scoreboard} extends uvm_scoreboard;",
+      "  `uvm_component_utils($1)",
+      "",
+      "  uvm_analysis_imp #(${2:my_item}, $1) analysis_export;",
+      "  int unsigned n_checked, n_errors;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "    analysis_export = new(\"analysis_export\", this);",
+      "  endfunction",
+      "",
+      "  function void write($2 item);",
+      "    n_checked++;",
+      "    $0// compare against a reference model; on mismatch: n_errors++ and `uvm_error",
+      "  endfunction",
+      "",
+      "  function void report_phase(uvm_phase phase);",
+      "    `uvm_info(\"SB\", \\$sformatf(\"%0d checked, %0d errors\", n_checked, n_errors), UVM_LOW)",
+      "  endfunction",
+      "endclass : $1"
+    ]
+  },
+  "uvm_env": {
+    "prefix": "uvm_env",
+    "description": "environment wiring agent -> scoreboard",
+    "body": [
+      "class ${1:my_env} extends uvm_env;",
+      "  `uvm_component_utils($1)",
+      "",
+      "  ${2:my_agent}      agt;",
+      "  ${3:my_scoreboard} sb;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "  endfunction",
+      "",
+      "  function void build_phase(uvm_phase phase);",
+      "    super.build_phase(phase);",
+      "    agt = $2::type_id::create(\"agt\", this);",
+      "    sb  = $3::type_id::create(\"sb\", this);",
+      "  endfunction",
+      "",
+      "  function void connect_phase(uvm_phase phase);",
+      "    agt.mon.ap.connect(sb.analysis_export);",
+      "  endfunction",
+      "endclass : $1"
+    ]
+  },
+  "uvm_test": {
+    "prefix": "uvm_test",
+    "description": "test that raises an objection and runs a sequence",
+    "body": [
+      "class ${1:base_test} extends uvm_test;",
+      "  `uvm_component_utils($1)",
+      "",
+      "  ${2:my_env} env;",
+      "",
+      "  function new(string name, uvm_component parent);",
+      "    super.new(name, parent);",
+      "  endfunction",
+      "",
+      "  function void build_phase(uvm_phase phase);",
+      "    super.build_phase(phase);",
+      "    env = $2::type_id::create(\"env\", this);",
+      "  endfunction",
+      "",
+      "  task run_phase(uvm_phase phase);",
+      "    ${3:my_seq} seq = $3::type_id::create(\"seq\");",
+      "    phase.raise_objection(this);",
+      "    seq.start(env.agt.sqr);",
+      "    phase.drop_objection(this);",
+      "  endtask",
+      "endclass : $1"
+    ]
+  },
+  "uvm_info": {
+    "prefix": "uinfo",
+    "description": "`uvm_info",
+    "body": ["`uvm_info(\"${1:ID}\", \\$sformatf(\"${2:msg %0d}\", ${3:val}), UVM_${4|LOW,MEDIUM,HIGH,NONE|})"]
+  },
+  "uvm_error": {
+    "prefix": "uerr",
+    "description": "`uvm_error",
+    "body": ["`uvm_error(\"${1:ID}\", \\$sformatf(\"${2:msg %0d}\", ${3:val}))"]
+  },
+  "uvm_fatal": {
+    "prefix": "ufatal",
+    "description": "`uvm_fatal",
+    "body": ["`uvm_fatal(\"${1:ID}\", \"${2:msg}\")"]
+  },
+  "uvm_config_db set": {
+    "prefix": "cfgset",
+    "description": "uvm_config_db set",
+    "body": ["uvm_config_db#(${1:virtual bus_if})::set(${2:null}, \"${3:uvm_test_top.*}\", \"${4:vif}\", ${5:vif});"]
+  },
+  "uvm_config_db get": {
+    "prefix": "cfgget",
+    "description": "uvm_config_db get with fatal on miss",
+    "body": [
+      "if (!uvm_config_db#(${1:virtual bus_if})::get(this, \"\", \"${2:vif}\", ${3:vif}))",
+      "  `uvm_fatal(\"CFG\", \"$2 not found in config_db\")"
+    ]
+  },
+  "uvm top": {
+    "prefix": "uvm_top",
+    "description": "top module: clock, interface, run_test",
+    "body": [
+      "module ${1:tb_top};",
+      "  import uvm_pkg::*;",
+      "  `include \"uvm_macros.svh\"",
+      "",
+      "  logic clk = 0;",
+      "  always #5 clk = ~clk;",
+      "",
+      "  ${2:bus_if} vif (clk);",
+      "  ${3:dut} dut (.clk_i(clk)$4);",
+      "",
+      "  initial begin",
+      "    uvm_config_db#(virtual $2)::set(null, \"uvm_test_top.*\", \"vif\", vif);",
+      "    run_test(\"${5:base_test}\");",
+      "  end",
+      "endmodule"
+    ]
+  }
+}

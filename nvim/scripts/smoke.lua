@@ -1,0 +1,215 @@
+-- End-to-end check of every language with the real config:
+--   nvim --headless -c 'luafile ~/.config/nvim/scripts/smoke.lua'      (SMOKE_ONLY=<lang> for one)
+-- Per language: treesitter, LSP attach, a deliberate diagnostic, completion, and
+-- <leader>rr (util.runner -> overseer) producing the expected output. Languages whose
+-- toolchain is missing are skipped. Exit code 0 only if something ran and all passed.
+local tools = require 'util.tools'
+
+local samples = {
+  {
+    lang = 'python',
+    file = 'main.py',
+    requires = { { 'python3' } },
+    servers = { 'basedpyright', 'ruff' },
+    setup = function(dir) -- a project venv basedpyright must pick up
+      vim.fn.mkdir(dir .. '/.venv/bin', 'p')
+      vim.uv.fs_symlink(vim.fn.exepath 'python3', dir .. '/.venv/bin/python')
+    end,
+    text = {
+      'from dataclasses import dataclass',
+      '@dataclass(frozen=True)',
+      'class Point:',
+      '    x: int',
+      '    y: int',
+      'square = lambda n: n * n',
+      'p = Point(3, 4)',
+      'bad: int = "oops"',
+      'print(square(p.x) + square(p.y))',
+    },
+    expect = '25',
+    extra = function(buf)
+      local client = vim.lsp.get_clients({ bufnr = buf, name = 'basedpyright' })[1]
+      local path = client and vim.tbl_get(client.settings, 'python', 'pythonPath') or ''
+      return path:match '/%.venv/bin/python$' ~= nil, 'venv=' .. path
+    end,
+  },
+  {
+    lang = 'c',
+    file = 'main.c',
+    requires = { { 'clang', 'gcc' } },
+    servers = { 'clangd' },
+    text = { '#include <stdio.h>', 'int main(void) { undefined_function(); return 0; }' },
+    run_text = { '#include <stdbool.h>', '#include <stdio.h>', 'int main(void) { bool ok = true; printf("%d\\n", ok ? 42 : 0); return 0; }' },
+    expect = '42',
+  },
+  {
+    lang = 'cpp',
+    file = 'main.cpp',
+    requires = { { 'clang++', 'g++' } },
+    needs = function() -- the sample uses C++26 features
+      return tools.newest_std(tools.first { 'clang++', 'g++' }, 'c++', tools.cxx_stds) == 'c++26', 'compiler lacks C++26'
+    end,
+    servers = { 'clangd' },
+    text = { '#include <print>', 'int main() { int broken = "nope"; std::println("{}", broken); }' },
+    run_text = {
+      '#include <print>',
+      '#include <ranges>',
+      '#include <vector>',
+      'int main() {',
+      '  std::vector v{3, 1, 2};',
+      '  for (int x : v | std::views::reverse) std::println("{}", x);',
+      '  auto [a, _] = std::pair{1, 2};',
+      '  auto [b, _] = std::pair{3, 4};',
+      '  return a + b - 4;',
+      '}',
+    },
+    expect = '2',
+    extra = function() return vim.fn.exists ':LspClangdSwitchSourceHeader' == 2, '<leader>ch command' end,
+  },
+  {
+    lang = 'swift',
+    file = 'main.swift',
+    requires = { { 'swift' }, { 'sourcekit-lsp' } },
+    servers = { 'sourcekit' },
+    text = { 'let bad: Int = "oops"', 'print(bad)' },
+    run_text = { 'struct Point { let x: Int; let y: Int }', 'let square = { (n: Int) in n * n }', 'let p = Point(x: 3, y: 4)', 'print(square(p.x) + square(p.y))' },
+    expect = '25',
+  },
+  {
+    lang = 'systemverilog',
+    file = 'counter.sv',
+    requires = { { 'verilator' } },
+    servers = { 'slang_server' },
+    text = { 'module counter (output logic [3:0] q);', '  assign q = undeclared_signal;', 'endmodule' },
+    run_text = { 'module counter;', '  logic [3:0] q = 0;', '  initial begin', '    repeat (5) q++;', '    $display("q=%0d", q);', '    $finish;', '  end', 'endmodule' },
+    expect = 'q=5',
+  },
+  {
+    lang = 'haskell',
+    file = 'Main.hs',
+    requires = { { 'runghc' }, { 'haskell-language-server-wrapper', 'haskell-language-server' } },
+    servers = { 'hls' },
+    attach_timeout = 120000,
+    text = { 'module Main where', 'bad :: Int', 'bad = "oops"', 'main :: IO ()', 'main = print bad' },
+    run_text = { 'module Main where', 'main :: IO ()', 'main = print (sum (map (\\n -> n * n) [3, 4 :: Int]))' },
+    expect = '25',
+  },
+  {
+    lang = 'lua',
+    file = 'main.lua',
+    requires = { { 'nvim' } },
+    servers = { 'lua_ls' },
+    text = { 'local t = { 1, 2, 3 }', 'undefined_global_fn()' },
+    run_text = { 'local t = { 1, 2, 3 }', 'print(#t)' },
+    expect = '3',
+  },
+  {
+    lang = 'sh',
+    file = 'main.sh',
+    requires = { { 'bash' } },
+    servers = { 'bashls' },
+    text = { '#!/usr/bin/env bash', 'echo hello $1' }, -- SC2086
+    run_text = { '#!/usr/bin/env bash', 'name=world', 'echo "hello $name"' },
+    expect = 'hello world',
+  },
+}
+
+local function log(fmt, ...) io.stdout:write(fmt:format(...) .. '\n') end
+
+local function skip_reason(sample)
+  for _, group in ipairs(sample.requires) do
+    if not vim.iter(group):any(tools.has) then return 'missing ' .. table.concat(group, ' or ') end
+  end
+  if sample.needs then
+    local ok, why = sample.needs()
+    if not ok then return why end
+  end
+end
+
+local function attached(buf, servers)
+  local names = vim.tbl_map(function(c) return c.name end, vim.lsp.get_clients { bufnr = buf })
+  return vim.iter(servers):all(function(s) return vim.list_contains(names, s) end)
+end
+
+local function completion_count(buf)
+  local client = vim.lsp.get_clients({ bufnr = buf, method = 'textDocument/completion' })[1]
+  if not client then return 0 end
+  local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+  params.position = { line = 1, character = 0 }
+  local count = 0
+  for _, reply in pairs(vim.lsp.buf_request_sync(buf, 'textDocument/completion', params, 15000) or {}) do
+    local result = reply.result or {}
+    count = count + #(result.items or result)
+  end
+  return count
+end
+
+--- Run the current buffer through <leader>rr's code path; returns ok, note.
+local function run_file(expect)
+  require('lazy').load { plugins = { 'overseer.nvim' } }
+  local overseer = require 'overseer'
+  local newest = function() return overseer.list_tasks({ sort = function(a, b) return a.id > b.id end })[1] end
+  local previous = newest()
+  require('util.runner').run()
+  local task
+  vim.wait(10000, function()
+    task = newest()
+    return task ~= nil and task ~= previous
+  end, 100)
+  if not task or task == previous then return false, 'no task started' end
+  vim.wait(300000, function() return task:is_complete() end, 200)
+  local bufnr = task:get_bufnr()
+  local output = bufnr and table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), '\n') or ''
+  return task.status == 'SUCCESS' and output:find(expect, 1, true) ~= nil, task.status .. ': ' .. output:sub(1, 300)
+end
+
+local function check(sample)
+  local dir = vim.fn.tempname()
+  vim.fn.mkdir(dir .. '/.git', 'p')
+  if sample.setup then sample.setup(dir) end
+  local path = dir .. '/' .. sample.file
+  vim.fn.writefile(sample.text, path)
+  vim.cmd.edit(vim.fn.fnameescape(path))
+  local buf = vim.api.nvim_get_current_buf()
+
+  local res = { treesitter = vim.treesitter.highlighter.active[buf] ~= nil }
+  res.lsp = vim.wait(sample.attach_timeout or 30000, function() return attached(buf, sample.servers) end, 200)
+  vim.api.nvim_buf_set_lines(buf, -1, -1, false, { '' }) -- some servers only lint on change
+  vim.wait(20000, function() return #vim.diagnostic.get(buf) > 0 end, 200)
+  res.diagnostics = #vim.diagnostic.get(buf)
+  res.completion = completion_count(buf)
+  res.extra, res.note = true, ''
+  if sample.extra then res.extra, res.note = sample.extra(buf) end
+
+  vim.fn.writefile(sample.run_text or sample.text, path)
+  vim.cmd 'edit!'
+  local run_note
+  res.run, run_note = run_file(sample.expect)
+  if not res.run then res.note = res.note .. ' ' .. run_note end
+
+  res.ok = res.treesitter and res.lsp and res.diagnostics > 0 and res.completion > 0 and res.extra and res.run
+  return res
+end
+
+local only = vim.env.SMOKE_ONLY
+local ran, failed, skipped = 0, 0, 0
+for _, sample in ipairs(samples) do
+  if not only or only == sample.lang then
+    local why = skip_reason(sample)
+    if why then
+      skipped = skipped + 1
+      log('%-14s SKIP  %s', sample.lang, why)
+    else
+      ran = ran + 1
+      local ok, res = pcall(check, sample)
+      if not ok then res = { ok = false, note = tostring(res) } end
+      if not res.ok then failed = failed + 1 end
+      log('%-14s %s  ts=%s lsp=%s diags=%s completion=%s run=%s %s', sample.lang, res.ok and 'PASS' or 'FAIL', tostring(res.treesitter),
+        tostring(res.lsp), tostring(res.diagnostics), tostring(res.completion), tostring(res.run), res.note or '')
+    end
+    vim.cmd 'silent! %bwipeout!'
+  end
+end
+
+log('\n%d passed, %d failed, %d skipped', ran - failed, failed, skipped)
+vim.cmd((ran > 0 and failed == 0) and 'qa!' or 'cq!')
