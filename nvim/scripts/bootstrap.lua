@@ -19,6 +19,12 @@ local function step(name, fn)
   end
 end
 
+-- A stalled download should fail the install, not hang it.
+vim.defer_fn(function()
+  log 'bootstrap: timed out after 30 minutes'
+  vim.cmd 'cq!'
+end, 30 * 60 * 1000)
+
 local function merged_opts(plugin)
   local spec = require('lazy.core.config').spec.plugins[plugin]
   return spec and require('lazy.core.plugin').values(spec, 'opts', false) or {}
@@ -31,7 +37,8 @@ end)
 
 step('mason packages (LSPs, formatters, debug adapters)', function()
   -- Loading lspconfig runs plugins/lsp.lua, which hands the full package list to
-  -- mason-tool-installer; the Sync command then blocks until every install finishes.
+  -- mason-tool-installer (without starting installs when headless); the Sync
+  -- command then blocks until every install finishes.
   require('lazy').load { plugins = { 'nvim-lspconfig' } }
   vim.cmd 'MasonToolsInstallSync'
   local registry = require 'mason-registry'

@@ -5,6 +5,11 @@ if not vim.uv.fs_stat(lazypath) then
     vim.api.nvim_echo({ { 'Failed to clone lazy.nvim:\n', 'ErrorMsg' }, { out, 'WarningMsg' } }, true, {})
     return
   end
+  -- Pin to lazy-lock.json; otherwise `Lazy restore` records the newer commit and dirties the repo.
+  local lockfile = vim.fn.stdpath 'config' .. '/lazy-lock.json'
+  local ok, lock = pcall(function() return vim.json.decode(table.concat(vim.fn.readfile(lockfile), '\n')) end)
+  local commit = ok and vim.tbl_get(lock, 'lazy.nvim', 'commit')
+  if commit then vim.fn.system { 'git', '-C', lazypath, 'checkout', '--quiet', commit } end
 end
 vim.opt.rtp:prepend(lazypath)
 

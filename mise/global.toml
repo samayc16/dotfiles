@@ -12,7 +12,9 @@
 [tools]
 # Editor: the nvim config targets 0.12 — bump deliberately after testing a new minor.
 neovim = { version = "0.12", os = ["linux"] }
-tree-sitter = { version = "latest", os = ["linux"] } # nvim-treesitter (main) needs CLI ≥ 0.26
+# nvim-treesitter (main) needs CLI ≥ 0.26.1. The GitHub release binaries need glibc 2.39
+# (no Debian 12 / RHEL 9); the conda-forge build runs on glibc ≥ 2.17.
+"conda:tree-sitter-cli" = { version = "latest", os = ["linux"] }
 tmux = { version = "latest", os = ["linux"] } # official static builds (tmux/tmux-builds)
 
 # Shell tools used by the aliases, fzf widgets and lazygit config
