@@ -32,6 +32,15 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `Home` / `End` / `Delete` | work in every mode (normal, app, legacy sequences) |
 | ` cmd` (leading space) | run without saving to history |
 
+### discover what you have
+| keys / cmd | does |
+|---|---|
+| `Tab` | fuzzy completion menu for any command, flag, file, `learn` exercise or `play` game; type to filter, `<` / `>` switch groups |
+| `rg --<Tab>` · `learn start <Tab>` | e.g. search every rg flag · every exercise with its title |
+| `r<Tab>` | commands starting with r, each previewed with its tldr examples |
+| `tools` | every CLI tool installed here, grouped, with a live tldr preview (`tools rg` for one) |
+| `tldr <cmd>` / `man <cmd>` | examples first / the full manual |
+
 ### listing (eza)
 | cmd | does |
 |---|---|

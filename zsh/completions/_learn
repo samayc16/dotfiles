@@ -1,0 +1,35 @@
+#compdef learn
+
+local -a commands=(
+  'tracks:list tracks'
+  'list:exercises in a track'
+  'start:open an exercise (track/slug)'
+  'next:open the next exercise'
+  'check:run the checks'
+  'hint:reveal the next hint'
+  'giveup:show the solution (caps at one star)'
+  'solution:reference solution (after passing)'
+  'reset:delete workspace and progress for an exercise'
+  'status:machine-readable status (JSON)'
+  'docs:offline reference docs'
+)
+
+if (( CURRENT == 2 )); then
+  _describe -t commands 'learn command' commands
+  return
+fi
+
+local -a items
+case $words[2] in
+  list) _arguments '1:track:->track' '--all[include locked exercises]' ;;
+  next) _arguments '1:track:->track' ;;
+  start) _arguments '1:exercise:->exercise' '--force[open even if locked]' ;;
+  check|hint|giveup|reset) _arguments '1:exercise:->exercise' ;;
+  solution) _arguments '1:exercise:->exercise' '--paths[print file paths only]' ;;
+  docs) items=(${(f)"$(learn _complete docs 2>/dev/null)"}); _describe -t docs 'docs' items; return ;;
+esac
+
+case $state in
+  track) items=(${(f)"$(learn _complete tracks 2>/dev/null)"}); _describe -t tracks 'track' items ;;
+  exercise) items=(${(f)"$(learn _complete exercises 2>/dev/null)"}); _describe -t exercises 'exercise' items ;;
+esac

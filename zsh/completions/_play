@@ -1,0 +1,5 @@
+#compdef play
+
+local -a games=(${(f)"$(play --complete 2>/dev/null)"})
+_arguments '--list[print what is installed]' '--help[usage]' '1:game:->game'
+[[ $state == game ]] && _describe -t games 'game or trainer' games

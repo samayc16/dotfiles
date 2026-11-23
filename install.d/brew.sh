@@ -6,7 +6,7 @@ source "$(dirname "$0")/lib.sh"
 [[ "$OS" == macos ]] || skip "Homebrew step is macOS-only"
 
 CLI_FORMULAE=(
-  neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k
+  neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k fzf-tab
   fzf ripgrep fd bat eza git-delta lazygit gh jq tldr htop trash mise git-lfs
   tree-sitter-cli
 )
