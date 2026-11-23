@@ -17,8 +17,11 @@ base_packages() {
   esac
 }
 dev_packages() {
+  # autoconf/flex/bison: Verilator source build when the distro package is unusable
+  local common="clang cmake verilator iverilog z3 trash-cli htop autoconf flex bison"
   case "$OS" in
-    arch | debian | rhel | suse) echo clang cmake verilator iverilog z3 trash-cli htop ;;
+    debian) echo "$common libclang-rt-dev" ;; # clang's sanitizer runtimes
+    arch | rhel | suse) echo "$common" ;;
   esac
 }
 

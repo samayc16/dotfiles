@@ -7,7 +7,7 @@ local q = vim.fn.shellescape
 local clangd = tools.xcode 'clangd' or tools.find 'clangd'
 local cc = tools.first { 'clang', 'gcc' }
 local cxx = tools.first { 'clang++', 'g++' }
-local sanitize = '-g -O0 -Wall -Wextra -fsanitize=address,undefined'
+local sanitizers = '-fsanitize=address,undefined'
 
 local function std_for(ft)
   if ft == 'c' then return tools.newest_std(cc, 'c', tools.c_stds) or 'c17' end
@@ -16,7 +16,9 @@ end
 
 local function compile_and_run(compiler, ft)
   return function(ctx)
-    local build = ('%s -std=%s %s %s -o %s'):format(q(compiler), std_for(ft), sanitize, q(ctx.file), q(ctx.out))
+    local lang = ft == 'c' and 'c' or 'c++'
+    local flags = '-g -O0 -Wall -Wextra' .. (tools.can_link(compiler, lang, { sanitizers }) and ' ' .. sanitizers or '')
+    local build = ('%s -std=%s %s %s -o %s'):format(q(compiler), std_for(ft), flags, q(ctx.file), q(ctx.out))
     return { cmd = build .. ' && ' .. q(ctx.out), cwd = ctx.dir }
   end
 end
