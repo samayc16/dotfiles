@@ -26,8 +26,9 @@ main() {
     cd "$SRC"
     run autoconf
     run ./configure --prefix="$LOCAL_PREFIX"
-    run make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
-    run make install
+    # Skip the man pages: they need help2man, which minimal boxes lack (`verilator --help` works).
+    run make -j"$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)" VL_INST_MAN_FILES=
+    run make install VL_INST_MAN_FILES=
   )
   ok "verilator $tag installed"
 }

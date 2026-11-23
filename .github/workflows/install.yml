@@ -108,6 +108,16 @@ jobs:
           EOF
           if [ "${{ matrix.mode }}" = user ]; then runuser -u tester -- env HOME=/home/tester sh /tmp/verify.sh; else sh /tmp/verify.sh; fi
 
+      - name: Upload Neovim logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ strategy.job-index }}-${{ matrix.mode }}
+          path: |
+            /github/home/.local/state/nvim/*.log
+            /home/tester/.local/state/nvim/*.log
+          if-no-files-found: ignore
+
   macos:
     needs: lint
     runs-on: macos-latest
