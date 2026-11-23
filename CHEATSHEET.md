@@ -36,7 +36,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | keys / cmd | does |
 |---|---|
 | `Tab` | fuzzy completion menu for any command, flag, file, `learn` exercise or `play` game; type to filter, `<` / `>` switch groups |
-| `rg --<Tab>` · `learn start <Tab>` | e.g. search every rg flag · every exercise with its title |
+| `rg --<Tab>` · `learn <Tab>` · `learn start <Tab>` | e.g. search every rg flag · every course · every exercise with its title |
 | `r<Tab>` | commands starting with r, each previewed with its tldr examples |
 | `tools` | every CLI tool installed here, grouped, with a live tldr preview (`tools rg` for one) |
 | `tldr <cmd>` / `man <cmd>` | examples first / the full manual |
@@ -289,7 +289,9 @@ Start here: `learn` for exercises, `:Dojo` for vim skills, `play` for everything
 | cmd / keys | does |
 |---|---|
 | `learn` | dashboard: level, XP, streak, next up |
-| `learn list <track>` / `learn next [track]` | exercises with ★ / open the next one in nvim |
+| `learn <Tab>` | every course, plus the commands |
+| `learn <track>` | open that course's next exercise in nvim (same as `learn next <track>`) |
+| `learn list <track>` / `learn next` | exercises with ★ / next exercise where you left off |
 | `learn check` · `hint` · `solution` · `giveup` | run checks · next hint (caps ★) · reference after passing |
 | `learn docs <lang>` | offline docs (cppreference, Python, Haskell, Swift book, Verilator) |
 | `<leader>ll` / `<leader>ln` | pick exercise / next exercise (inside nvim) |
