@@ -53,6 +53,7 @@ main() {
   else
     warn "plugin install failed (offline?): re-run claude/install-plugins.sh later"
   fi
+  run bash "$DOTFILES/claude/trust.sh"
 }
 
 main "$@"

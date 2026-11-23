@@ -8,3 +8,4 @@ script="$DOTFILES/learn/fetch.sh"
 [[ -f "$script" ]] || skip "learn/fetch.sh not found"
 section "Learning tracks"
 run bash "$script"
+run bash "$DOTFILES/claude/trust.sh" # trust the newly cloned example projects
