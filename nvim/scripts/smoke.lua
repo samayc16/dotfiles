@@ -99,6 +99,20 @@ local samples = {
     expect = '25',
   },
   {
+    lang = 'rust',
+    file = 'src/main.rs',
+    requires = { { 'cargo' }, { 'rust-analyzer' } },
+    servers = { 'rust-analyzer' },
+    attach_timeout = 120000,
+    setup = function(dir)
+      vim.fn.mkdir(dir .. '/src', 'p')
+      vim.fn.writefile({ '[package]', 'name = "smoke"', 'version = "0.1.0"', 'edition = "2024"' }, dir .. '/Cargo.toml')
+    end,
+    text = { 'fn main() {', '    let bad: i32 = "oops";', '    println!("{bad}");', '}' },
+    run_text = { 'fn main() {', '    let squares: i32 = [3, 4].iter().map(|n| n * n).sum();', '    println!("{squares}");', '}' },
+    expect = '25',
+  },
+  {
     lang = 'lua',
     file = 'main.lua',
     requires = { { 'nvim' } },

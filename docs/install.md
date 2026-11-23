@@ -23,7 +23,7 @@ The last step opens a sample file per language (and per installed compiler or si
 | profile | adds |
 |---|---|
 | `cli` | font, zsh + prompt, tmux, Neovim + plugins, CLI tools, Claude Code |
-| `dev` | language servers, formatters, debuggers, parsers, HDL toolchain, smoke test |
+| `dev` | language servers, formatters, debuggers, parsers, Rust (rustup), HDL toolchain, smoke test |
 | `full` (default) | Swift (Linux), Haskell, games, learning tracks |
 
 ## Where tools come from

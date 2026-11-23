@@ -1,5 +1,5 @@
 -- conform.nvim. Format-on-save policy:
---   * single-style languages (Python, Lua, Haskell) always;
+--   * single-style languages (Python, Lua, Haskell, Rust) always;
 --   * C-family and Swift only when the project has a style file, so other people's
 --     code is never rewritten;
 --   * shell and Verilog only on demand (<leader>f).

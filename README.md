@@ -1,6 +1,6 @@
 # dotfiles
 
-A portable terminal development environment for macOS and Linux: a Neovim IDE for Python, C/C++, Swift, SystemVerilog and Haskell, tmux, zsh, kitty and Claude Code, plus offline trainers for getting better at all of it. Monokai Pro everywhere.
+A portable terminal development environment for macOS and Linux: a Neovim IDE for Python, C/C++, Rust, Swift, SystemVerilog and Haskell, tmux, zsh, kitty and Claude Code, plus offline trainers for getting better at all of it. Monokai Pro everywhere.
 
 ![Neovim in tmux: C++ with clangd completion and documentation](docs/img/nvim-completion.png)
 
@@ -25,7 +25,7 @@ One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SS
 
 | area | highlights | guide |
 |---|---|---|
-| **Neovim** | LSP, completion, snippets, formatting, run (`Space rr`), debug and tests for 8 languages; Xcode build/run; SystemVerilog hierarchy + Verilator; Claude panel | [docs/neovim.md](docs/neovim.md) |
+| **Neovim** | LSP, completion, snippets, formatting, run (`Space rr`), debug and tests for 9 languages; Xcode build/run; SystemVerilog hierarchy + Verilator; Claude panel | [docs/neovim.md](docs/neovim.md) |
 | **Learning** | `learn`: koans and Exercism exercises with tests, stars and XP · `:Dojo`: vim golf for motions and these keymaps · offline docs | [docs/learning.md](docs/learning.md) |
 | **Games** | `play`: vim trainers, GameShell, a grep murder mystery, DOOM in Neovim, Zork, roguelikes | [docs/games.md](docs/games.md) |
 | **Terminal** | zsh + Powerlevel10k with fuzzy Tab completion for everything, `tools` to see what's installed, tmux with popups, kitty, fzf/zoxide/eza/bat, lazygit + delta | [CHEATSHEET.md](CHEATSHEET.md) |
@@ -65,7 +65,7 @@ More screenshots in each guide: [Neovim](docs/neovim.md), [learning](docs/learni
 - **Work vs learning:** task requests just get done; "how do I / teach me / why" gets taught. Inside `~/learn` the Tutor style is on: you answer first, hints come in levels, you write the key lines.
 - **In Neovim:** `Space ac` opens Claude beside your code with your selection as context; edits arrive as diffs (`Space aa` accept, `Space ad` deny). `claude` in another tmux pane can attach with `/ide`.
 - **Skills:** say "quiz me" for keymap / tmux / sed quizzes; ask for help on a `learn` exercise and get hints without spoilers.
-- **Plugins:** language-server plugins for C/C++, Swift, Python and Lua (`claude/install-plugins.sh`, safe to re-run).
+- **Plugins:** language-server plugins for C/C++, Rust, Swift, Python and Lua (`claude/install-plugins.sh`, safe to re-run).
 
 Tracked: `settings.json`, `CLAUDE.md`, `output-styles/`, `skills/`, `rules/`, `agents/`, the status line and hooks. Credentials and `settings.local.json` are never tracked.
 

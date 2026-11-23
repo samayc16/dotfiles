@@ -162,6 +162,7 @@ Layout: `nvim/lua/config/` (options, keymaps) · `nvim/lua/plugins/` (one file p
 | Swift | sourcekit-lsp | swift-format / SwiftFormat | `swift run` (packages) or `swift file` | lldb-dap · Xcode apps: `<leader>X…` |
 | SystemVerilog / Verilog | slang-server | Verible (`<leader>f`) | Verilator `--binary` or Icarus (`<leader>rc`); top = module named after file | waves: `<leader>ro` → surfer |
 | Haskell | haskell-language-server | fourmolu (on save) | runghc | |
+| Rust | rust-analyzer via rustaceanvim, clippy on save | rustfmt (on save) | `cargo run` in a Cargo project, else `rustc` | codelldb (`<leader>dn` debuggables) |
 | Lua / shell | lua_ls + lazydev / bashls + ShellCheck | stylua / shfmt (`<leader>f`) | `nvim -l` / bash | |
 
 Standalone C++ files default to **C++26** and C files to **C23** (`clangd/config.yaml`); projects use their `compile_commands.json`.
@@ -230,6 +231,17 @@ Run `:XcodebuildSetup` once in the project root (writes `buildServer.json` so so
 |---|---|
 | `<leader>vh` / `<leader>vs` / `<leader>va` | design hierarchy / search hierarchy / select active instance |
 Per-project include dirs, file lists and UVM paths go in `.slang/server.json`.
+
+### Rust (rustaceanvim)
+| keys | does |
+|---|---|
+| `<leader>ce` / `<leader>cE` | explain this error (`rustc --explain`) / the full compiler message |
+| `<leader>cm` | expand the macro under the cursor |
+| `<leader>cD` | open docs.rs for the symbol |
+| `<leader>cp` / `<leader>cC` | parent module / open Cargo.toml |
+| `<leader>rn` / `<leader>dn` | run / debug a test, binary or example (runnables / debuggables) |
+| `<leader>th` | hide / show inlay hints (inferred types and lifetimes, on by default) |
+In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` upgrades it.
 
 ### search (telescope)
 | keys | does |

@@ -33,6 +33,9 @@ export PATH="$HOME/.local/bin:$PATH"
 [[ -r "$HOME/.local/share/swiftly/env.sh" ]] && source "$HOME/.local/share/swiftly/env.sh"
 # Haskell on Linux (installed by ghcup)
 [[ -d "$HOME/.ghcup/bin" ]] && export PATH="$HOME/.ghcup/bin:$HOME/.cabal/bin:$PATH"
+# Rust: rustup (Homebrew's keg-only build on macOS) and `cargo install`ed tools
+[[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin" ]] && export PATH="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin:$PATH"
+[[ -d "$HOME/.cargo/bin" ]] && export PATH="$HOME/.cargo/bin:$PATH"
 
 # Source the first readable file among the candidates (plugins live in different
 # places: Homebrew, user-local clones from install.d/zsh.sh, distro packages).

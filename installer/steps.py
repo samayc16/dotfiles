@@ -59,6 +59,7 @@ STEPS: Tuple[Step, ...] = (
     Step("nvim", "Neovim plugins (+ LSPs, debuggers, parsers on dev/full)", "nvim.sh"),
     Step("claude", "Claude Code CLI", "claude.sh"),  # after nvim: reuses its lua-language-server
     Step("hdl", "Verilator, Icarus Verilog, Surfer", "hdl.sh", profile="dev", platforms=LINUX),
+    Step("rust", "Rust via rustup: cargo, rust-analyzer, clippy, rustfmt", "rust.sh", profile="dev"),
     Step("swift", "Swift toolchain via swiftly", "swift.sh", profile="full", platforms=LINUX),
     Step("haskell", "GHC, cabal, haskell-language-server", "haskell.sh", profile="full"),
     Step("games", "offline games + trainers", "games.sh", profile="full"),

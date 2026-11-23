@@ -27,9 +27,10 @@ class Profiles(unittest.TestCase):
         ran = runs(LINUX, Selection("cli"))
         self.assertEqual(ran, ["packages", "fonts", "links", "mise", "zsh", "nvim", "claude"])
 
-    def test_dev_adds_hdl_and_smoke_not_games(self) -> None:
+    def test_dev_adds_hdl_rust_and_smoke_not_games(self) -> None:
         ran = runs(LINUX, Selection("dev"))
         self.assertIn("hdl", ran)
+        self.assertIn("rust", ran)
         self.assertIn("smoke", ran)
         self.assertNotIn("games", ran)
 

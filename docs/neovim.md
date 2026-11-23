@@ -1,6 +1,6 @@
 # Neovim guide
 
-A full IDE for Python, C, C++, Swift, SystemVerilog/Verilog, Haskell, Lua and shell that works offline. Leader is `Space`.
+A full IDE for Python, C, C++, Rust, Swift, SystemVerilog/Verilog, Haskell, Lua and shell that works offline. Leader is `Space`.
 Every key is in [CHEATSHEET.md](../CHEATSHEET.md#neovim-leader--space); this guide covers how to *use* them.
 
 ## First 10 minutes
@@ -33,6 +33,7 @@ Everything below is installed and smoke-tested by the installer.
 | Swift | sourcekit-lsp | `swift run` in packages, `swift file.swift` otherwise | Xcode apps: see below |
 | SystemVerilog / Verilog | slang-server | Verilator or Icarus (`Space rc`), top = module named after the file | waves: `Space ro` → surfer |
 | Haskell | haskell-language-server | `runghc` | `Space ro` → ghci |
+| Rust | rust-analyzer (rustaceanvim) + clippy | `cargo run` in a Cargo project, else `rustc` | inlay hints on; `Space ro` → cargo build/test/clippy |
 | Lua · shell | lua_ls · bashls + ShellCheck | `nvim -l` · bash | |
 
 <p>
@@ -40,7 +41,7 @@ Everything below is installed and smoke-tested by the installer.
   <img src="img/nvim-toolchain.png" width="49%" alt="Space rc picks the C++ compiler: clang++, g++ or Homebrew's g++-16">
 </p>
 
-Format with `Space f`. Python, Lua and Haskell also format on save; C-family and Swift only when the project has a style file (`.clang-format`, `.swift-format`); shell and Verilog never automatically. `Space tf` toggles format-on-save.
+Format with `Space f`. Python, Lua, Haskell and Rust also format on save; C-family and Swift only when the project has a style file (`.clang-format`, `.swift-format`); shell and Verilog never automatically. `Space tf` toggles format-on-save.
 
 ### C and C++ projects
 clangd needs the real compile flags. Give it a `compile_commands.json` in the project root:
@@ -54,6 +55,9 @@ bear -- make          # Makefile projects
 
 ### Xcode apps
 Run `:XcodebuildSetup` once in the project root (pick scheme and simulator). After that sourcekit-lsp understands the `.xcodeproj`, and `Space X` has build, run, test, debug and SwiftUI previews. Keep Xcode for signing, asset catalogs and storyboards: `Space Xo` opens the project there.
+
+### Rust projects
+rust-analyzer comes from rustup, so it always matches your compiler. `Space ce` explains the error under the cursor (the `rustc --explain` text), `Space cm` expands a macro, `Space cD` opens docs.rs. `Space rn` / `Space dn` list the tests and binaries rust-analyzer found, to run or debug one. Clippy runs on every save; inferred types and elided lifetimes show inline (`Space th` toggles them). In `Cargo.toml`, crates.nvim marks outdated dependencies.
 
 ### SystemVerilog projects
 slang-server reads `.slang/server.json` in the project root for include dirs, file lists and UVM paths ([docs](https://hudson-trading.github.io/slang-server/start/config/)). `Space vh` shows the elaborated hierarchy. Snippets cover RTL (`aff`, `fsm`, `intf`, `tb`, `assertp`) and UVM (`uvm_drv`, `uvm_env`, `uvm_test`…); type the prefix and accept.
