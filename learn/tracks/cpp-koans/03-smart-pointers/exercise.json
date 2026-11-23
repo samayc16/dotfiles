@@ -15,7 +15,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "push_front: auto node = std::make_unique<Node>(value); node->next = std::move(head); head = std::move(node);",
-    "length: for (const Node* n = head.get(); n; n = n->next.get()) ++count;  A weak_ptr doesn't keep the object alive: .expired() becomes true once the last shared_ptr dies."
+    "New syntax table: `std::make_unique`, `std::move` of a unique_ptr, `.get()`, and `std::weak_ptr`. You never write `new` or `delete` in this koan.",
+    "push_front: make a new node, give it the old head (move), then make it the head (move). length: walk with a plain `const Node*` starting at `head.get()` until nullptr. make_observer: a weak_ptr can be built straight from a shared_ptr.",
+    "On other data: `auto a = std::make_unique<int>(5); auto b = std::move(a);  // a is now nullptr` · `std::weak_ptr<Config> w{cfg};` doesn't raise `cfg.use_count()`.",
+    "Near-answer: `auto node = std::make_unique<Node>(value); node->next = std::move(head); head = std::move(node);` · `for (const Node* n = head.get(); n != nullptr; n = n->next.get()) ++count;` · `return shared;`"
   ]
 }

@@ -15,7 +15,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "Stateful lambda: return [count = 0]() mutable { return ++count; };  — init-capture + mutable.",
-    "Generic: [](auto a, auto b) { return a + b; }.  compose: return [=](auto x) { return f(g(x)); };"
+    "New syntax table: capture lists `[&x]`, `[=]`, init-capture `[n = 0]`, `mutable`, and `auto` parameters.",
+    "make_counter needs state that survives between calls: an init-capture plus `mutable`. sum_with must change the caller's `total`: capture it by reference. add: `auto` parameters. compose: return a lambda that captures `f` and `g` by copy.",
+    "On other data: `[last = 0](int x) mutable { int d = x - last; last = x; return d; }` remembers `last` between calls · `[&hits](int x) { if (x > 0) ++hits; }` updates a variable outside.",
+    "Near-answer: `return [count = 0]() mutable { return ++count; };` · `std::ranges::for_each(values, [&total](int v) { total += v; });` · `return [=](auto x) { return f(g(x)); };`"
   ]
 }

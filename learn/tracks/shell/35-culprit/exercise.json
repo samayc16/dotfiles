@@ -14,8 +14,10 @@
   "check": "check.sh",
   "par": 256,
   "hints": [
-    "Step 1: get the top user ID with the frequency pipeline from earlier levels.",
-    "Store it with `id=$( ... )`, then look it up: `grep \"^$id,\"`.",
+    "README → New syntax: `x=$( ... )` stores one command's output for the next command.",
+    "Step 1: the top user ID, via the level-16 recipe on ERROR lines. Step 2: find that ID at the start of a users.csv line and keep name and email.",
+    "`id=$(echo 'user=u007' | cut -d= -f2); echo \"got $id\"` prints `got u007`.",
+    "`id=$(grep ERROR \"$DATA/app.log\" | grep -o 'user=u[0-9]*' | sort | uniq -c | sort -rn | head -1 | cut -d= -f2)`, then `grep \"^$id,\"` users.csv and keep fields 2-3.",
     "Golfers: one awk can do the whole thing with an NR==FNR join."
   ]
 }

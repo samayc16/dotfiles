@@ -16,7 +16,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "groupby only groups ADJACENT items: sort first. {k: list(g) for k, g in groupby(sorted(words), key=lambda w: w[0])}",
-    "pairwise(nums) yields (a, b) neighbours; accumulate(nums) gives prefix sums; reduce(operator.mul, nums, 1); @cache memoizes; partial(pow, exp=2)."
+    "Look at the README's 'New syntax' table: one itertools/functools tool per function, in the same order as the imports.",
+    "group: sort, then `groupby` on the first letter inside a dict comprehension. diffs: `pairwise` + subtract. prefix sums: `accumulate`. product: `reduce` with `operator.mul` and start 1. fib_memo: one decorator. square: `partial` with pow's `exp=` keyword.",
+    "Other data: `{k: list(g) for k, g in groupby(sorted(ws, key=len), key=len)}`; `[b / a for a, b in pairwise(prices)]`; `reduce(max, nums, 0)`; `parse_hex = partial(int, base=16)`.",
+    "Near-answer: `{k: list(g) for k, g in groupby(sorted(words), key=lambda w: w[0])}`; `reduce(operator.mul, nums, 1)`; `@cache` goes on the line above `def fib_memo`."
   ]
 }

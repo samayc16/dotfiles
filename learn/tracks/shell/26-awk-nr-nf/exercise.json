@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 150,
   "hints": [
-    "`NF` is the number of fields on the line, `NR` the line number.",
-    "Use `-F'\\t'` for tabs.",
-    "`$0` is the whole line."
+    "README → New syntax: `NF`, `NR` and `$0`, with `-F'\\t'` for tabs.",
+    "Condition: the field count is not 4. Action: print the line number, `: `, then the whole line.",
+    "`printf 'a b\\nc\\n' | awk 'NF != 2 {print NR, $0}'` prints `2 c`.",
+    "`awk -F'\\t' 'NF != 4 {print ...}' \"$DATA/metrics.tsv\"`."
   ]
 }

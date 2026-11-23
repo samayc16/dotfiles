@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "greet: \"Hello, \\(name ?? \"stranger\")!\". firstEven: xs.first { $0 % 2 == 0 }.",
-    "parsePort: guard let n = Int(text), (1...65535).contains(n) else { return nil }; return n.  streetLength: user?.address?.street.count"
+    "Look at the README's 'New syntax' table: `??`, `guard let`, `?.`, ranges and `{ $0 ... }` are all you need. Each body is one or two lines.",
+    "Ideas: greet interpolates `name ?? <default>`; firstEven asks `first` for the first element passing an even-test closure; parsePort unwraps Int(text) AND range-checks it in one guard; streetLength chains `?.` through user and address.",
+    "Same shapes on other data: \"Bye, \\(nick ?? \"pal\").\"  ·  scores.first { $0 > 90 }  ·  guard let n = Int(s), n < 10 else { return nil }  ·  order?.customer?.email.count",
+    "Near-answer: `guard let port = Int(text), (1...65535).contains(port) else { return nil }` then `return port`. firstEven: `numbers.first { $0 % 2 == 0 }`."
   ]
 }

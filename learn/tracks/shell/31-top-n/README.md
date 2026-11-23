@@ -2,7 +2,15 @@
 
 > Is someone hammering the edge proxy?
 
-**Task:** Print the 3 client IPs with the most requests in `access.log` as `COUNT IP`, most first.
+## New syntax
+
+Nothing new: this is the classic top-N recipe, built from levels 16, 17 and 25.
+In words: extract one column → `sort` → `uniq -c` → `sort -rn` → `head`.
+Without `-F`, awk splits fields on spaces, so `awk '{print $1}'` is the first word of each line.
+
+## Your task
+
+Print the 3 client IPs with the most requests in `access.log` as `COUNT IP`, most first.
 
 **Input** `$DATA/access.log` (first lines):
 ```text

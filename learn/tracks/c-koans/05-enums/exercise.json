@@ -13,7 +13,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "C23 lets you pick the storage: enum Dir : unsigned char { NORTH, EAST, SOUTH, WEST };  sizeof(enum Dir) is then 1.",
-    "turn_right: (enum Dir)((d + 1) % 4). opposite: (d + 2) % 4. dir_name: switch (d) { case NORTH: return \"north\"; ... }"
+    "See 'New syntax': the enum fix is one change on the declaration line; the functions use `%` and `switch`.",
+    "Directions are numbered 0..3 clockwise, so turning right is +1 and the opposite is +2, both wrapped with % 4 and cast back to enum Dir. dir_name returns one string per case.",
+    "Other data: `enum Weekday : unsigned char { MON, TUE, WED };` · `(enum Weekday)((day + 1) % 3)` · `switch (day) { case MON: return \"mon\"; ... }`",
+    "Near-answer: `enum Dir : unsigned char { NORTH, EAST, SOUTH, WEST };` and `return (enum Dir)((d + 1) % 4);`"
   ]
 }

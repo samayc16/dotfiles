@@ -15,7 +15,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "Without a move constructor, moving falls back to the implicit copy: two Buffers own the same array and both delete it (ASan: double-free).",
-    "Buffer(Buffer&& other) noexcept : data_{std::exchange(other.data_, nullptr)}, size_{std::exchange(other.size_, 0)} {}  plus = delete for copies, and a move-assign that deletes[] the old data first."
+    "Read the New syntax table (`&&`, `std::move`, `= delete`, `noexcept`, `std::exchange`). The static_assert message and ASan's double-free report tell you what is missing.",
+    "Without a move constructor, `Buffer b{std::move(a)}` copies the raw pointer: two owners, two `delete[]`s. A move must steal pointer + size and leave `other` as {nullptr, 0}. Also `= delete` both copy operations, and mark the moves `noexcept`.",
+    "Move assignment on another class: `Fd& operator=(Fd&& o) noexcept { if (this != &o) { release_mine(); fd_ = std::exchange(o.fd_, -1); } return *this; }`",
+    "Near-answer: `Buffer(Buffer&& other) noexcept : data_{std::exchange(other.data_, nullptr)}, size_{std::exchange(other.size_, 0)} {}`, `Buffer(const Buffer&) = delete;`, and a move-assign that does `delete[] data_;` before stealing."
   ]
 }

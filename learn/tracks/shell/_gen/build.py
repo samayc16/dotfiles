@@ -22,6 +22,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # `python3 -I` leaves the script dir off sys.path
+from level_docs import PRIMERS, SYNTAX  # noqa: E402  (README primer + per-level "New syntax" tables)
+
 TRACK = Path(__file__).resolve().parent.parent
 DATA = TRACK / "data"
 SEED = 2026
@@ -355,87 +359,124 @@ LEVELS: list[dict] = [
          story="03:12. Your phone buzzes: *Nimbus API error rate > 5%*. You're on call. Time to read the logs.",
          task="Print every line of `app.log` whose level is `ERROR`.",
          inputs=["app.log"], sol='grep ERROR "$DATA/app.log"\n',
-         hints=["`grep PATTERN FILE` prints the lines of FILE that contain PATTERN.",
-                "Quote the path: `\"$DATA/app.log\"`."]),
+         hints=["README → New syntax: grep's basic form is `grep PATTERN FILE`, and the file is "
+                "`\"$DATA/app.log\"`.",
+                "Every line you want contains the literal text `ERROR`, so that word alone is the whole "
+                "pattern.",
+                "Same shape on fake input: `printf 'INFO ok\\nERROR bad\\n' | grep INFO` prints `INFO ok`.",
+                "`grep WARN \"$DATA/app.log\"` would print the warnings. Swap in the level you need."]),
     dict(slug="ignore-case", title="Timeout, TIMEOUT, timeout", d=1, concepts=["grep -i"],
          story="Half the errors look like timeouts, but every service spells it differently.",
          task="Print every line of `app.log` that mentions `timeout` in **any** letter case.",
          inputs=["app.log"], sol='grep -i timeout "$DATA/app.log"\n',
-         hints=["One flag makes grep case-insensitive.", "`man grep` and search for `ignore-case` (type `/ignore`)."]),
+         hints=["`man grep`, then type `/ignore` and Enter to jump to the flag you need.",
+                "grep is case-sensitive by default; one flag makes `timeout` also match `Timeout` and "
+                "`TIMEOUT`.",
+                "`printf 'Tea\\nTEA\\ncoffee\\n' | grep -i tea` prints `Tea` and `TEA`.",
+                "`grep -i PATTERN \"$DATA/app.log\"`, with the lowercase word as PATTERN."]),
     dict(slug="count", title="How bad is it?", d=1, concepts=["grep -c"],
          story="Your manager is awake too and wants one number.",
          task="Print the **number** of `ERROR` lines in `app.log` (just the number).",
          inputs=["app.log"], sol='grep -c ERROR "$DATA/app.log"\n',
-         hints=["You could pipe into `wc -l`... or grep can count by itself.", "`-c` counts matching lines."]),
+         hints=["`man grep`, search `/count`: grep can count matching lines by itself.",
+                "Keep the level-01 command and add one flag; it prints a number instead of lines.",
+                "`printf 'a\\nb\\na\\n' | grep -c a` prints `2`.",
+                "`grep -c PATTERN \"$DATA/app.log\"`."]),
     dict(slug="invert-anchors", title="Strip the noise", d=2, concepts=["grep -v", "^ and $ anchors", "multiple -e"],
          story="Maybe it's a config problem. `services.conf` is mostly comments, though.",
          task="Print `services.conf` **without** comment lines (lines starting with `#`) and without blank lines. "
               "Inline comments after a value stay.",
          inputs=["services.conf"], sol="grep -v -e '^#' -e '^$' \"$DATA/services.conf\"\n",
-         hints=["`-v` inverts the match: print lines that do NOT match.",
-                "`^` anchors to the start of a line, `$` to the end. `^$` is an empty line.",
-                "Give grep several patterns with repeated `-e`."]),
+         hints=["README → New syntax: `-v`, the anchors `^` and `$`, and repeated `-e`.",
+                "Describe the lines to DROP (start with `#`, or empty), then let `-v` print everything else.",
+                "`printf '// note\\ncode\\n\\nmore\\n' | grep -v -e '^//' -e '^$'` prints `code` and `more`.",
+                "Two patterns, `'^#'` and `'^$'`, each after `-e`, plus `-v`, on `\"$DATA/services.conf\"`."]),
     dict(slug="line-numbers", title="Where did it panic?", d=2, concepts=["grep -n"],
          story="Someone in chat says a Go service *panicked*. You want line numbers to jump straight there in nvim.",
          task="Print every line of `app.log` containing `panic`, prefixed with its line number (`123:...`).",
          inputs=["app.log"], sol='grep -n panic "$DATA/app.log"\n',
-         hints=["One flag adds `LINE:` in front of each match.",
-                "Tip: `nvim +123 file` opens a file at line 123."]),
+         hints=["`man grep`, search `/line-number`.",
+                "A plain grep for `panic`, plus the flag that puts `LINE:` in front of each match.",
+                "`printf 'a\\nb\\na\\n' | grep -n a` prints `1:a` and `3:a`. Tip: `nvim +3 file` opens at line "
+                "3.",
+                "`grep -n panic` on app.log."]),
     dict(slug="only-matching", title="Collect the evidence", d=2, concepts=["pipes", "grep -o", "character classes"],
          story="The backend team wants the request IDs of every failed request.",
          task="For every `ERROR` line in `app.log`, print just its `request_id=...` field, one per line, in log order.",
          inputs=["app.log"], sol="grep ERROR \"$DATA/app.log\" | grep -o 'request_id=[0-9a-f]*'\n",
-         hints=["Two greps in a pipeline: the first picks the lines, the second extracts.",
-                "`-o` prints only the matched part instead of the whole line.",
-                "IDs are lowercase hex: `[0-9a-f]*`."]),
+         hints=["README → New syntax: `-o` and a character class. Two greps joined by `|`.",
+                "First grep picks the ERROR lines; the second uses `-o` with a pattern for `request_id=` plus "
+                "the hex ID.",
+                "`echo 'room 101, floor 3' | grep -o '[0-9]*'` prints `101` and `3`.",
+                "`grep ERROR \"$DATA/app.log\" | grep -o 'request_id=...'`: replace `...` with a lowercase-hex "
+                "class and `*`."]),
     dict(slug="whole-word", title="error vs. errors", d=2, concepts=["grep -w", "word boundaries"],
          story="Searching for `error` also finds `errors` and `error_code=...`. You only want the word itself.",
          task="Print lines of `app.log` containing the lowercase **word** `error` (not `errors`, not `error_code`, "
               "not `ERROR`).",
          inputs=["app.log"], sol='grep -w error "$DATA/app.log"\n',
-         hints=["Search is case-sensitive by default, so `ERROR` is already excluded.",
-                "A flag matches whole words only. Underscore counts as a word character, so `error_code` is out."]),
+         hints=["`man grep`, search `/word-regexp`.",
+                "Case-sensitivity already rules out `ERROR`; one flag also rules out longer words like "
+                "`errors` and `error_code` (`_` counts as a word character).",
+                "`printf 'cat\\ncats\\ncat_food\\n' | grep -w cat` prints only `cat`.",
+                "`grep -w error` on app.log."]),
     dict(slug="extended-regex", title="Five hundreds", d=2, concepts=["grep -E", "{n} repetition", "regex literals"],
          story="Switch to the edge proxy's `access.log`. Which requests got a 5xx?",
          task="Print every line of `access.log` whose HTTP status is 5xx. The status comes right after the quoted "
               "request: `\"GET /x HTTP/1.1\" 503 1234 ...`",
          inputs=["access.log"], sol="grep -E '\" 5[0-9]{2} ' \"$DATA/access.log\"\n",
-         hints=["Extended regex (`-E`) gives you `{2}`, `+`, `?`, `|` and `()` without backslashes.",
-                "Anchor on the closing quote and spaces: `\" 5..` followed by a space.",
-                "Single-quote the pattern so the shell leaves the double quote alone."]),
+         hints=["README → New syntax: `-E` and `{n}` repetition. The status sits right after the request's "
+                "closing `\"`.",
+                "Match: the closing quote, a space, `5`, exactly two more digits, a space. The spaces stop it "
+                "matching inside sizes or IPs.",
+                "`printf 'v1\\nv22\\nv333\\n' | grep -E '^v[0-9]{2}$'` prints only `v22`.",
+                "`grep -E '\" 5...' \"$DATA/access.log\"`: replace `...` with a digit class repeated twice, then "
+                "a space."]),
     dict(slug="char-classes", title="Not from around here", d=2, concepts=["POSIX classes [[:alnum:]]", "alternation (a|b)"],
          story="Support says users with non-`.com` emails can't log in. Find their addresses.",
          task="Print every email address in `users.csv` at `example.org` or `example.net` (just the address), "
               "in file order.",
          inputs=["users.csv"], sol="grep -oE '[[:alnum:].]+@example\\.(org|net)' \"$DATA/users.csv\"\n",
-         hints=["`[[:alnum:].]+` matches letters, digits and dots.",
-                "Escape the literal dot in the domain: `example\\.`.",
-                "`(org|net)` needs `-E`."]),
+         hints=["README → New syntax: named classes like `[[:alnum:]]`, escaping a dot, `(a|b)` with `-E`, "
+                "and `-o`.",
+                "An address is name characters (letters, digits, dots), then `@example.`, then `org` or "
+                "`net`. Print only the match.",
+                "`echo 'a.txt b.csv c.md' | grep -oE '[[:alnum:]]+\\.(txt|md)'` prints `a.txt` and `c.md`.",
+                "`grep -oE '[[:alnum:].]+@example\\.(...)' \"$DATA/users.csv\"`: fill in the alternation."]),
     dict(slug="rg-types", title="Enter ripgrep", d=3, concepts=["rg -t TYPE", "rg -l", ".ignore files"],
          story="Maybe the bug is in code. Ripgrep searches whole trees fast and skips junk for you.",
          task="From inside `$DATA/src`, list the **Python** files that contain `TODO` (paths relative to `src`, "
               "one per line). `vendor/` is listed in `src/.ignore`, so rg skips it: don't fight that.",
          inputs=[], sol='cd "$DATA/src" && rg -t py -l TODO\n', mode="sorted",
          require=RG, require_hint="rg (ripgrep)",
-         hints=["`cd` into the directory first so paths come out relative.",
-                "`rg -t py` restricts the search to Python files (`rg --type-list` shows all types).",
-                "`-l` prints file names instead of matching lines."]),
+         hints=["README → New syntax: `cd` into `$DATA/src` first, then use rg's type flag and its list-files "
+                "flag.",
+                "Three pieces: `cd` (so paths come out relative), restrict to Python files, print only file "
+                "names.",
+                "In a notes folder, `rg -t md -l install` lists the Markdown files that mention `install`.",
+                "`cd \"$DATA/src\" && rg -t ... -l TODO`: find the type name with `rg --type-list | grep -i "
+                "python`."]),
     dict(slug="rg-globs", title="Not the tests", d=3, concepts=["rg -g '!glob'", "rg -c"],
          story="Count the FIXMEs per file, but leave the test files out of it.",
          task="From inside `$DATA/src`, print `path:count` of `FIXME` occurrences for every file **except** test "
               "files (names containing `_test.`).",
          inputs=[], sol="cd \"$DATA/src\" && rg -c FIXME -g '!*_test.*'\n", mode="sorted",
          require=RG, require_hint="rg (ripgrep)",
-         hints=["`-c` prints a count per file.", "`-g GLOB` includes paths; `-g '!GLOB'` excludes them.",
-                "Quote the glob so your shell doesn't expand it."]),
+         hints=["README → New syntax: rg's `-c` and `-g` flags. Run it from inside `$DATA/src`.",
+                "Count FIXME per file, and exclude every path whose name contains `_test.` with a `!` glob.",
+                "`rg -c TODO -g '!*.md'` counts TODOs per file, skipping Markdown files.",
+                "`cd \"$DATA/src\" && rg -c FIXME -g '!...'`: write a glob for names containing `_test.` (quote "
+                "it!)."]),
     dict(slug="rg-replace", title="Which endpoints?", d=3, concepts=["rg -o -r '$1'", "capture groups", "\\S"],
          story="Which endpoints returned 503? Ripgrep can print a capture group instead of the whole match.",
          task="Print the distinct `path` values from `app.log` lines with `status=503`, sorted.",
          inputs=["app.log"], sol="rg -o -r '$1' 'path=(\\S+) status=503' \"$DATA/app.log\" | sort -u\n",
          require=RG, require_hint="rg (ripgrep)",
-         hints=["`path=(\\S+) status=503` captures the path. rg supports Perl-style `\\S`, `\\d`, `\\w`.",
-                "`-o -r '$1'` replaces each match with capture group 1.",
-                "`sort -u` sorts and removes duplicates."]),
+         hints=["README → New syntax: a capture group plus `rg -o -r '$1'` prints just the captured part.",
+                "Match `path=`, capture the non-space run after it, and require ` status=503` right after. "
+                "Then sort and dedupe.",
+                "`echo 'user=ana id=7' | rg -o -r '$1' 'user=(\\w+)'` prints `ana`.",
+                "`rg -o -r '$1' 'path=(...) status=503' \"$DATA/app.log\" | sort -u`: fill in the group."]),
     dict(slug="rg-multiline", title="Read the tracebacks", d=4, concepts=["rg -U multiline", "non-capturing groups (?:)"],
          story="The deploys before the incident failed. Each traceback ends with the line you actually care about.",
          task="Print the final exception line of every Python traceback in `deploy.log` (e.g. "
@@ -443,82 +484,113 @@ LEVELS: list[dict] = [
          inputs=["deploy.log"],
          sol="rg -U -o -r '$1' 'Traceback.*\\n(?:  .*\\n)+(.+)' \"$DATA/deploy.log\"\n",
          require=RG, require_hint="rg -U (multiline)",
-         hints=["`-U` lets a pattern span lines; write newlines as `\\n`.",
-                "A traceback is `Traceback...` then indented lines (two leading spaces), then the exception line.",
-                "`(?:  .*\\n)+` repeats indented lines without capturing; capture the next line with `(.+)`."]),
+         hints=["README → New syntax: `-U`, `\\n` inside the pattern, and a non-capturing group `(?:...)`.",
+                "Shape: the `Traceback` line, then one or more lines starting with two spaces, then the "
+                "exception line (capture that one).",
+                "`printf 'name:\\n  ana\\n' | rg -U -o -r '$1' 'name:\\n  (.+)'` prints `ana`.",
+                "`rg -U -o -r '$1' 'Traceback.*\\n(?:...)+(.+)' \"$DATA/deploy.log\"`: the group is two spaces, "
+                "the rest of the line, `\\n`."]),
     dict(slug="cut", title="Columns, please", d=2, concepts=["cut -d -f", "tail -n +2"],
          story="Comms wants to email everyone. Pull the email column from the user list.",
          task="Print the `email` column (3rd field) of `users.csv`, **without** the header line.",
          inputs=["users.csv"], sol='tail -n +2 "$DATA/users.csv" | cut -d, -f3\n',
-         hints=["`tail -n +2` prints from line 2 onward, skipping the header.",
-                "`cut -d, -f3` splits on commas and keeps field 3."]),
+         hints=["README → New syntax: `tail -n +2` drops the header, `cut` picks a column.",
+                "Pipe the headerless file into `cut`, splitting on commas. email is field 3.",
+                "`printf 'h\\na,b,c\\n' | tail -n +2 | cut -d, -f2` prints `b`.",
+                "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f...`."]),
     dict(slug="sort-uniq", title="Team roster", d=2, concepts=["sort -u"],
          story="Which teams have users at all?",
          task="Print each distinct `team` from `users.csv` once, sorted alphabetically (no header).",
          inputs=["users.csv"], sol='tail -n +2 "$DATA/users.csv" | cut -d, -f4 | sort -u\n',
-         hints=["Extract the column like the last level, then sort.", "`sort -u` = `sort | uniq`."]),
+         hints=["Same pipeline as level 14 with a different column, then a deduplicating sort (level 12).",
+                "team is field 4. `sort -u` sorts and removes repeats in one go.",
+                "`printf 'x,b\\nx,a\\nx,b\\n' | cut -d, -f2 | sort -u` prints `a` and `b`.",
+                "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f4 | ...`."]),
     dict(slug="frequency", title="Where are our users?", d=2, concepts=["uniq -c", "sort -rn"],
          story="Is the outage regional? Start with where users live.",
          task="Count users per `country` in `users.csv` and print `COUNT COUNTRY`, highest first.",
          inputs=["users.csv"], sol='tail -n +2 "$DATA/users.csv" | cut -d, -f5 | sort | uniq -c | sort -rn\n',
          mode="ws",
-         hints=["`uniq -c` counts *adjacent* duplicates, so sort first.",
-                "`sort -rn` sorts numerically, highest first.",
-                "Padding before the count doesn't matter on this level."]),
+         hints=["README → New syntax: `uniq -c` counts, `sort -rn` ranks.",
+                "Pipeline: the country column → sort (so equal values sit together) → count → sort the counts "
+                "high to low.",
+                "`printf 'b\\na\\nb\\n' | sort | uniq -c` prints `1 a` and `2 b`.",
+                "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f5 | sort | uniq -c | ...`: finish with a numeric "
+                "reverse sort."]),
     dict(slug="head-tail", title="Hottest moments", d=2, concepts=["sort -t -k", "head", "$'\\t'"],
          story="The metrics export is a TSV. When was the CPU hottest?",
          task="Print the 3 data rows of `metrics.tsv` with the highest `cpu` (3rd column), highest first. "
               "Skip the header.",
          inputs=["metrics.tsv"], sol="tail -n +2 \"$DATA/metrics.tsv\" | sort -t$'\\t' -k3,3nr | head -3\n",
-         hints=["`sort -t SEP -k3,3n` sorts numerically by field 3 only.",
-                "In bash, `$'\\t'` is a literal tab character.", "`head -3` keeps the first three lines."]),
+         hints=["README → New syntax: `sort -t` sets the separator, `-k3,3nr` sorts by column 3, numeric, "
+                "descending.",
+                "Skip the header, sort by the cpu column with a tab as separator, keep the top 3.",
+                "`printf 'b,7\\na,12\\nc,3\\n' | sort -t, -k2,2nr | head -n 1` prints `a,12`.",
+                "`tail -n +2 \"$DATA/metrics.tsv\" | sort -t$'\\t' -k... | head -3`."]),
     dict(slug="tr", title="SHOUTING hostnames", d=2, concepts=["tr", "input redirection <"],
          story="The inventory file has the same hosts in three different capitalisations.",
          task="Print the distinct hostnames from `hosts.txt`, lowercased, sorted.",
          inputs=["hosts.txt"], sol="tr '[:upper:]' '[:lower:]' < \"$DATA/hosts.txt\" | sort -u\n",
-         hints=["`tr` translates characters; it only reads stdin, so redirect the file in with `<`.",
-                "`tr '[:upper:]' '[:lower:]'` lowercases."]),
+         hints=["README → New syntax: `tr` only reads stdin, so feed the file in with `<`.",
+                "Lowercase every character, then sort with duplicates removed.",
+                "`echo Hi | tr 'a-z' 'A-Z'` prints `HI`.",
+                "`tr '[:upper:]' '[:lower:]' < \"$DATA/hosts.txt\" | ...`."]),
     dict(slug="wc", title="How many people noticed?", d=2, concepts=["wc -l", "pipeline composition"],
          story="How many distinct users hit at least one error?",
          task="Print the number of distinct `user=` values on `ERROR` lines in `app.log`.",
          inputs=["app.log"], sol="grep ERROR \"$DATA/app.log\" | grep -o 'user=u[0-9]*' | sort -u | wc -l\n",
          mode="ws",
-         hints=["Combine: filter lines, extract the user, dedupe, count.", "`wc -l` counts lines."]),
+         hints=["Reuse levels 06 and 12: filter lines, extract with `-o`, dedupe, then count with `wc -l`.",
+                "Pipeline: ERROR lines → just the `user=uNNN` text → unique → count the lines.",
+                "`printf 'a\\nb\\na\\n' | sort -u | wc -l` prints `2`.",
+                "`grep ERROR \"$DATA/app.log\" | grep -o 'user=u[0-9]*' | ... | wc -l`."]),
     dict(slug="sed-substitute", title="Privacy, please", d=3, concepts=["sed s///", "negated classes [^,]"],
          story="You need to paste the user list into the incident channel, but not the email addresses.",
          task="Print `users.csv` with the part of each email **before** the `@` replaced by `***` "
               "(`***@example.com`). The header line stays unchanged.",
          inputs=["users.csv"], sol="sed 's/,[^,]*@/,***@/' \"$DATA/users.csv\"\n",
          require=SED, require_hint="sed",
-         hints=["`sed 's/OLD/NEW/' file` replaces the first match on each line.",
-                "Match from a comma up to the `@`: `,[^,]*@`. `[^,]` means \"anything except a comma\".",
-                "Put the comma back in the replacement."]),
+         hints=["README → New syntax: `sed 's/OLD/NEW/'` plus a negated class `[^,]`.",
+                "The email field starts after a comma and runs up to `@`: match comma + non-commas + `@`, "
+                "replace with comma + `***@`. The header has no `@`, so it stays.",
+                "`echo 'tel: 555-1234' | sed 's/[^ ]*$/<hidden>/'` prints `tel: <hidden>`.",
+                "`sed 's/,[^,]*@/...' \"$DATA/users.csv\"`: write the replacement (put the comma back)."]),
     dict(slug="sed-range", title="Just the database bits", d=3, concepts=["sed -n ... p", "address ranges /a/,/b/"],
          story="The DBA asks: \"what does the database section say?\"",
          task="Print the `[database]` section of `services.conf`: its header and its lines, but not the blank line "
               "after it.",
          inputs=["services.conf"], sol="sed -n '/^\\[database\\]/,/^$/{/./p;}' \"$DATA/services.conf\"\n",
          require=SED, require_hint="sed",
-         hints=["`sed -n` prints nothing unless told to; `p` prints.",
-                "`/START/,/END/` selects a range of lines. Escape the brackets: `\\[database\\]`.",
-                "Inside the range, only print non-empty lines: `{/./p;}`."]),
+         hints=["README → New syntax: `sed -n` with a `/START/,/END/` range and `p`.",
+                "The section runs from the `[database]` line to the next empty line; inside it, print only "
+                "lines with at least one character.",
+                "`printf 'a\\nSTART\\nb\\nEND\\n' | sed -n '/START/,/END/p'` prints `START`, `b`, `END`.",
+                "`sed -n '/^\\[database\\]/,/^$/{...}' \"$DATA/services.conf\"`: inside the braces, print lines "
+                "matching `/./`."]),
     dict(slug="sed-delete", title="Config, minus the chatter", d=3, concepts=["sed -e (multiple)", "d command"],
          story="Diffing configs is easier without comments.",
          task="Print `services.conf` with all comments removed (whole-line **and** inline, plus the spaces before "
               "them) and no blank lines.",
          inputs=["services.conf"], sol="sed -e 's/[[:space:]]*#.*//' -e '/^$/d' \"$DATA/services.conf\"\n",
          require=SED, require_hint="sed",
-         hints=["First delete comments with `s/...//`, then delete lines that became empty.",
-                "`[[:space:]]*#.*` matches optional spaces, the `#`, and everything after it.",
-                "`/^$/d` deletes empty lines. Chain commands with `-e ... -e ...`."]),
+         hints=["README → New syntax: two sed commands chained with `-e`: a substitution, then `d`.",
+                "First erase optional spaces + `#` + the rest of the line. Whole-line comments become empty "
+                "lines, so then delete empty lines.",
+                "`printf 'a  // x\\n// y\\nb\\n' | sed -e 's/ *\\/\\/.*//' -e '/^$/d'` prints `a` and `b`.",
+                "`sed -e 's/[[:space:]]*#.*//' -e '...' \"$DATA/services.conf\"`: the second command deletes "
+                "empty lines."]),
     dict(slug="sed-capture", title="Dates for the Berlin office", d=3, concepts=["sed -E", "capture groups \\1"],
          story="Finance in Berlin wants the orders export with dates as `DD.MM.YYYY`.",
          task="Print `orders.csv` with every `YYYY-MM-DD` date rewritten as `DD.MM.YYYY`.",
          inputs=["orders.csv"],
          sol="sed -E 's/([0-9]{4})-([0-9]{2})-([0-9]{2})/\\3.\\2.\\1/' \"$DATA/orders.csv\"\n",
          require=SED, require_hint="sed",
-         hints=["`sed -E` enables extended regex: `( )` groups and `{4}`, the same on macOS and Linux.",
-                "Refer to groups in the replacement with `\\1`, `\\2`, `\\3`."]),
+         hints=["README → New syntax: `sed -E` with three capture groups and `\\1 \\2 \\3` in the replacement.",
+                "Capture year, month and day separately (`[0-9]{4}` and so on), then write them back in the "
+                "other order with dots.",
+                "`echo 'Doe, Jane' | sed -E 's/([A-Za-z]+), ([A-Za-z]+)/\\2 \\1/'` prints `Jane Doe`.",
+                "`sed -E 's/([0-9]{4})-([0-9]{2})-([0-9]{2})/.../' \"$DATA/orders.csv\"`: write the "
+                "replacement."]),
     dict(slug="sed-inplace", title="Hotfix the config", d=3, concepts=["sed -i (BSD vs GNU)", "ranges + several commands"],
          story="Root cause: web is on the wrong port with debug off. Fix the file **in place**, like you would on the "
                "box.",
@@ -532,33 +604,46 @@ LEVELS: list[dict] = [
               "`sed -i.bak ...` works on both: it keeps a backup, which you then delete.\n\n"
               "The checker runs your script in a scratch directory containing a fresh `services.conf`, then "
               "compares the edited file. Your workspace has its own copy to experiment on.",
-         hints=["Restrict commands to a range: `/^\\[web\\]/,/^$/{ ...; }`.",
-                "Inside the braces, separate commands with `;` and end with `;}` (BSD sed needs it).",
-                "`sed -i.bak ... && rm services.conf.bak`."]),
+         hints=["README → New syntax and the portability note: use `sed -i.bak`, then delete the `.bak`.",
+                "Limit the edits to the `[web]` range (level 21) and run two substitutions inside it: one for "
+                "`port`, one for `debug`.",
+                "`sed -i.bak '/^\\[a\\]/,/^$/{s/^x = .*/x = 2/;}' t.conf && rm t.conf.bak` changes `x` only in "
+                "section `[a]`.",
+                "`sed -i.bak '/^\\[web\\]/,/^$/{s/^port = .*/.../;s/^debug = .*/.../;}' services.conf && rm "
+                "services.conf.bak`."]),
     dict(slug="awk-fields", title="Who pays us?", d=3, concepts=["awk -F", "$N fields", "pattern {action}"],
          story="Product wants to reach out to affected **pro** customers personally.",
          task="Print `NAME <EMAIL>` for every user on the `pro` plan in `users.csv`, in file order.",
          inputs=["users.csv"], sol="awk -F, '$7 == \"pro\" {print $2 \" <\" $3 \">\"}' \"$DATA/users.csv\"\n",
          require=AWK, require_hint="awk",
-         hints=["`awk -F, 'CONDITION {ACTION}'` runs ACTION on lines where CONDITION holds.",
-                "Fields are `$1`, `$2`, ...; compare strings with `==`.",
-                "Juxtaposition concatenates: `print $2 \" <\" $3 \">\"`."]),
+         hints=["README → New syntax: `awk -F, 'COND {print ...}'` with fields `$2`, `$3`, `$7`.",
+                "Condition: the plan field equals `\"pro\"`. Action: print the name, ` <`, the email and `>` "
+                "glued together.",
+                "`printf 'ana,admin\\nbo,guest\\n' | awk -F, '$2 == \"admin\" {print \"[\" $1 \"]\"}'` prints "
+                "`[ana]`.",
+                "`awk -F, '$7 == \"pro\" {print ...}' \"$DATA/users.csv\"`: name is `$2`, email is `$3`."]),
     dict(slug="awk-nr-nf", title="Malformed metrics", d=3, concepts=["NF (field count)", "NR (record number)"],
          story="The metrics pipeline choked on some rows. Find the broken ones.",
          task="Print `LINE: ROW` for every line of `metrics.tsv` that does not have exactly 4 tab-separated fields "
               "(`LINE` is the line number in the file).",
          inputs=["metrics.tsv"], sol="awk -F'\\t' 'NF != 4 {print NR \": \" $0}' \"$DATA/metrics.tsv\"\n",
          require=AWK, require_hint="awk",
-         hints=["`NF` is the number of fields on the line, `NR` the line number.", "Use `-F'\\t'` for tabs.",
-                "`$0` is the whole line."]),
+         hints=["README → New syntax: `NF`, `NR` and `$0`, with `-F'\\t'` for tabs.",
+                "Condition: the field count is not 4. Action: print the line number, `: `, then the whole "
+                "line.",
+                "`printf 'a b\\nc\\n' | awk 'NF != 2 {print NR, $0}'` prints `2 c`.",
+                "`awk -F'\\t' 'NF != 4 {print ...}' \"$DATA/metrics.tsv\"`."]),
     dict(slug="awk-sum", title="Revenue check", d=3, concepts=["accumulators", "END block", "printf %.2f"],
          story="Finance asks whether payments still worked during the incident.",
          task="Print the total `amount` of `paid` orders in `USD` from `orders.csv`, with 2 decimals.",
          inputs=["orders.csv"],
          sol="awk -F, '$5 == \"paid\" && $4 == \"USD\" {s += $3} END {printf \"%.2f\\n\", s}' \"$DATA/orders.csv\"\n",
          require=AWK, require_hint="awk",
-         hints=["Variables start at 0 (or empty), so `s += $3` just works.",
-                "`END { ... }` runs after the last line.", "`printf \"%.2f\\n\", s`."]),
+         hints=["README → New syntax: add up into a variable, print it in `END` with `printf`.",
+                "Condition: status is `paid` AND currency is `USD`. Action: add the amount to a total. At the "
+                "end, print it with 2 decimals.",
+                "`printf '1.2\\n2.3\\n' | awk '{t += $1} END {printf \"%.2f\\n\", t}'` prints `3.50`.",
+                "`awk -F, '$5 == \"paid\" && $4 == \"USD\" {s += $3} END {...}' \"$DATA/orders.csv\"`."]),
     dict(slug="awk-groupby", title="Revenue by currency", d=4, concepts=["associative arrays", "for (k in arr)"],
          story="Same question, broken down by currency.",
          task="For `paid` orders, print `CURRENCY TOTAL` (2 decimals) per currency, sorted by currency.",
@@ -566,8 +651,13 @@ LEVELS: list[dict] = [
          sol="awk -F, '$5 == \"paid\" {s[$4] += $3} END {for (c in s) printf \"%s %.2f\\n\", c, s[c]}' "
              "\"$DATA/orders.csv\" | sort\n",
          require=AWK, require_hint="awk",
-         hints=["Use the currency as an array key: `s[$4] += $3`.",
-                "`for (k in arr)` order is unspecified (and differs between awks): pipe into `sort`."]),
+         hints=["README → New syntax: an array keyed by currency, then `for (k in arr)` in `END`.",
+                "For paid orders, add the amount to `s[currency]`. In END, loop over the keys and printf "
+                "each, then pipe into sort.",
+                "`printf 'x 1\\ny 5\\nx 2\\n' | awk '{t[$1] += $2} END {for (k in t) print k, t[k]}' | sort` "
+                "prints `x 3` and `y 5`.",
+                "`awk -F, '$5 == \"paid\" {s[$4] += $3} END {for (c in s) printf ...}' \"$DATA/orders.csv\" | "
+                "sort`."]),
     dict(slug="awk-printf", title="A report your manager can read", d=4,
          concepts=["printf widths %-10s %5d", "piping inside awk", "close()"],
          story="Your manager wants a tidy table, not raw counts.",
@@ -582,10 +672,13 @@ LEVELS: list[dict] = [
              "  printf \"%-10s %5d\\n\", \"TOTAL\", NR - 1\n"
              "}' \"$DATA/users.csv\"\n",
          require=AWK, require_hint="awk",
-         hints=["`%-10s` is left-aligned width 10; `%5d` is right-aligned width 5.",
-                "Inside awk, `print ... | \"sort\"` pipes rows through sort; `close(\"sort\")` flushes it before "
-                "you print TOTAL.",
-                "Or build it in pieces with the shell: `{ echo header; awk ... | sort; awk ... total; }`."]),
+         hints=["README → New syntax: printf widths `%-10s %5d`, and awk's `| \"sort\"` with `close()` (or a "
+                "shell `{ ...; }` group).",
+                "Count users per team, skipping the header. In END: printf the header row, printf each team "
+                "through sort, close sort, then printf TOTAL (= NR - 1).",
+                "`awk 'BEGIN {printf \"%-6s|%4d\\n\", \"ab\", 42}'` prints `ab    |  42`.",
+                "`awk -F, 'NR > 1 {n[$4]++} END {printf \"%-10s %5s\\n\", \"TEAM\", \"USERS\"; for (t in n) printf "
+                "... | \"sort\"; close(\"sort\"); printf ...}'`."]),
     dict(slug="awk-join", title="Which team spends the most?", d=4, concepts=["NR==FNR two-file join", "next"],
          story="Orders know user IDs; users know teams. Join them.",
          task="Join `users.csv` and `orders.csv` and print `TEAM TOTAL` (2 decimals) of `paid` **USD** orders per "
@@ -595,15 +688,23 @@ LEVELS: list[dict] = [
              "  END {for (t in s) printf \"%s %.2f\\n\", t, s[t]}' \"$DATA/users.csv\" \"$DATA/orders.csv\" "
              "| sort -k2,2nr\n",
          require=AWK, require_hint="awk",
-         hints=["With two files, `NR == FNR` is only true while reading the first one.",
-                "Load the lookup table from file 1 (`team[$1] = $4; next`), then use it on file 2.",
-                "`sort -k2,2nr` sorts by the 2nd column, numeric, descending."]),
+         hints=["README → New syntax: the `NR == FNR {...; next}` two-file pattern. Give users.csv first.",
+                "File 1: remember `team[user_id] = team`. File 2: for paid USD orders, add the amount to "
+                "`s[team[user_id]]`. END: print, then sort by total.",
+                "`awk 'NR == FNR {c[$1] = $2; next} {print $1, c[$2]}' colors.txt items.txt` looks up each "
+                "item's color.",
+                "`awk -F, 'NR == FNR {team[$1] = $4; next} $5 == \"paid\" && $4 == \"USD\" {s[team[$2]] += $3} "
+                "END {...}' users.csv orders.csv | sort -k2,2nr` (with the `$DATA/` paths)."]),
     dict(slug="top-n", title="Top talkers", d=4, concepts=["top-N pipeline", "awk '{print $1}'"],
          story="Is someone hammering the edge proxy?",
          task="Print the 3 client IPs with the most requests in `access.log` as `COUNT IP`, most first.",
          inputs=["access.log"], sol="awk '{print $1}' \"$DATA/access.log\" | sort | uniq -c | sort -rn | head -3\n",
          mode="ws",
-         hints=["The IP is the first whitespace-separated field.", "sort, `uniq -c`, `sort -rn`, `head`."]),
+         hints=["Reuse the frequency recipe from level 16. The IP is the first space-separated field.",
+                "Extract the IP (`awk '{print $1}'`), then sort, count, rank, keep 3.",
+                "`printf 'b x\\na y\\nb z\\n' | awk '{print $1}' | sort | uniq -c | sort -rn | head -1` prints "
+                "`2 b`.",
+                "`awk '{print $1}' \"$DATA/access.log\" | sort | uniq -c | ...`."]),
     dict(slug="time-window", title="The 15 minutes that mattered", d=4, concepts=["substr()", "string comparison", "split()"],
          story="The dashboard shows the spike between 10:15 and 10:30. Zoom in.",
          task="For `ERROR` lines in `app.log` with a time from `10:15:00` up to (not including) `10:30:00`, print "
@@ -613,9 +714,12 @@ LEVELS: list[dict] = [
              "  split($6, p, \"=\"); split($7, s, \"=\"); print substr($1, 12, 8), p[2], s[2]\n"
              "}' \"$DATA/app.log\"\n",
          require=AWK, require_hint="awk",
-         hints=["`substr($1, 12, 8)` cuts `HH:MM:SS` out of `2026-03-14T10:16:03Z`.",
-                "Zero-padded times compare correctly as strings.",
-                "`split($6, p, \"=\")` puts the part after `=` into `p[2]`."]),
+         hints=["README → New syntax: `substr`, string comparison and `split` in awk.",
+                "Fields: `$1` timestamp, `$2` level, `$6` `path=...`, `$7` `status=...`. Cut HH:MM out of "
+                "`$1` and compare it with `\"10:15\"` and `\"10:30\"`.",
+                "`echo '2026-01-31T08:05:09Z x' | awk '{print substr($1, 12, 8)}'` prints `08:05:09`.",
+                "`awk '$2 == \"ERROR\" && substr($1, 12, 5) >= \"10:15\" && ... {split($6, p, \"=\"); split($7, s, "
+                "\"=\"); print ...}' \"$DATA/app.log\"`."]),
     dict(slug="flatten-config", title="Config to env vars", d=5, concepts=["regex FS", "gsub", "toupper", "state across lines"],
          story="The new deploy system wants environment variables, not INI files.",
          task="Turn `services.conf` into `SECTION_KEY=VALUE` lines (uppercase section and key, inline comments "
@@ -624,9 +728,14 @@ LEVELS: list[dict] = [
          sol="awk -F' *= *' '/^\\[/ {gsub(/[][]/, \"\"); s = toupper($0); next}\n"
              "  /^[a-z]/ {sub(/ *#.*/, \"\", $2); print s \"_\" toupper($1) \"=\" $2}' \"$DATA/services.conf\"\n",
          require=AWK, require_hint="awk",
-         hints=["`-F' *= *'` makes the separator an `=` with optional spaces around it.",
-                "On a `[section]` line, strip the brackets (`gsub`), remember the name, and `next`.",
-                "On `key = value` lines, drop an inline comment from `$2` with `sub(/ *#.*/, \"\", $2)`."]),
+         hints=["README → New syntax: a regex `-F`, `/re/` conditions, `sub`/`gsub`, `toupper`, and `next` "
+                "(level 30).",
+                "Two rules. `[section]` lines: strip the brackets, save the uppercased name, `next`. `key = "
+                "value` lines: drop an inline comment from `$2`, print SECTION_KEY=VALUE.",
+                "`printf '[a]\\nx = 1\\n' | awk -F' *= *' '/^\\[/ {s = $0; next} {print s, $1, $2}'` prints `[a] "
+                "x 1`.",
+                "`awk -F' *= *' '/^\\[/ {gsub(/[][]/, \"\"); s = toupper($0); next} /^[a-z]/ {sub(/ *#.*/, \"\", "
+                "$2); print ...}' \"$DATA/services.conf\"`."]),
     dict(slug="incident-report", title="Boss: incident report", d=5,
          concepts=["multi-field aggregation", "averages", "multi-key sort"],
          story="Post-mortem time. Which endpoints failed, how often, and how slowly?",
@@ -639,9 +748,14 @@ LEVELS: list[dict] = [
              "  END {for (k in n) if (n[k] >= 3) printf \"%s %d %.1f\\n\", k, n[k], t[k] / n[k]}' "
              "\"$DATA/app.log\" | sort -k2,2nr -k1,1\n",
          require=AWK, require_hint="awk",
-         hints=["Split each `key=value` field, then aggregate count and total ms per path.",
-                "Average = total / count, in the END block.",
-                "`sort -k2,2nr -k1,1`: by count descending, then path ascending."]),
+         hints=["README → New syntax: several awk rules in one program, `if` inside `END`, and a two-key "
+                "sort.",
+                "Rule 1: split the `path=`, `status=` and `ms=` fields. Rule 2: if status ≥ 500, count it and "
+                "add its ms per path. END: print paths with count ≥ 3 and total / count.",
+                "`printf 'a 4\\na 6\\nb 1\\n' | awk '{n[$1]++; t[$1] += $2} END {for (k in n) if (n[k] > 1) "
+                "print k, t[k] / n[k]}'` prints `a 5`.",
+                "`... END {for (k in n) if (n[k] >= 3) printf \"%s %d %.1f\\n\", k, n[k], t[k] / n[k]}' "
+                "\"$DATA/app.log\" | sort -k2,2nr -k1,1`."]),
     dict(slug="culprit", title="Final boss: find the culprit", d=5, concepts=["command substitution $( )", "joins", "everything"],
          story="One account triggered more errors than anyone else. Is it a bot? Find out who it is.",
          task="Find the user with the most `ERROR` lines in `app.log`, then print their `NAME,EMAIL` from "
@@ -650,8 +764,12 @@ LEVELS: list[dict] = [
          sol="id=$(grep ERROR \"$DATA/app.log\" | grep -o 'user=u[0-9]*' | sort | uniq -c | sort -rn | head -1 "
              "| cut -d= -f2)\n"
              "grep \"^$id,\" \"$DATA/users.csv\" | cut -d, -f2,3\n",
-         hints=["Step 1: get the top user ID with the frequency pipeline from earlier levels.",
-                "Store it with `id=$( ... )`, then look it up: `grep \"^$id,\"`.",
+         hints=["README → New syntax: `x=$( ... )` stores one command's output for the next command.",
+                "Step 1: the top user ID, via the level-16 recipe on ERROR lines. Step 2: find that ID at the "
+                "start of a users.csv line and keep name and email.",
+                "`id=$(echo 'user=u007' | cut -d= -f2); echo \"got $id\"` prints `got u007`.",
+                "`id=$(grep ERROR \"$DATA/app.log\" | grep -o 'user=u[0-9]*' | sort | uniq -c | sort -rn | head "
+                "-1 | cut -d= -f2)`, then `grep \"^$id,\"` users.csv and keep fields 2-3.",
                 "Golfers: one awk can do the whole thing with an NR==FNR join."]),
 ]
 
@@ -697,7 +815,12 @@ def sample(path: Path, n: int = 2) -> str:
 
 
 def readme(num: int, lvl: dict, expected: str, par: int) -> str:
-    out = [f"# Level {num:02d} · {lvl['title']}", "", f"> {lvl['story']}", "", f"**Task:** {lvl['task']}", ""]
+    out = [f"# Level {num:02d} · {lvl['title']}", "", f"> {lvl['story']}", ""]
+    if lvl["slug"] in PRIMERS:
+        out += [PRIMERS[lvl["slug"]].strip(), ""]
+    if lvl["slug"] in SYNTAX:
+        out += ["## New syntax", "", SYNTAX[lvl["slug"]].strip(), ""]
+    out += ["## Your task", "", lvl["task"], ""]
     for name in lvl["inputs"]:
         out += [f"**Input** `$DATA/{name}` (first lines):", "```text", sample(DATA / name), "```", ""]
     if lvl["slug"].startswith("rg-") and not lvl["inputs"]:
@@ -724,6 +847,9 @@ def readme(num: int, lvl: dict, expected: str, par: int) -> str:
 
 
 def build_levels() -> list[str]:
+    unknown = (set(PRIMERS) | set(SYNTAX)) - {lvl["slug"] for lvl in LEVELS}
+    if unknown:
+        sys.exit(f"level_docs.py has entries for unknown slugs: {sorted(unknown)}")
     for old in TRACK.iterdir():
         if old.is_dir() and old.name[:2].isdigit():
             shutil.rmtree(old)

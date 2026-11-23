@@ -15,7 +15,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "word_freq: std::unordered_map<std::string, int> m; for (const auto& w : words) ++m[w];",
-    "top_k: copy into a vector<pair>, std::ranges::sort(v, std::greater{}, &std::pair<std::string,int>::second) — the projection picks what to compare. drop_negatives: std::erase_if(v, [](int x) { return x < 0; });"
+    "New syntax table: `m[key]` on an unordered_map, `std::ranges::sort` with a comparator, `std::erase_if`, `std::ranges::fold_left`.",
+    "word_freq: `operator[]` inserts 0 for a new key, so incrementing counts. top_k: copy the map into a vector of pairs, sort by count descending then word ascending, take the first k words. drop_negatives: one erase_if. product: fold_left starting from 1.",
+    "Two-key sort on other data: `std::ranges::sort(people, [](const auto& a, const auto& b) { return a.age != b.age ? a.age > b.age : a.name < b.name; });` · `std::ranges::fold_left(v, 0, std::plus{})` sums.",
+    "Near-answer: `std::vector<std::pair<std::string, int>> entries(freq.begin(), freq.end());` then sort on `.second`/`.first` as above · `std::erase_if(values, [](int x) { return x < 0; });` · `std::ranges::fold_left(values, 1L, std::multiplies{})`."
   ]
 }

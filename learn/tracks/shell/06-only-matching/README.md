@@ -2,7 +2,18 @@
 
 > The backend team wants the request IDs of every failed request.
 
-**Task:** For every `ERROR` line in `app.log`, print just its `request_id=...` field, one per line, in log order.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-o` | print only the matched text, one match per line | `echo 'room 101, floor 3' \| grep -o '[0-9]*'` → `101`, `3` |
+| `[abc]` | one character from the set | `gr[ae]y` matches `gray` and `grey` |
+| `[a-f]`, `[0-9]` | ranges inside the brackets | `[0-9a-f]` = one hex digit |
+| `x*` | zero or more of the item just before it | `[0-9]*` = a run of digits |
+
+## Your task
+
+For every `ERROR` line in `app.log`, print just its `request_id=...` field, one per line, in log order.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

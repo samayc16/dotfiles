@@ -13,7 +13,9 @@
   "open": "hex7seg.sv",
   "check": "check.sh",
   "hints": [
-    "Write out a 16-entry `case`; each segment pattern is a 7-bit constant `7'b gfedcba`.",
-    "Draw the digit and mark which of a..g light up; bit 0 is segment a."
+    "The drawing at the top of `hex7seg.sv` names the segments, and `seg = {g, f, e, d, c, b, a}`: the rightmost bit of each literal is segment a.",
+    "For each digit, list the lit segments, then write a 1 in those positions (g on the left, a on the right). One `case` arm per digit, like the 0 and 1 arms.",
+    "Worked examples on other shapes: a minus sign (only g) is `7'b1000000`; an `L` (d, e, f) is `7'b0111000`.",
+    "Near-answer for two digits: 2 lights a b d e g → `7'b1011011`; 7 lights a b c → `7'b0000111`. The testbench draws your shape next to the expected one."
   ]
 }

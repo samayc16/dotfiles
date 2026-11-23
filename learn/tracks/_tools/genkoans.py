@@ -11,7 +11,8 @@ keeps everything else. One source means starter and solution can't drift apart.
 
 Usage: python3 genkoans.py <definition.py> <output track dir>
 A definition module exposes TRACK (dict) and KOANS (list of dicts with keys:
-slug, title, difficulty, xp, concepts, hints, why, task, code, test, file, test_file).
+slug, title, difficulty, xp, concepts, hints, why, task, code, test, file, test_file,
+and optionally primer / syntax: see optional_sections).
 """
 
 from __future__ import annotations
@@ -47,11 +48,23 @@ def split_variants(code: str) -> tuple[str, str]:
     return "\n".join(starter) + "\n", "\n".join(solution) + "\n"
 
 
+def optional_sections(koan: dict) -> str:
+    """Beginner scaffolding, both optional: `primer` (markdown that brings its own `## ...`
+    heading, used on a track's first koan) and `syntax` (body of a `## New syntax` section)."""
+    parts = []
+    if koan.get("primer"):
+        parts.append(f"{koan['primer'].strip()}\n\n")
+    if koan.get("syntax"):
+        parts.append(f"## New syntax\n{koan['syntax'].strip()}\n\n")
+    return "".join(parts)
+
+
 def readme(koan: dict, track: dict, number: int) -> str:
     keys = track["nvim_tips"]
     return (
         f"# {number:02d} · {koan['title']}\n\n"
         f"## Why it matters\n{koan['why'].strip()}\n\n"
+        f"{optional_sections(koan)}"
         f"## Your task\n{koan['task'].strip()}\n\n"
         f"Edit `{koan.get('file', track['file'])}` until every check passes.\n\n"
         f"## Run it\n- `learn check` in a terminal, or `<leader>lc` in nvim\n"

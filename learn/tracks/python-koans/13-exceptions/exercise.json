@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "class NotFound(AppError): def __init__(self, key): super().__init__(f'not found: {key}'); self.key = key. Chain with: raise NotFound(key) from err",
-    "Collect errors in a list, then: if errors: raise ExceptionGroup('invalid items', errors). Split with: except* ValueError as group: ..."
+    "Look at the README's 'New syntax' block: a custom class, `raise ... from`, `ExceptionGroup` and `except*`.",
+    "NotFound calls `super().__init__` with a message containing the key and stores `.key`. lookup wraps the dict access in try/except KeyError and raises NotFound from it. validate_all collects ValueErrors and raises a group only if there are any. count_value_errors sets a counter inside `except*` and returns after the try.",
+    "Other data: `try: cfg[k]` / `except KeyError as e: raise ConfigError(k) from e`; `errs = [TypeError(x) for x in xs if not isinstance(x, int)]`; `if errs: raise ExceptionGroup(\"bad\", errs)`.",
+    "Near-answer: `count = 0`; `try: validate_all(items)`; `except* ValueError as group: count = len(group.exceptions)`; `return count`."
   ]
 }

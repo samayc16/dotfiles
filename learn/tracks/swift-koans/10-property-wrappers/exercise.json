@@ -14,7 +14,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "@propertyWrapper struct Clamped<Value: Comparable> { private var value: Value; let range: ClosedRange<Value>; var wrappedValue: Value { get { value } set { value = min(max(newValue, range.lowerBound), range.upperBound) } } }",
-    "init(wrappedValue: Value, _ range: ClosedRange<Value>) { self.range = range; self.value = min(max(wrappedValue, range.lowerBound), range.upperBound) }  — then: @Clamped(0...10) var level = 5"
+    "Look at the README's 'New syntax' (`@propertyWrapper`, `wrappedValue`, `get`/`set`, `init(wrappedValue:_:)`). Replace the TODO lines with a generic wrapper struct and annotate `level`.",
+    "Idea: store a private value plus the range; clamp in BOTH the init and the setter with `min(max(x, lower), upper)`. The init's first parameter must be called `wrappedValue`; the range comes second, unlabeled (`_`).",
+    "Example on other data: the README's `Lowercased` wrapper has the same structure; it lowercases where you need to clamp.",
+    "Near-answer: `init(wrappedValue: Value, _ range: ClosedRange<Value>) { self.range = range; value = min(max(wrappedValue, range.lowerBound), range.upperBound) }`, and `@Clamped(0...10) var level: Int = 5`."
   ]
 }

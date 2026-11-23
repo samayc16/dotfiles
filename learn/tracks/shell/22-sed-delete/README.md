@@ -2,7 +2,17 @@
 
 > Diffing configs is easier without comments.
 
-**Task:** Print `services.conf` with all comments removed (whole-line **and** inline, plus the spaces before them) and no blank lines.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `/re/d` | delete matching lines | `printf 'keep\ndrop me\nkeep too\n' \| sed '/drop/d'` → `keep`, `keep too` |
+| `s/re//` | an empty NEW deletes the matched text | `echo 'hello world' \| sed 's/ world//'` → `hello` |
+| `-e A -e B` | several commands, applied in order to every line | `echo 'a b' \| sed -e 's/a/A/' -e 's/b/B/'` → `A B` |
+
+## Your task
+
+Print `services.conf` with all comments removed (whole-line **and** inline, plus the spaces before them) and no blank lines.
 
 **Input** `$DATA/services.conf` (first lines):
 ```text

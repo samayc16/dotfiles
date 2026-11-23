@@ -15,8 +15,9 @@
   "open": "Folds.hs",
   "check": "check.sh",
   "hints": [
-    "map (^ 2) (filter odd xs)",
-    "foldl walks left to right with an accumulator: foldl pick \"\" (words s)",
-    "Pattern-match [] first in average, then divide by fromIntegral (length xs)."
+    "README 'New syntax': `filter`, `map`, `foldr`, `foldl`. average returns `Maybe Double`: either `Nothing` or `Just` a number.",
+    "squaresOfOdds: filter the odd ones, then map a square. total: foldr with (+) and 0. countIf: filter with p, then count. longestWord: fold over `words` keeping the best so far (replace only when strictly longer). average: [] → Nothing, else Just (sum / count as a Double).",
+    "Other data: `map (* 10) (filter even [1 .. 5])` → [20,40] · `foldl (\\best x -> if x > best then x else best) 0 [3, 9, 4]` → 9 · `Just (sum [1.0, 2.0])`.",
+    "`squaresOfOdds xs = map (^ 2) (filter odd xs)` · `longestWord s = foldl pick \"\" (words s) where pick best w = if length w > length best then w else best` · `average xs = Just (sum xs / fromIntegral (length xs))` after an `average [] = Nothing` line."
   ]
 }

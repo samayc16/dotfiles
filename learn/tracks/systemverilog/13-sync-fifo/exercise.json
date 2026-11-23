@@ -13,8 +13,9 @@
   "open": "fifo.sv",
   "check": "check.sh",
   "hints": [
-    "Track `count`; full = (count == DEPTH), empty = (count == 0).",
-    "`do_push = push && !full; do_pop = pop && !empty;` and update count by +1, -1 or 0.",
-    "Pointers wrap at DEPTH; `dout = mem[rd_ptr]` (show-ahead)."
+    "The TODO in `fifo.sv` and the README's rules list every piece. Declare `do_push`/`do_pop` yourself, and delete `assign count = '0;` when `count` moves into `always_ff`.",
+    "full/empty come from `count`; do_push/do_pop from push/pop and those flags. Write `mem` in its own `always_ff`. Advance each pointer with wrap-around, and update `count` with a case on `{do_push, do_pop}`.",
+    "Wrap a pointer for DEPTH = 5 on other names: `localparam logic [2:0] Last = 3'(5 - 1);` and `p <= (p == Last) ? '0 : p + 1'b1;`",
+    "Near-answer: `unique case ({do_push, do_pop}) 2'b10: count <= count + 1'b1; 2'b01: count <= count - 1'b1; default: count <= count; endcase` and `assign full = (count == Depth);` (Depth: a sized localparam copy of DEPTH)."
   ]
 }

@@ -14,7 +14,9 @@
   "open": "adder.sv",
   "check": "check.sh",
   "hints": [
-    "Widen before adding: `{1'b0, a} + {1'b0, b}`.",
-    "Signed overflow: operands share a sign bit, but the sum's sign bit differs from it."
+    "The README explains both outputs; the starter comment gives the formula `{cout, sum} = a + b + cin` and warns about widths.",
+    "Make every operand W+1 bits so the carry has room: put a `1'b0` in front of `a` and `b`, and cast `cin` to W+1 bits. Overflow: compare the sign bits `[W-1]` of a, b and sum.",
+    "4-bit example: `4'b1111 + 4'b0001` in 5 bits is `5'b10000` (carry 1, sum 0). Signed: `4'b0111 + 4'b0001` = `4'b1000`, 7+1 became -8: both inputs had MSB 0, the sum has MSB 1.",
+    "Near-answer: `assign {cout, sum} = {1'b0, a} + {1'b0, b} + (W+1)'(cin);` and `overflow = (a[W-1] == b[W-1]) && (sum[W-1] != a[W-1]);`"
   ]
 }

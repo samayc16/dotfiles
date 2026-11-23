@@ -14,8 +14,9 @@
   "open": "fifo_tb_pkg.sv",
   "check": "check.sh",
   "hints": [
-    "Monitor: every `@(posedge vif.clk)`, look at push/pop/full/empty *before* the edge updates them, and send what actually happened to the scoreboard.",
-    "Scoreboard: keep a queue model. On a pop, compare `dout` with `model.pop_front()`.",
-    "Count `num_matches` and `num_mismatches`; the testbench reads them at the end."
+    "The TODO comments above `Monitor` and `Scoreboard` describe each loop; `Observation` lists the fields to fill; the README explains sampling right after `@(posedge vif.clk)`.",
+    "Monitor, forever: wait for posedge, make a NEW Observation, pushed = push && !full, popped = pop && !empty, copy din/dout/full/empty, put it. Scoreboard, forever: get one; if popped compare dout with `model.pop_front()`; if pushed `push_back(din)`.",
+    "Queue + mailbox on other data: `int q[$]; q.push_back(5); x = q.pop_front();` and `forever begin Item it; box.get(it); if (it.ok) n++; end`",
+    "Near-answer (monitor): `forever begin Observation o; @(posedge vif.clk); o = new(); o.pushed = vif.push && !vif.full; o.dout = vif.dout; ... to_sb.put(o); end`. Treat a pop from an empty model as a mismatch."
   ]
 }

@@ -15,7 +15,9 @@
   "open": "Tuples.hs",
   "check": "check.sh",
   "hints": [
-    "zipWith (*) xs ys multiplies pairwise; then sum.",
-    "zip [1 ..] xs: zip stops at the shorter list, so the infinite range is safe."
+    "README 'New syntax': every answer is one Prelude function (zip, zipWith, lookup, unzip), sometimes plus `sum`.",
+    "pairUp is zip. dotProduct: multiply pairwise, then add up. indexed: zip an infinite range starting at 1 with the list. ageOf: look the name up. splitPairs: undo a zip.",
+    "Other data: `zipWith (+) [1, 2] [10, 20]` → [11,22] · `zip [0 ..] \"hi\"` → [(0,'h'),(1,'i')] · `lookup 2 [(1, \"one\"), (2, \"two\")]` → Just \"two\".",
+    "`dotProduct xs ys = sum (zipWith (*) xs ys)` · `indexed xs = zip [1 ..] xs` · `splitPairs pairs = unzip pairs`."
   ]
 }

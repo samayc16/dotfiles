@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 277,
   "hints": [
-    "`substr($1, 12, 8)` cuts `HH:MM:SS` out of `2026-03-14T10:16:03Z`.",
-    "Zero-padded times compare correctly as strings.",
-    "`split($6, p, \"=\")` puts the part after `=` into `p[2]`."
+    "README → New syntax: `substr`, string comparison and `split` in awk.",
+    "Fields: `$1` timestamp, `$2` level, `$6` `path=...`, `$7` `status=...`. Cut HH:MM out of `$1` and compare it with `\"10:15\"` and `\"10:30\"`.",
+    "`echo '2026-01-31T08:05:09Z x' | awk '{print substr($1, 12, 8)}'` prints `08:05:09`.",
+    "`awk '$2 == \"ERROR\" && substr($1, 12, 5) >= \"10:15\" && ... {split($6, p, \"=\"); split($7, s, \"=\"); print ...}' \"$DATA/app.log\"`."
   ]
 }

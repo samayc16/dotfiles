@@ -4,6 +4,37 @@
 
 **Why it matters:** In Haskell, side effects live in `IO` and the type says so. `do`-notation sequences actions just like a Python function body, but pure code can never secretly print or read files.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `IO a` | an action that may do I/O when run, and produces an `a` | `getLine :: IO String` |
+| `()`, `IO ()` | "unit", the boring value / an action run only for its effect | `putStrLn :: String -> IO ()` |
+| `putStrLn s`, `print x` | print a `String` / print any showable value | `print 3` prints `3` |
+| `do` in IO | run actions in order; the last line is the result | see below |
+| `x <- action` | run an action and name its result (only inside `do`) | |
+| `let x = e` in `do` | a local name inside a `do` block (no `in`) | |
+| `pure x` | an action that does nothing and returns `x` | |
+| `forM_ xs f` | run `f` for every element, ignore the results (a for loop) | `forM_ [1, 2] print` |
+| `when b action` | run `action` only if `b` is `True` | `when (n > 3) (putStrLn "big")` |
+| `sequence actions` | run a list of actions, collect their results in a list | `sequence [pure 1, pure 2]` gives `[1,2]` |
+| `f $ x` | apply with the lowest precedence; saves parentheses around the last argument | `print $ 2 + 3` = `print (2 + 3)` |
+| `[a, b .. c]` | stepped range | `[10, 8 .. 2]` → `[10,8,6,4,2]` |
+
+```haskell
+report :: [Int] -> IO Int
+report xs = do
+  forM_ (filter odd xs) $ \x -> putStrLn ("odd: " ++ show x)
+  let total = sum xs
+  when (total > 10) (putStrLn "big total")
+  pure total               -- the result of the whole action
+
+main :: IO ()
+main = do
+  t <- report [3, 4, 5]    -- run it and name its result
+  print t
+```
+
 ## Your task
 
 Edit `Effects.hs` and replace every `undefined`.

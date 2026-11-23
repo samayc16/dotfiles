@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "is_power_of_two: x && !(x & (x - 1)). set: x | (1u << i); clear: x & ~(1u << i); toggle: x ^ (1u << i).",
-    "popcount: while (x) { x &= x - 1; count++; } (clears the lowest set bit each time). field: (x >> pos) & ((1u << width) - 1)."
+    "See 'New syntax': every function is one or two bitwise operators plus a mask built with `1 << i`.",
+    "set = OR with the mask, clear = AND with the inverted mask, toggle = XOR. A power of two has exactly one 1 bit. extract_field: shift the field down to bit 0, then AND with a mask of `width` ones.",
+    "Key trick, shown on other data: `x & (x - 1)` clears the lowest 1 bit (0b0110'1000 → 0b0110'0000). Repeat it until x is 0 to count the ones; if a single application gives 0 (and x != 0), x had exactly one 1 bit.",
+    "Near-answer: `x | (UINT32_C(1) << i)`, `x & ~(UINT32_C(1) << i)`, `x ^ (UINT32_C(1) << i)` · `return x != 0 && (x & (x - 1)) == 0;` · `(x >> pos) & ((UINT32_C(1) << width) - 1)`"
   ]
 }

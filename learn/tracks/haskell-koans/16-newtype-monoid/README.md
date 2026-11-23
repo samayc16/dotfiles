@@ -4,6 +4,34 @@
 
 **Why it matters:** `newtype` gives an existing type a new identity at zero runtime cost. `Semigroup`/`Monoid` capture "things that combine", which is why `<>` works for strings, lists and maps.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `newtype N = N Int` | a new type wrapping exactly one value; free at runtime | `newtype Meters = Meters Double` |
+| `<>` | Semigroup "combine" | `"ab" <> "cd"` → `"abcd"` |
+| `X a <> X b = …` | define an operator method with a pattern on each side | see below |
+| `mempty` | Monoid "empty": combining with it changes nothing | `(mempty :: String)` → `""` |
+| `mconcat xs` | combine a whole list with `<>`, starting from `mempty` | `mconcat ["a", "b", "c"]` → `"abc"` |
+| `foldr1 f xs` | `foldr` without a start value; the list must be non-empty | `foldr1 max [3, 7, 2]` → `7` |
+| `dropWhile p`, `dropWhileEnd p` | drop leading / trailing elements while `p` holds | `dropWhile (== '0') "007"` → `"7"` |
+| `isSpace`, `null` | is it whitespace? / is the list empty? | `null ""` → `True` |
+| smart constructor | a function returning `Maybe T` that only builds valid values | see below |
+
+```haskell
+newtype Longest = Longest String deriving (Show)
+
+instance Semigroup Longest where
+  Longest a <> Longest b = if length b > length a then Longest b else Longest a
+
+newtype Percent = Percent Int deriving (Show)
+
+mkPercent :: Int -> Maybe Percent
+mkPercent n
+  | n < 0 || n > 100 = Nothing
+  | otherwise        = Just (Percent n)
+```
+
 ## Your task
 
 Edit `Monoids.hs` and replace every `undefined`.

@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 149,
   "hints": [
-    "`sed -n` prints nothing unless told to; `p` prints.",
-    "`/START/,/END/` selects a range of lines. Escape the brackets: `\\[database\\]`.",
-    "Inside the range, only print non-empty lines: `{/./p;}`."
+    "README → New syntax: `sed -n` with a `/START/,/END/` range and `p`.",
+    "The section runs from the `[database]` line to the next empty line; inside it, print only lines with at least one character.",
+    "`printf 'a\\nSTART\\nb\\nEND\\n' | sed -n '/START/,/END/p'` prints `START`, `b`, `END`.",
+    "`sed -n '/^\\[database\\]/,/^$/{...}' \"$DATA/services.conf\"`: inside the braces, print lines matching `/./`."
   ]
 }

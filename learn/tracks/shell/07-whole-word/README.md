@@ -2,7 +2,15 @@
 
 > Searching for `error` also finds `errors` and `error_code=...`. You only want the word itself.
 
-**Task:** Print lines of `app.log` containing the lowercase **word** `error` (not `errors`, not `error_code`, not `ERROR`).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-w` | whole words only: no letter, digit or `_` directly before or after the match | `printf 'cat\ncats\ncat_food\nthe cat sat\n' \| grep -w cat` → `cat`, `the cat sat` |
+
+## Your task
+
+Print lines of `app.log` containing the lowercase **word** `error` (not `errors`, not `error_code`, not `ERROR`).
 
 **Input** `$DATA/app.log` (first lines):
 ```text

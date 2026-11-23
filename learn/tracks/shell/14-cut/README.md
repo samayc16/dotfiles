@@ -2,7 +2,18 @@
 
 > Comms wants to email everyone. Pull the email column from the user list.
 
-**Task:** Print the `email` column (3rd field) of `users.csv`, **without** the header line.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `tail -n +K` | print from line K to the end (`+2` skips a header) | `printf 'h\na\nb\n' \| tail -n +2` → `a`, `b` |
+| `tail -n K` | just the last K lines | `tail -n 1 notes.txt` |
+| `cut -d, -f2` | split each line on `,` and keep field 2 | `printf 'a,b,c\n1,2,3\n' \| cut -d, -f2` → `b`, `2` |
+| `-f1,3`, `-f2-` | several fields / field 2 onward | `cut -d, -f1,3` on `a,b,c` → `a,c` |
+
+## Your task
+
+Print the `email` column (3rd field) of `users.csv`, **without** the header line.
 
 **Input** `$DATA/users.csv` (first lines):
 ```text

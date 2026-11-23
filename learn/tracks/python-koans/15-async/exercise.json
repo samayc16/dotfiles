@@ -15,7 +15,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "Concurrency: return list(await asyncio.gather(*(fetch(n, delay) for n in names))) — all sleeps overlap.",
-    "async with asyncio.TaskGroup() as tg: tasks = [tg.create_task(...)]; then [t.result() for t in tasks]. Timeout: try: async with asyncio.timeout(s): return await coro  except TimeoutError: return None"
+    "Look at the README's 'New syntax' block. The starter's `[await fetch(...) for ...]` waits for each fetch before starting the next; start them all first, then wait.",
+    "fetch_all: pass every coroutine to `asyncio.gather` with `*`. fetch_grouped: one task per name inside a TaskGroup, then read `.result()` after the block. with_timeout: await inside `asyncio.timeout(seconds)`, catch `TimeoutError`, return None.",
+    "Other data: `sizes = await asyncio.gather(*(download(u) for u in urls))`; `async with asyncio.TaskGroup() as tg: ts = [tg.create_task(ping(h)) for h in hosts]`.",
+    "Near-answer: `return list(await asyncio.gather(*(fetch(n, delay) for n in names)))`; `try: async with asyncio.timeout(seconds): return await awaitable` / `except TimeoutError: return None`."
   ]
 }

@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 291,
   "hints": [
-    "With two files, `NR == FNR` is only true while reading the first one.",
-    "Load the lookup table from file 1 (`team[$1] = $4; next`), then use it on file 2.",
-    "`sort -k2,2nr` sorts by the 2nd column, numeric, descending."
+    "README → New syntax: the `NR == FNR {...; next}` two-file pattern. Give users.csv first.",
+    "File 1: remember `team[user_id] = team`. File 2: for paid USD orders, add the amount to `s[team[user_id]]`. END: print, then sort by total.",
+    "`awk 'NR == FNR {c[$1] = $2; next} {print $1, c[$2]}' colors.txt items.txt` looks up each item's color.",
+    "`awk -F, 'NR == FNR {team[$1] = $4; next} $5 == \"paid\" && $4 == \"USD\" {s[team[$2]] += $3} END {...}' users.csv orders.csv | sort -k2,2nr` (with the `$DATA/` paths)."
   ]
 }

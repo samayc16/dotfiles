@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 150,
   "hints": [
-    "Two greps in a pipeline: the first picks the lines, the second extracts.",
-    "`-o` prints only the matched part instead of the whole line.",
-    "IDs are lowercase hex: `[0-9a-f]*`."
+    "README → New syntax: `-o` and a character class. Two greps joined by `|`.",
+    "First grep picks the ERROR lines; the second uses `-o` with a pattern for `request_id=` plus the hex ID.",
+    "`echo 'room 101, floor 3' | grep -o '[0-9]*'` prints `101` and `3`.",
+    "`grep ERROR \"$DATA/app.log\" | grep -o 'request_id=...'`: replace `...` with a lowercase-hex class and `*`."
   ]
 }

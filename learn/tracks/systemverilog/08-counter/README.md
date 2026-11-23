@@ -18,4 +18,15 @@ counter wraps, which is exactly when a second counter (tens digit!) should incre
 Width tip: `count == MAX` compares a 4-bit signal with a 32-bit `int`. Verilator warns. Make a sized copy:
 `localparam logic [W-1:0] MaxVal = W'(MAX);`
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `#(parameter int W = 4, parameter int MAX = 9)` | several parameters, separated by commas | |
+| `localparam int X = ...;` | a constant computed inside the module; can't be overridden from outside | `localparam int Half = DEPTH / 2;` |
+| `localparam logic [W-1:0] X = W'(V);` | a constant with an exact width (the cast makes it W bits) | `localparam logic [3:0] Top = 4'(12);` |
+| `x + 1'b1` | add a 1-bit one, so no 32-bit `int` sneaks into the expression | `level + 1'b1` |
+| `c ? a : b` after `<=` | the ternary works on the right of `<=` too | `level <= (level == Top) ? level : level + 1'b1;` (saturate) |
+| `%Warning-WIDTH...` | Verilator lint: operands have different widths. Fix it with sized constants | |
+
 **Your task:** finish `counter.sv`. The testbench builds a 0-9 and a 0-99 counter from the same code.

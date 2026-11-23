@@ -14,8 +14,9 @@
   "open": "Recursion.hs",
   "check": "check.sh",
   "hints": [
-    "Write one equation for [] and one for (x : rest).",
-    "myReverse (x : rest) = myReverse rest ++ [x]",
-    "myZip needs both lists non-empty to continue; anything else is the end."
+    "README 'New syntax': write each function as two equations, one for `[]` (when to stop) and one for `(x : rest)` that calls itself on `rest`.",
+    "length: 0 for [], else 1 + length of the rest. sum: x + sum of the rest. reverse: reverse the rest, then put x at the end. elem: is x the one, or is it in the rest? countdown: stop at 0, else n in front of countdown (n - 1). zip: continue only while both lists have a head.",
+    "Other data: `myProduct [] = 1` / `myProduct (x : rest) = x * myProduct rest` · `upTo lo hi | lo > hi = [] | otherwise = lo : upTo (lo + 1) hi`.",
+    "`myReverse (x : rest) = myReverse rest ++ [x]` · `myElem y (x : rest) = x == y || myElem y rest` · `myZip (x : xs) (y : ys) = (x, y) : myZip xs ys` then `myZip _ _ = []`."
   ]
 }

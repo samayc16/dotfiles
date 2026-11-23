@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "FILE *f = fopen(path, \"w\"); if (f == nullptr) return false; for each line: fprintf(f, \"%s\\n\", lines[i]); return fclose(f) == 0;",
-    "count_lines: char buf[256]; while (fgets(buf, sizeof buf, f)) if (strchr(buf, '\\n')) count++;  sum_numbers: while (fscanf(f, \"%ld\", &n) == 1) total += n;"
+    "See 'New syntax': fopen / fclose / fprintf / fgets / fscanf. Every call that can fail returns something you must check.",
+    "write_lines: open with \"w\", fprintf each line plus '\\n', and report whether fclose succeeded. count_lines: open with \"r\" (-1 if that fails), read with fgets, count the newlines. sum_numbers: fscanf one %ld at a time until it stops returning 1.",
+    "Other data, total characters in a file: `while (fgets(buf, sizeof buf, f) != nullptr) total += strlen(buf);` · lines containing a comma: `if (strchr(buf, ',') != nullptr) hits++;`",
+    "Near-answer: `fprintf(f, \"%s\\n\", lines[i]);` then `return fclose(f) == 0;` · `while (fgets(buf, sizeof buf, f) != nullptr) if (strchr(buf, '\\n') != nullptr) count++;` · `while (fscanf(f, \"%ld\", &n) == 1) total += n;`"
   ]
 }

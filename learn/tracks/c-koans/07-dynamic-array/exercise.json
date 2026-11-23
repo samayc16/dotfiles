@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "When len == cap, grow: size_t new_cap = cap ? cap * 2 : 4; int *p = realloc(v->data, new_cap * sizeof *p); check p != nullptr before overwriting v->data.",
-    "vec_free: free(v->data); then reset the struct to {0} so a double free is harmless. ASan will flag any write past the end."
+    "See 'New syntax': `realloc` and `->`. The starter's push writes past the end; run `learn check` and the sanitizer points at that exact line.",
+    "Before storing, if len == cap the array is full: pick a bigger capacity (double it; start small when cap is 0), realloc, and only then store. vec_get: check i < len. vec_free: free the data, then zero the struct.",
+    "Other data, growing a char buffer: `size_t new_cap = cap ? cap * 2 : 8; char *p = realloc(buf, new_cap * sizeof *p); if (p == nullptr) return false; buf = p; cap = new_cap;`",
+    "Near-answer: `if (v->len == v->cap) { ...the growth above, for ints... } v->data[v->len++] = value; return true;` · `return i < v->len ? &v->data[i] : nullptr;` · `free(v->data); *v = (struct IntVec){0};`"
   ]
 }

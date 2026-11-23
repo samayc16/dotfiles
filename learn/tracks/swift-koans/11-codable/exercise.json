@@ -14,7 +14,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "struct Todo: Codable, Equatable { let id: Int; let title: String; let isDone: Bool; enum CodingKeys: String, CodingKey { case id, title, isDone = \"is_done\" } }",
-    "Decode: try JSONDecoder().decode([Todo].self, from: Data(json.utf8)).  Encode: try JSONEncoder().encode(todo)."
+    "Look at the README's 'New syntax' (Codable, CodingKeys, JSONDecoder / JSONEncoder, `.self`).",
+    "Idea: add `Codable` to Todo's conformances plus a CodingKeys enum that lists every property and renames only isDone; decodeTodos decodes an ARRAY of Todo from the string's UTF-8 bytes; roundTrip encodes, then decodes.",
+    "Example on other data: the `Pet` struct in the README (`case birthYear = \"birth_year\"`) and `try JSONDecoder().decode(Pet.self, from: Data(text.utf8))`.",
+    "Near-answer: `try JSONDecoder().decode([Todo].self, from: Data(json.utf8))`; roundTrip: `let data = try JSONEncoder().encode(todo)`, then decode `Todo.self` from `data`."
   ]
 }

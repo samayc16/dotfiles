@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "Dictionary(grouping: words) { $0.first! } groups by first character. compactMap { Int($0) } drops failures.",
-    "Frequencies: words.reduce(into: [:]) { counts, w in counts[w, default: 0] += 1 }.  Sum of odd squares: nums.filter { $0 % 2 != 0 }.map { $0 * $0 }.reduce(0, +)"
+    "Look at the README's 'New syntax' table: each function is one row's tool (grouping, compactMap, reduce(into:), filter/map/reduce, zip).",
+    "Idea: group words by their first character (`.first` is optional, so give it a default with ??); compactMap over `Int(...)`; reduce(into: [:]) bumps a `default: 0` counter; keep odds → square → sum; zip, then format \"key=value\".",
+    "Example on other data: `Dictionary(grouping: [1, 2, 3]) { $0 % 2 }` · `[2, 3].reduce(1, *)` · `zip([1, 2], [\"a\", \"b\"]).map { \"\\($1)\\($0)\" }` → `[\"a1\", \"b2\"]`.",
+    "Near-answer: `words.reduce(into: [:]) { counts, word in counts[word, default: 0] += 1 }`; `Dictionary(grouping: words) { $0.first ?? \" \" }`; `numbers.filter { $0 % 2 != 0 }.map { $0 * $0 }.reduce(0, +)`."
   ]
 }

@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 131,
   "hints": [
-    "Extended regex (`-E`) gives you `{2}`, `+`, `?`, `|` and `()` without backslashes.",
-    "Anchor on the closing quote and spaces: `\" 5..` followed by a space.",
-    "Single-quote the pattern so the shell leaves the double quote alone."
+    "README → New syntax: `-E` and `{n}` repetition. The status sits right after the request's closing `\"`.",
+    "Match: the closing quote, a space, `5`, exactly two more digits, a space. The spaces stop it matching inside sizes or IPs.",
+    "`printf 'v1\\nv22\\nv333\\n' | grep -E '^v[0-9]{2}$'` prints only `v22`.",
+    "`grep -E '\" 5...' \"$DATA/access.log\"`: replace `...` with a digit class repeated twice, then a space."
   ]
 }

@@ -14,8 +14,9 @@
   "open": "seq_det.sv",
   "check": "check.sh",
   "hints": [
-    "States = how much of `1011` you've seen: IDLE, S1, S10, S101, S1011.",
-    "From S1011, a `1` means you've seen `...1` (S1) and a `0` means `...10` (S10). That's the overlap.",
-    "Two processes: `always_ff` for `state <= next;`, `always_comb` for `next` (default `next = state`)."
+    "The README diagram gives the forward edges; the comment on each state in `seq_det.sv` says how much of `1011` it has seen.",
+    "For each state and each value of `din`, ask: what is the longest tail of the bits so far that is still a start of `1011`? That state is `next`. `found` is just `state == S1011`.",
+    "Worked edges: in S10 (seen ...10) a 0 gives ...100, and no start of 1011 ends in 0, so IDLE. In S1 a 1 gives ...11, whose tail 1 is a start, so stay in S1.",
+    "Near-answer arms: `IDLE: next = din ? S1 : IDLE;` · `S101: next = din ? S1011 : S10;` · `S1011: next = din ? S1 : S10;` (that last one is the overlap)."
   ]
 }

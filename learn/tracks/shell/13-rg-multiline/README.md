@@ -2,7 +2,18 @@
 
 > The deploys before the incident failed. Each traceback ends with the line you actually care about.
 
-**Task:** Print the final exception line of every Python traceback in `deploy.log` (e.g. `KeyError: 'DATABASE_URL'`), in order.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-U` | multiline: a pattern may span lines; write the newline as `\n` | `printf 'name:\n  ana\n' \| rg -U -o -r '$1' 'name:\n  (.+)'` → `ana` |
+| `.*`, `.+` | any run of characters (zero or more / one or more); `.` never matches a newline | `Trace.*` = the rest of that line |
+| `(?:...)` | a group that does **not** capture, so `$1` still points at your real group | `echo 'k: v' \| rg -o -r '$1' '(?:k\|key): (\w+)'` → `v` |
+| `(...)+` | repeat a whole group | `echo 'abababc' \| rg -o '(?:ab)+'` → `ababab` |
+
+## Your task
+
+Print the final exception line of every Python traceback in `deploy.log` (e.g. `KeyError: 'DATABASE_URL'`), in order.
 
 **Input** `$DATA/deploy.log` (first lines):
 ```text

@@ -32,9 +32,68 @@ KOANS = [
         xp=10,
         concepts=["bool keyword", "nullptr", "constexpr", "0b literals", "digit separators"],
         hints=[
-            "C23 makes bool/true/false keywords (no <stdbool.h>) and adds nullptr. constexpr unsigned MASK = 0b1111'0000;",
-            "first_positive: loop with a pointer, return &xs[i] when xs[i] > 0, else nullptr.",
+            "Look at the README's 'New syntax' table: MASK needs `constexpr` plus a binary literal; the two functions are plain `for` loops over `n` elements.",
+            "count_true: a size_t counter that grows by 1 per true flag (a bool is 0 or 1, so you can add it directly). first_positive: return the ADDRESS of the first element > 0; after the loop, return nullptr.",
+            "Same shapes on other data: `constexpr unsigned LOW_NIBBLE = 0b0000'1111;` · `for (size_t i = 0; i < n; i++) if (xs[i] == 0) return &xs[i];`",
+            "Near-answer: `constexpr unsigned MASK = 0b1111'0000;` (delete the #define), and inside the loop `if (xs[i] > 0) return &xs[i];`. Remove the `(void)x;` lines once you use the parameters.",
         ],
+        primer=r"""
+## C23 in 2 minutes
+
+**How a koan runs:** your `koan.c` has no `main`. The read-only `test.c` does `#include <koan.c>` and calls your functions, built as one program with:
+
+```
+clang -std=c23 -Wall -Wextra -g -O0 -fsanitize=address,undefined test.c -lm
+```
+
+**Run it:** `learn check` (or `<leader>lc`). Each `CHECK` prints ✓ or ✗ with what it got, then a total:
+
+```
+  ✗ count_true(flags, 4) == 3 — expected 3, got 0
+  0/4 checks passing
+```
+
+**Compile errors** come first: `file:line:col: error:` and a caret under the spot. Warnings don't fail the check, but read them.
+
+```
+koan.c:3:39: error: expected ';' after top level declarator
+    3 | constexpr unsigned LIMIT = 0b0110'0100
+      |                                       ^
+```
+
+**Sanitizers** turn silent memory bugs and undefined behaviour into a report with the exact line. Read the first frame in `koan.c`:
+
+```
+koan.c:10:5: runtime error: store to null pointer of type 'int'
+    #0 in vec_push koan.c:10
+```
+
+**What C23 changed** (vs the C99/C11 you may know):
+
+| Before | C23 |
+|---|---|
+| `#include <stdbool.h>` | `bool`, `true`, `false` are keywords |
+| `NULL` | `nullptr`, a real null-pointer constant |
+| `#define N 8` | `constexpr int N = 8;` (typed, scoped) |
+| `__typeof__` (GNU) | `typeof(x)`, `typeof_unqual(x)` |
+| `_Static_assert(c, "msg")` | `static_assert(c)` (message optional) |
+| `enum E { ... }` (compiler picks the size) | `enum E : uint8_t { ... }` |
+| `0x0F`, `= {0}` | `0b0000'1111` (binary + digit separators), `= {}` |
+""",
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `bool`, `true`, `false` | C23 keywords, no `#include <stdbool.h>` | `bool done = false;` |
+| `nullptr` | C23 null pointer constant (replaces `NULL`) | `const char *name = nullptr;` |
+| `constexpr T NAME = v;` | compile-time constant with a real type, instead of `#define` | `constexpr int MAX_USERS = 64;` |
+| `0b...` | binary literal | `0b101` → `5` |
+| `'` inside a number | digit separator, ignored by the compiler | `1'000'000`, `0b0000'0011` → `3` |
+| `size_t`, `%zu` | unsigned type for sizes and counts (`<stddef.h>`); printed with `%zu` | `size_t n = sizeof(double);` |
+| `const int *p` | pointer to ints you promise not to modify through `p` | `const int *last = &xs[n - 1];` |
+| `&xs[i]` | the address of element `i` (what a "pointer to the element" is) | `return &names[0];` |
+| `(void)x;` | starter trick: marks `x` as used to silence `-Wunused-parameter`; delete it once you use `x` | |
+| `240u` | `u` suffix: an unsigned literal | `7u` |
+""",
         why="C23 is the biggest C update in decades. It removes old macro hacks (stdbool.h, NULL) and adds compile-time constants, so modern C reads much closer to C++.",
         task="- define `MASK` as a C23 `constexpr` binary literal 0b1111'0000\n- `count_true` counts true values\n- `first_positive` returns a pointer to the first positive element, or `nullptr`",
         code="""
@@ -88,9 +147,34 @@ int main(void) {
         xp=15,
         concepts=["pointers", "pointer arithmetic", "const correctness", "in-place algorithms"],
         hints=[
-            "swap: int tmp = *a; *a = *b; *b = tmp;  An array argument decays to a pointer to its first element.",
-            "reverse: walk two pointers from both ends towards the middle (int *lo = xs, *hi = xs + n - 1; while (lo < hi) ...).",
+            "Re-read 'New syntax': `*p` reads or writes through a pointer, `&x` takes an address, `xs + i` moves i elements along.",
+            "swap needs a temporary. sum and max_element walk a pointer from xs up to (not including) xs + n. reverse: one pointer at each end; swap them and step both towards the middle until they meet.",
+            "Other data, doubling every element in place: `for (int *p = xs; p < xs + n; p++) *p *= 2;` · finding the first zero: `for (int *p = xs; p < xs + n; p++) if (*p == 0) return p;`",
+            "Near-answer: swap is `int tmp = *a; *a = *b; *b = tmp;`. reverse: return early if n < 2, then `for (int *lo = xs, *hi = xs + n - 1; lo < hi; lo++, hi--) swap(lo, hi);`. max_element: nullptr for n == 0, and only replace `best` when `*p > *best` (so the FIRST max wins).",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `int *p` | `p` holds the address of an `int` | `int *cursor;` |
+| `&x` | the address of `x` | `int n = 5; int *p = &n;` |
+| `*p` | the `int` that `p` points at, to read or write | `*p = 6;` → now `n == 6` |
+| `xs + i` | pointer arithmetic: `i` *elements* further on, not bytes | `*(xs + 2)` is `xs[2]` |
+| `p < xs + n` | compare pointers into one array; `xs + n` is one-past-the-end: fine to compare, never to dereference | |
+| array → pointer | passing an array passes a pointer to its first element; the length is lost, so it travels as `n` | `total(prices, 4)` |
+| `a, b` in a `for` | the comma lets one `for` set up or step two variables | `for (i = 0, j = 9; i < j; i++, j--)` |
+| `long` | an integer at least as wide as `int` (64-bit here) | `long big = 3'000'000'000;` |
+
+```c
+// count zeros by walking a pointer instead of an index
+size_t zeros(const int *xs, size_t n) {
+    size_t z = 0;
+    for (const int *p = xs; p < xs + n; p++) {
+        if (*p == 0) z++;
+    }
+    return z;
+}
+```
+""",
         why="Pointers are C's superpower and its sharpest edge. Understanding that arrays decay to pointers, and walking memory with pointer arithmetic, is the foundation for everything else in C.",
         task="Implement `swap`, `sum`, `reverse` (in place) and `max_element` (returns a pointer to the largest element).",
         code="""
@@ -168,9 +252,23 @@ int main(void) {
         xp=20,
         concepts=["NUL terminator", "snprintf", "bounds", "ctype.h"],
         hints=[
-            "A C string ends at the first '\\0'. my_strlen: count until you hit it. copy_bounded: snprintf(dst, cap, \"%s\", src) never overflows and always terminates.",
-            "snprintf returns the length it WANTED to write; truncated if that is >= cap. count_words: count transitions from space to non-space (isspace from <ctype.h>).",
+            r"See 'New syntax': strings end at '\0', snprintf's return value tells you whether it truncated, and <ctype.h> has isspace/toupper.",
+            r"""my_strlen: advance a pointer until it reaches '\0' and return the distance. copy_bounded: ONE snprintf with "%s"; it truncated if the length it wanted is >= cap. count_words: count the spots where a non-space char starts a new word. to_upper: overwrite each char.""",
+            r"Other data, counting digits: `size_t d = 0; for (; *s != '\0'; s++) if (isdigit((unsigned char)*s)) d++;` · For words, carry a `bool in_word` and update it on every char.",
+            r"""Near-answer: `int wanted = snprintf(dst, cap, "%s", src); return wanted < 0 || (size_t)wanted >= cap;` · count_words: `bool space = isspace((unsigned char)*s); if (!space && !in_word) words++; in_word = !space;`""",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `'\0'` | the NUL char that ends every C string | `"hi"` is 3 bytes: `'h' 'i' '\0'` |
+| `const char *s` | a read-only string: a pointer to its first char | `const char *tool = "awk";` |
+| `char buf[] = "..."` | a writable copy in an array (a string literal itself is read-only) | `char word[] = "sed"; word[0] = 'S';` |
+| `p - s` | subtracting two pointers into one array gives the distance in elements; cast it with `(size_t)` | |
+| `snprintf(dst, cap, fmt, ...)` | `printf` into `dst`, writing at most `cap - 1` chars plus `'\0'`; returns the length it *wanted* | `snprintf(b, 4, "%d", 12345)` → `b` is `"123"`, returns `5` |
+| `sizeof buf` | bytes in an array variable (no parentheses needed for variables) | `char b[16];` → `sizeof b` is `16` |
+| `isspace`, `toupper` | `<ctype.h>` char tests and conversions; pass `(unsigned char)c`, since a negative `char` is UB | `tolower((unsigned char)'Q')` → `'q'` |
+| `strcmp(a, b) == 0` | the two strings are equal (`a == b` only compares addresses) | `strcmp(cmd, "quit") == 0` |
+""",
         why="Most famous C security bugs are string overflows. Bounded APIs like snprintf, plus a sanitizer that screams on overflow, are how professionals write string code.",
         task="- `my_strlen` without calling strlen\n- `copy_bounded` copies safely, returns `true` if it had to truncate\n- `count_words` counts whitespace-separated words\n- `to_upper` uppercases in place",
         code="""
@@ -244,9 +342,27 @@ int main(void) {
         xp=15,
         concepts=["struct", "designated initializers", "compound literals", "pass by value"],
         hints=[
-            "Designated initializer: (struct Point){.x = 1.0, .y = 2.0}. That's also a compound literal: an unnamed struct value you can return.",
-            "rect_area: (r.max.x - r.min.x) * (r.max.y - r.min.y). Structs are copied when passed by value.",
+            "See 'New syntax': designated initializers `{.x = ...}` and compound literals `(struct Point){...}` are all you need.",
+            "midpoint averages x and y separately and returns a NEW Point. rect_area is width × height, where width = max.x - min.x. unit_square nests one initializer per corner.",
+            "Other data: `return (struct Color){.r = (a.r + b.r) / 2, .g = (a.g + b.g) / 2, .b = (a.b + b.b) / 2};` · nesting: `(struct Palette){.bg = {.r = 0}, .fg = {.r = 255, .g = 255}}`",
+            "Near-answer: `return (struct Point){.x = (a.x + b.x) / 2, .y = (a.y + b.y) / 2};` and `return (struct Rect){.min = {.x = 0, .y = 0}, .max = {.x = 1, .y = 1}};`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `struct Name { T f; ... };` | declare a struct type; you write `struct Name` every time you use it | `struct Color { int r, g, b; };` |
+| `.f` | member access, nested too | `c.r = 255;`, `pal.fg.g` |
+| `{.f = v, ...}` | designated initializer: fields by name, any order; missing ones become 0 | `struct Color red = {.r = 255};` |
+| `(struct T){...}` | compound literal: an unnamed struct value you can pass or return | `paint((struct Color){.g = 128});` |
+| `{0}`, `{}` | zero every field (`{}` is new in C23) | `struct Color black = {};` |
+| pass / return by value | structs are copied in and out; the caller's copy is untouched | |
+| `f(void)` | a function with no parameters (`f()` meant "unspecified" before C23) | `struct Color random_color(void);` |
+
+```c
+struct Palette { struct Color bg; struct Color fg; };
+struct Palette night = {.bg = {.r = 0}, .fg = {.r = 255, .g = 255, .b = 255}};  // nested
+```
+""",
         why="Structs are how C models data. Designated initializers make construction self-documenting and immune to field reordering.",
         task="- `midpoint` returns a new Point (use a compound literal)\n- `rect_area` computes the area\n- `unit_square` returns {min {0,0}, max {1,1}} using designated initializers",
         code="""
@@ -299,9 +415,30 @@ int main(void) {
         xp=15,
         concepts=["enum : type (C23)", "switch", "exhaustive handling"],
         hints=[
-            "C23 lets you pick the storage: enum Dir : unsigned char { NORTH, EAST, SOUTH, WEST };  sizeof(enum Dir) is then 1.",
-            "turn_right: (enum Dir)((d + 1) % 4). opposite: (d + 2) % 4. dir_name: switch (d) { case NORTH: return \"north\"; ... }",
+            "See 'New syntax': the enum fix is one change on the declaration line; the functions use `%` and `switch`.",
+            "Directions are numbered 0..3 clockwise, so turning right is +1 and the opposite is +2, both wrapped with % 4 and cast back to enum Dir. dir_name returns one string per case.",
+            "Other data: `enum Weekday : unsigned char { MON, TUE, WED };` · `(enum Weekday)((day + 1) % 3)` · `switch (day) { case MON: return \"mon\"; ... }`",
+            "Near-answer: `enum Dir : unsigned char { NORTH, EAST, SOUTH, WEST };` and `return (enum Dir)((d + 1) % 4);`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `enum E { A, B, C };` | named integer constants, numbered 0, 1, 2… | `enum Suit { CLUBS, HEARTS };` |
+| `enum E : T { ... }` | C23: choose the underlying integer type, which fixes `sizeof(enum E)` | `enum Level : uint16_t { LOW, HIGH };` → size 2 |
+| `(enum E)(expr)` | cast an integer back to the enum type | `(enum Suit)(s + 1)` |
+| `(i + k) % n` | wrap-around: cycles through 0 … n-1 | `(3 + 1) % 4` → `0` |
+| `switch (x) { case A: ... }` | jump to the matching `case`; `return` ends it (otherwise use `break`, or it falls through). Without a `default:`, `-Wall` warns about an enum case you forgot | see below |
+
+```c
+const char *suit_symbol(enum Suit s) {
+    switch (s) {
+    case CLUBS:  return "♣";
+    case HEARTS: return "♥";
+    }
+    return "?";  // only for invalid values, but the compiler wants a return
+}
+```
+""",
         why="Enums give names to states. C23's fixed underlying type makes their size and layout predictable, which matters for packed structs, file formats and hardware registers.",
         task="- declare `enum Dir : unsigned char` with NORTH, EAST, SOUTH, WEST\n- `turn_right`, `opposite`, and `dir_name` (use a switch)",
         code="""
@@ -351,9 +488,36 @@ int main(void) {
         xp=20,
         concepts=["union", "anonymous members", "tagged union", "M_PI"],
         hints=[
-            "A tagged union = an enum tag + a union of payloads. Anonymous union/struct members let you write s.circle.r directly.",
-            "area: switch (s.kind) { case SHAPE_CIRCLE: return 3.141592653589793 * s.circle.r * s.circle.r; case SHAPE_RECT: return s.rect.w * s.rect.h; }",
+            "See 'New syntax': the tag (`kind`) says which union member is live, so `area` must look at it first.",
+            "make_circle / make_rect fill in the tag AND the matching payload. area switches on s.kind and applies that shape's formula (π r² or w × h).",
+            "Other data: `return (struct Value){.tag = V_TEXT, .text = \"hi\"};` · `switch (v.tag) { case V_INT: ...; case V_TEXT: ...; }`",
+            "Near-answer: `return (struct Shape){.kind = SHAPE_CIRCLE, .circle = {.r = r}};` and in area `case SHAPE_CIRCLE: return 3.141592653589793 * s.circle.r * s.circle.r;`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `union { A a; B b; }` | all members share the same bytes; size = the largest member; only the one written last is valid | `union Num { int i; float f; };` |
+| anonymous member | a `union {...};` with no member name: its fields are used as if they were the outer struct's | `v.i` instead of `v.u.i` |
+| `struct { ... } name;` | an unnamed struct type declared right where it's used as a member | `struct { int w, h; } size;` |
+| tag + union | an enum field records which union member is live; check it before reading | see below |
+| `.member = {...}` | designated initializers reach into union members too | `(struct Value){.tag = V_INT, .i = 7}` |
+| π | `M_PI` isn't standard C (and `koan.c` doesn't include `<math.h>`): write `3.141592653589793` | |
+
+```c
+enum ValueTag { V_INT, V_TEXT };
+struct Value {
+    enum ValueTag tag;
+    union { int i; const char *text; };   // anonymous union
+};
+
+void print_value(struct Value v) {
+    switch (v.tag) {
+    case V_INT:  printf("%d\n", v.i); break;
+    case V_TEXT: printf("%s\n", v.text); break;
+    }
+}
+```
+""",
         why="Tagged unions are C's version of Rust enums or Swift enums with associated values: one type that can be one of several shapes, with the tag telling you which.",
         task="Implement `make_circle`, `make_rect` and `area` for the tagged-union `struct Shape`.",
         code="""
@@ -412,9 +576,31 @@ int main(void) {
         xp=30,
         concepts=["malloc/realloc/free", "amortized growth", "ownership", "ASan"],
         hints=[
-            "When len == cap, grow: size_t new_cap = cap ? cap * 2 : 4; int *p = realloc(v->data, new_cap * sizeof *p); check p != nullptr before overwriting v->data.",
-            "vec_free: free(v->data); then reset the struct to {0} so a double free is harmless. ASan will flag any write past the end.",
+            "See 'New syntax': `realloc` and `->`. The starter's push writes past the end; run `learn check` and the sanitizer points at that exact line.",
+            "Before storing, if len == cap the array is full: pick a bigger capacity (double it; start small when cap is 0), realloc, and only then store. vec_get: check i < len. vec_free: free the data, then zero the struct.",
+            "Other data, growing a char buffer: `size_t new_cap = cap ? cap * 2 : 8; char *p = realloc(buf, new_cap * sizeof *p); if (p == nullptr) return false; buf = p; cap = new_cap;`",
+            "Near-answer: `if (v->len == v->cap) { ...the growth above, for ints... } v->data[v->len++] = value; return true;` · `return i < v->len ? &v->data[i] : nullptr;` · `free(v->data); *v = (struct IntVec){0};`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `p->f` | member through a pointer, same as `(*p).f` | `acct->balance += 10;` |
+| `x++` in an expression | uses the old value, then increments | `buf[len++] = c;` appends, then bumps `len` |
+| `malloc(bytes)`, `free(p)` | allocate / release heap memory (`<stdlib.h>`); `free(nullptr)` is a safe no-op | `double *xs = malloc(10 * sizeof *xs);` |
+| `realloc(p, bytes)` | resize a block; it may MOVE it, so it returns the new address, or `nullptr` on failure (the old block is still valid) | see below |
+| `sizeof *p` | size of what `p` points at; stays correct if `p`'s type changes | `malloc(n * sizeof *p)` |
+| `c ? a : b` | ternary: `a` if `c` is true, else `b` | `size_t cap = want ? want : 16;` |
+| `*v = (struct T){0};` | overwrite a whole struct through a pointer | |
+
+```c
+// never assign realloc's result straight back: on failure you'd lose the old block
+char *bigger = realloc(buf, new_size);
+if (bigger == nullptr) {
+    return false;       // buf is untouched and still yours to free
+}
+buf = bigger;
+```
+""",
         why="Every language's list/vector is this under the hood. Writing one teaches allocation, growth strategy and ownership, and the sanitizer shows you instantly when you get it wrong.",
         task="Implement `vec_push` (grow by doubling with realloc, return false if allocation fails), `vec_get` (bounds-checked, nullptr when out of range) and `vec_free`.",
         code="""
@@ -480,9 +666,32 @@ int main(void) {
         xp=25,
         concepts=["function pointers", "typedef", "qsort comparator", "callbacks"],
         hints=[
-            "typedef int (*BinOp)(int, int); a function name decays to a pointer: BinOp f = add; f(2, 3).",
-            "qsort comparator for descending ints: const int x = *(const int *)a, y = *(const int *)b; return (x < y) - (x > y);",
+            "See 'New syntax': calling through a function pointer, returning a function by name, and qsort's comparator contract.",
+            "map_inplace: replace each element with f(element). op_for: a switch on the symbol returning add / sub / mul, or nullptr. cmp_desc: return a NEGATIVE number when *a should come first, i.e. when *a is LARGER.",
+            "Other data: `Pred pick(char c) { switch (c) { case 'e': return is_even; default: return nullptr; } }` · an ascending comparator: `return (x > y) - (x < y);`",
+            "Near-answer: `xs[i] = f(xs[i]);` in a loop · `case '+': return add;` … `default: return nullptr;` · cmp_desc: read both ints with `*(const int *)a`, then `return (x < y) - (x > y);`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `int (*f)(int, int)` | `f` is a pointer to a function taking two `int`s and returning `int` | `double (*op)(double) = sqrt;` |
+| `typedef ... Name;` | a short name for a type; for function pointers it hides the `(*)` | `typedef bool (*Pred)(int);` |
+| function name as a value | a function's name turns into a pointer to it; call through the pointer like a function | `Pred p = is_even; p(4)` |
+| `static` function | visible only inside this file | `static bool is_even(int x)` |
+| `default:` | the `switch` branch taken when no `case` matches | `default: return nullptr;` |
+| `qsort(base, n, size, cmp)` | `<stdlib.h>` sort for any element type; `cmp(a, b)` returns < 0 (a first), 0, or > 0 (b first) | see below |
+| `const void *` + cast | an untyped pointer; cast to the real type to read it | `*(const double *)a` |
+
+```c
+// ascending doubles (a different type and direction than the koan)
+static int cmp_asc_double(const void *a, const void *b) {
+    const double x = *(const double *)a;
+    const double y = *(const double *)b;
+    return (x > y) - (x < y);   // -1, 0 or 1; `x - y` could overflow for ints
+}
+qsort(prices, n, sizeof *prices, cmp_asc_double);
+```
+""",
         why="Function pointers are how C does callbacks, plugins, dispatch tables and generic algorithms like qsort.",
         task="- `map_inplace` applies a callback to every element\n- `op_for('+')` returns the matching BinOp (+ - *), or nullptr\n- `sort_desc` sorts descending with qsort and your comparator",
         code="""
@@ -550,9 +759,23 @@ int main(void) {
         xp=25,
         concepts=["bitwise ops", "masks", "shifts", "popcount"],
         hints=[
-            "is_power_of_two: x && !(x & (x - 1)). set: x | (1u << i); clear: x & ~(1u << i); toggle: x ^ (1u << i).",
-            "popcount: while (x) { x &= x - 1; count++; } (clears the lowest set bit each time). field: (x >> pos) & ((1u << width) - 1).",
+            "See 'New syntax': every function is one or two bitwise operators plus a mask built with `1 << i`.",
+            "set = OR with the mask, clear = AND with the inverted mask, toggle = XOR. A power of two has exactly one 1 bit. extract_field: shift the field down to bit 0, then AND with a mask of `width` ones.",
+            "Key trick, shown on other data: `x & (x - 1)` clears the lowest 1 bit (0b0110'1000 → 0b0110'0000). Repeat it until x is 0 to count the ones; if a single application gives 0 (and x != 0), x had exactly one 1 bit.",
+            "Near-answer: `x | (UINT32_C(1) << i)`, `x & ~(UINT32_C(1) << i)`, `x ^ (UINT32_C(1) << i)` · `return x != 0 && (x & (x - 1)) == 0;` · `(x >> pos) & ((UINT32_C(1) << width) - 1)`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `uint32_t` etc. | `<stdint.h>` exact-width integers: `uint8_t`, `int16_t`, `uint64_t`… | `uint16_t port = 8080;` |
+| `&` `\|` `^` `~` | bitwise AND, OR, XOR, NOT | `0b1100 & 0b1010` → `0b1000` |
+| `<<`, `>>` | shift left / right; `1u << k` is a mask with only bit `k` set | `1u << 4` → `16` (`0b1'0000`) |
+| `UINT32_C(1)` | the constant 1 with a 32-bit unsigned type (a bare `1` is a signed `int`, and `1 << 31` is UB) | `UINT64_C(1) << 40` |
+| `(1u << w) - 1` | a mask of the lowest `w` bits | `(1u << 3) - 1` → `0b111` |
+| `0x...`, `%X` | hex literal; print in hex | `printf("0x%X", 255u)` → `0xFF` |
+| `unsigned` | short for `unsigned int` | `unsigned shift = 3;` |
+| `stdc_count_ones` | C23's `<stdbit.h>` has popcount built in, but macOS's libc doesn't ship it yet, so you write your own | |
+""",
         why="Hardware registers, protocols, flags, hashes and compression all live at the bit level. If you touch Verilog, this is the software side of the same thinking.",
         task="Implement `is_power_of_two`, `set_bit`, `clear_bit`, `toggle_bit`, `popcount` and `extract_field`.",
         code="""
@@ -624,9 +847,33 @@ int main(void) {
         xp=30,
         concepts=["typeof (C23)", "_Generic", "macro hygiene", "do { } while (0)"],
         hints=[
-            "#define SWAP(a, b) do { typeof(a) tmp_ = (a); (a) = (b); (b) = tmp_; } while (0)",
-            "#define TYPE_NAME(x) _Generic((x), int: \"int\", double: \"double\", char *: \"char *\", default: \"other\")",
+            "See 'New syntax': SWAP needs `typeof` and `do { } while (0)`; TYPE_NAME and ABS are one `_Generic` each.",
+            "SWAP: declare a temporary with the same type as `a`, then the usual three-step swap. TYPE_NAME: one association per type the test uses, plus `default:`. ABS: let _Generic pick the FUNCTION (abs / labs / fabs), then call it with (x).",
+            "Other data: `#define DOUBLE_IT(v) do { typeof(v) t_ = (v); (v) = t_ + t_; } while (0)` · `#define FMT(x) _Generic((x), int: \"%d\", double: \"%f\", default: \"?\")` · `_Generic((x), float: sqrtf, double: sqrt)(x)`",
+            "Near-answer: `do { typeof(a) tmp_ = (a); (a) = (b); (b) = tmp_; } while (0)` · `_Generic((x), int: \"int\", double: \"double\", char *: \"char *\", default: \"other\")` · `_Generic((x), int: abs, long: labs, double: fabs)(x)`",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `#define M(a) ...` | function-like macro: text substitution before compiling | `#define SQUARE(x) ((x) * (x))` |
+| `(x)` in a macro | parenthesise every argument and the whole result | `SQUARE(1 + 2)` → `9`, not `5` |
+| `\` at line end | continue a macro on the next line | see below |
+| `do { ... } while (0)` | wraps a multi-statement macro so it acts as ONE statement (safe after a brace-less `if`) | see below |
+| `typeof(expr)` | C23: the type of an expression, usable in a declaration | `typeof(price) copy = price;` |
+| `_Generic((x), T: e, ..., default: e)` | compile-time switch on the TYPE of `x`; the whole thing becomes the chosen expression | `_Generic((x), float: "f", default: "?")` |
+| `_Generic(...)(x)` | when the branches are function names, call whichever was chosen | `_Generic((x), float: sqrtf, double: sqrt)(x)` |
+| literal types | `42` is `int`, `4.2` is `double`, `4L` is `long`, `'c'` is `int` (in C) | |
+
+```c
+#define CLAMP_UP(v, lo)                       \
+    do {                                      \
+        typeof(v) clamp_lo_ = (lo);           \
+        if ((v) < clamp_lo_) (v) = clamp_lo_; \
+    } while (0)
+
+if (ready) CLAMP_UP(speed, 10);   // one statement, even without braces
+```
+""",
         why="typeof (standard in C23) and _Generic give C a little compile-time polymorphism: macros that work for any type, picked by the compiler.",
         task="- `SWAP(a, b)` works for any type (use `typeof`)\n- `TYPE_NAME(x)` returns the type name string via `_Generic`\n- `ABS(x)` dispatches to abs/labs/fabs via `_Generic`",
         code="""
@@ -672,9 +919,34 @@ int main(void) {
         xp=25,
         concepts=["fopen/fclose", "fgets", "fprintf", "error handling"],
         hints=[
-            "FILE *f = fopen(path, \"w\"); if (f == nullptr) return false; for each line: fprintf(f, \"%s\\n\", lines[i]); return fclose(f) == 0;",
-            "count_lines: char buf[256]; while (fgets(buf, sizeof buf, f)) if (strchr(buf, '\\n')) count++;  sum_numbers: while (fscanf(f, \"%ld\", &n) == 1) total += n;",
+            "See 'New syntax': fopen / fclose / fprintf / fgets / fscanf. Every call that can fail returns something you must check.",
+            r"""write_lines: open with "w", fprintf each line plus '\n', and report whether fclose succeeded. count_lines: open with "r" (-1 if that fails), read with fgets, count the newlines. sum_numbers: fscanf one %ld at a time until it stops returning 1.""",
+            "Other data, total characters in a file: `while (fgets(buf, sizeof buf, f) != nullptr) total += strlen(buf);` · lines containing a comma: `if (strchr(buf, ',') != nullptr) hits++;`",
+            r"""Near-answer: `fprintf(f, "%s\n", lines[i]);` then `return fclose(f) == 0;` · `while (fgets(buf, sizeof buf, f) != nullptr) if (strchr(buf, '\n') != nullptr) count++;` · `while (fscanf(f, "%ld", &n) == 1) total += n;`""",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `FILE *f = fopen(path, mode)` | open a file: `"r"` read, `"w"` write (truncates), `"a"` append; returns `nullptr` on failure, so always check | `FILE *log = fopen("app.log", "a");` |
+| `fclose(f)` | flush and close; returns 0 on success (a failed write often only shows up here) | `if (fclose(log) != 0) ...` |
+| `fprintf(f, fmt, ...)` | `printf` into a file | `fprintf(log, "%s=%d\n", key, val);` |
+| `fgets(buf, size, f)` | read one line (at most `size - 1` chars, keeps the `'\n'`); returns `nullptr` at end of file | see below |
+| `fscanf(f, "%ld", &n)` | parse from a file; returns how many items it converted (1 = got one; 0 or `EOF` = stop) | |
+| `%ld` | `long` in printf / scanf formats | `printf("%ld", total);` |
+| `strchr(s, c)` | pointer to the first `c` in `s`, or `nullptr` | `strchr("k=v", '=')` |
+| `const char *const *p` | pointer to read-only pointers to read-only chars: an array of strings you won't change | `const char *const days[] = {"mon", "tue"};` |
+
+```c
+// print every line of a file with its number
+FILE *f = fopen(path, "r");
+if (f == nullptr) { perror(path); return -1; }
+char line[128];
+for (int i = 1; fgets(line, sizeof line, f) != nullptr; i++) {
+    printf("%d: %s", i, line);    // line already ends with '\n'
+}
+fclose(f);
+```
+""",
         why="Reading and writing files, and checking every call that can fail, is everyday systems programming. It's also the C behind every shell tool you use.",
         task="Implement `write_lines`, `count_lines` (-1 if the file can't be opened) and `sum_numbers` (sums whitespace-separated integers).",
         code="""
@@ -751,9 +1023,26 @@ int main(void) {
         xp=30,
         concepts=["alignment", "padding", "sizeof", "static_assert (C23)", "offsetof"],
         hints=[
-            "Each field is aligned to its own size: a uint8_t followed by a uint32_t wastes 3 bytes of padding. Biggest fields first removes it.",
-            "Order: uint32_t id; uint16_t length; uint8_t flags; uint8_t version; → 4 + 2 + 1 + 1 = 8 bytes, no padding.",
+            "Read the static_assert message the compiler prints, then 'New syntax' on padding. Only the ORDER of the four fields may change.",
+            "Each field here starts at a multiple of its own size (4, 2, 1, 1). A 1-byte field followed by a 4-byte one wastes 3 bytes; sorting fields from largest to smallest wastes nothing.",
+            "Other data: `struct S { char a; int32_t b; char c; }` is 12 bytes (1 + 3 pad + 4 + 1 + 3 pad); reordered as `{ int32_t b; char a; char c; }` it is 8.",
+            "Near-answer: `uint32_t id;` first, then `uint16_t length;`, then the two `uint8_t` fields: 4 + 2 + 1 + 1 = 8 bytes.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `static_assert(cond, "msg")` | C23 keyword, checked at COMPILE time: the build fails with `msg` if `cond` is false (msg optional) | `static_assert(sizeof(int) == 4);` |
+| `sizeof(T)` | bytes a type occupies, padding included | `sizeof(struct Mixed)` → `16` |
+| `alignof(T)` | C23 keyword: the address multiple `T` must start at | `alignof(double)` → `8` |
+| `offsetof(T, f)` | `<stddef.h>`: byte offset of field `f` inside struct `T` | `offsetof(struct Mixed, d)` → `8` |
+| padding | unused bytes the compiler inserts so each field starts at a multiple of its alignment; the total is rounded up to the largest alignment | see below |
+
+```c
+struct Mixed  { char c; double d; };                 // c@0, 7 pad, d@8      → 16 bytes
+struct Sorted { double d; char c; };                 // d@0, c@8, 7 tail pad → 16 bytes (!)
+struct Tight  { double d; int32_t i; char tag[4]; }; // 8 + 4 + 4, no padding → 16 bytes
+```
+""",
         why="Struct layout decides memory use, cache behaviour, and whether your struct matches a file format, network packet or hardware register map. static_assert turns layout assumptions into compile errors.",
         task="Reorder the fields of `struct Packet` (don't change their types) so it packs into 8 bytes. The check fails to COMPILE until you do: read the static_assert message.",
         code="""

@@ -12,7 +12,9 @@
   "check": "check.sh",
   "par": 120,
   "hints": [
-    "One flag makes grep case-insensitive.",
-    "`man grep` and search for `ignore-case` (type `/ignore`)."
+    "`man grep`, then type `/ignore` and Enter to jump to the flag you need.",
+    "grep is case-sensitive by default; one flag makes `timeout` also match `Timeout` and `TIMEOUT`.",
+    "`printf 'Tea\\nTEA\\ncoffee\\n' | grep -i tea` prints `Tea` and `TEA`.",
+    "`grep -i PATTERN \"$DATA/app.log\"`, with the lowercase word as PATTERN."
   ]
 }

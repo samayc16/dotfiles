@@ -14,8 +14,9 @@
   "open": "summer.sv",
   "check": "check.sh",
   "hints": [
-    "A modport lists each signal with its direction from that side: `modport sink (input valid, data, output ready);`",
-    "A beat transfers on a clock edge where `valid && ready`.",
-    "Drive `s.ready = !stall;`"
+    "Two files: add the modport in `stream_if.sv` (copy the shape of `source`), then fill in the TODOs in `summer.sv`.",
+    "The sink mirrors the source: it reads valid, data and clk, and drives ready. In `summer`: ready is not stall; at each clock edge where valid && ready, add data to `sum` and 1 to `beats`.",
+    "Other data: a watch-only view `modport monitor (input valid, ready, data, clk);` · widen before adding: `total <= total + 16'(m.data);`",
+    "Near-answer: `modport sink(input valid, data, clk, output ready);` · `assign s.ready = !stall;` · `end else if (s.valid && s.ready) begin sum <= sum + 16'(s.data); beats <= beats + 1'b1; end`"
   ]
 }

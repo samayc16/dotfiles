@@ -15,8 +15,9 @@
   "open": "alu.sv",
   "check": "check.sh",
   "hints": [
-    "`typedef struct packed { opcode_t op; logic [4:0] shamt; logic [7:0] imm; } instr_t;` (16 bits, MSB first).",
-    "`typedef union packed { instr_t f; logic [15:0] raw; } instr_u;`",
-    "In alu.sv: `import cpu_pkg::*;` then `case (instr.op)`."
+    "Start in `cpu_pkg.sv` (`:e cpu_pkg.sv`): its TODO lists the three fields and their bit ranges. The README shows a struct of the same shape.",
+    "`instr_t`: a packed struct with fields op, shamt, imm, MSB first. `instr_u`: a packed union of an `instr_t` named `f` and a 16-bit `raw`. In `alu.sv`: `unique case (instr.op)`, one arm per opcode comment.",
+    "Other data: `typedef struct packed { logic [3:0] kind; logic [7:0] len; } hdr_t;` and `typedef union packed { hdr_t h; logic [11:0] bits; } hdr_u;`",
+    "Near-answer: `typedef struct packed { opcode_t op; logic [4:0] shamt; logic [7:0] imm; } instr_t;` · ALU arms like `OP_SHL: y = a << instr.shamt;` and `OP_PASS: y = instr.imm;`"
   ]
 }

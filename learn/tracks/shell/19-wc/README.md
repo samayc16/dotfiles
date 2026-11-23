@@ -2,7 +2,16 @@
 
 > How many distinct users hit at least one error?
 
-**Task:** Print the number of distinct `user=` values on `ERROR` lines in `app.log`.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `wc -l` | count lines (`-w` words, `-c` bytes) | `printf 'a\nb\n' \| wc -l` → `2` |
+| padding | macOS prints the number with leading spaces; this level ignores them | |
+
+## Your task
+
+Print the number of distinct `user=` values on `ERROR` lines in `app.log`.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

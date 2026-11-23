@@ -15,7 +15,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "auto [lo, hi] = std::ranges::minmax(v); return {lo, hi};  (std::ranges::minmax returns a struct with .min/.max)",
-    "for (const auto& [name, count] : m) total += count;   std::format(\"{:<6}|{:>4}\", name, n)"
+    "Look at the README's New syntax table: `std::ranges::minmax`, structured bindings, range-for over a map, and the `std::format` width/alignment spec cover all three functions.",
+    "min_max: one `std::ranges::minmax` call gives `.min` and `.max`; unpack them and brace-return. total: range-for over the map, unpacking each element into key and value. row: one `std::format` call with a width + alignment per field.",
+    "Same ideas on other data: `auto r = std::ranges::minmax(temps); int spread = r.max - r.min;` · `for (const auto& [city, t] : temps) hottest = std::max(hottest, t);` · `std::format(\"[{:>5}]\", 42)` → `[   42]`.",
+    "Near-answer: `const auto [lo, hi] = std::ranges::minmax(values); return {lo, hi};` and `std::format(\"{:<6}|{:>4}\", name, count)`."
   ]
 }

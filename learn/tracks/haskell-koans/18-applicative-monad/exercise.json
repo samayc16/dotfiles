@@ -14,8 +14,9 @@
   "open": "Monads.hs",
   "check": "check.sh",
   "hints": [
-    "(+) <$> a <*> b: fmap the function in, then apply it to the second box.",
-    "In a Maybe do-block, `name <- userName uid` short-circuits on Nothing.",
-    "safeRecip x >>= safeRoot"
+    "README 'New syntax': `<$>`/`<*>` for addMaybes, a Maybe `do` block or `>>=` for the chains, a list `do` block for pairsUpTo.",
+    "addMaybes: fmap (+) over a, then apply to b. emailForUser: get the name with `<-`, then look up its email. rootOfRecip: safeRecip first, feed its result to safeRoot. pairsUpTo: x from 1..n, y from x..n, pure the pair.",
+    "Other data: `max <$> Just 3 <*> Just 9` → Just 9 · `quarter n = halfEven n >>= halfEven` · `do { a <- [1, 2]; b <- \"xy\"; pure (a, b) }`.",
+    "`addMaybes a b = (+) <$> a <*> b` · `rootOfRecip x = safeRecip x >>= safeRoot` · `pairsUpTo n = do { x <- [1 .. n]; y <- [x .. n]; pure (x, y) }`."
   ]
 }

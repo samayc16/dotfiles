@@ -2,7 +2,19 @@
 
 > Switch to the edge proxy's `access.log`. Which requests got a 5xx?
 
-**Task:** Print every line of `access.log` whose HTTP status is 5xx. The status comes right after the quoted request: `"GET /x HTTP/1.1" 503 1234 ...`
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-E` | extended regex: `+ ? {} \| ()` work without backslashes | |
+| `x{3}`, `x{2,4}` | exactly 3 / between 2 and 4 of `x` | `printf 'v1\nv22\nv333\n' \| grep -E '^v[0-9]{2}$'` → `v22` |
+| `x+`, `x?` | one or more / optional | `grep -E 'colou?r'` matches `color` and `colour` |
+| basic regex | without `-E` the same features need backslashes: `\{2\}`, `\+`, `\?`, `\\|`, `\(\)` | `grep '^v[0-9]\{2\}$'` = the `-E` version above |
+| `'say "hi"'` | inside single quotes a `"` is just a character | `echo 'say "hi"' \| grep 'say "hi"'` → `say "hi"` |
+
+## Your task
+
+Print every line of `access.log` whose HTTP status is 5xx. The status comes right after the quoted request: `"GET /x HTTP/1.1" 503 1234 ...`
 
 **Input** `$DATA/access.log` (first lines):
 ```text

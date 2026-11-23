@@ -20,5 +20,18 @@ Rules:
 Memory without reset: put the write in its own `always_ff @(posedge clk)`. Storage doesn't need resetting,
 only the pointers and count do.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `logic [W-1:0] mem[DEPTH];` | unpacked array: DEPTH separate W-bit words, i.e. a memory | `logic [7:0] regs[16];` |
+| `mem[i]` | read or write one word | `regs[3] <= 8'h42;` |
+| several `always_ff` blocks | each is its own group of flops; each signal still has one driver | |
+| `case ({x, y})` | switch on several bits at once by concatenating them | `case ({rd, wr}) 2'b10: ...` |
+| `logic [15:0] q[$]` | a **queue** (testbench only): grows and shrinks at runtime. The checker's model is one | |
+
+**Your task:** finish `fifo.sv`: `do_push`/`do_pop`, the memory write, both pointers, `count`, `full` and
+`empty` (the TODO lists every rule).
+
 **Check:** `learn check`. Your FIFO runs against a queue model (`logic [15:0] q[$]`) for 600+ cycles.
 **Waveforms:** `WAVES=1 learn check` → `surfer wave.vcd`

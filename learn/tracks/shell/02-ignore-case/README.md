@@ -2,7 +2,16 @@
 
 > Half the errors look like timeouts, but every service spells it differently.
 
-**Task:** Print every line of `app.log` that mentions `timeout` in **any** letter case.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| (default) | matching is case-sensitive | `printf 'Tea\n' \| grep tea` → nothing |
+| `-i` | ignore case: `tea` also matches `Tea` and `TEA` | `printf 'Tea\nTEA\ncoffee\n' \| grep -i tea` → `Tea`, `TEA` |
+
+## Your task
+
+Print every line of `app.log` that mentions `timeout` in **any** letter case.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

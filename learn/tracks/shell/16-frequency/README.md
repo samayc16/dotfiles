@@ -2,7 +2,17 @@
 
 > Is the outage regional? Start with where users live.
 
-**Task:** Count users per `country` in `users.csv` and print `COUNT COUNTRY`, highest first.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `uniq -c` | prefix each line with how often it repeated (adjacent only, so `sort` first) | `printf 'x\nx\ny\n' \| uniq -c` → `2 x`, `1 y` |
+| `sort -n` | numeric sort: `2 9 10` instead of text order `10 2 9` | `printf '9\n10\n2\n' \| sort -n` → `2`, `9`, `10` |
+| `sort -r`, `sort -rn` | reverse / numeric, highest first | `printf '9\n10\n2\n' \| sort -rn` → `10`, `9`, `2` |
+
+## Your task
+
+Count users per `country` in `users.csv` and print `COUNT COUNTRY`, highest first.
 
 **Input** `$DATA/users.csv` (first lines):
 ```text

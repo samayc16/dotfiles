@@ -15,7 +15,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "from dataclasses import dataclass, field. A mutable default must be field(default_factory=list), never `= []`.",
-    "Validate in def __post_init__(self): if self.price < 0: raise ValueError(...). Ordering: @dataclass(order=True) compares fields in declaration order."
+    "Look at the README's 'New syntax' block and press `K` on `dataclass` / `field`. The imports are already there.",
+    "Item: decorate it, declare three annotated fields (tags needs a factory default), validate price in `__post_init__`. Version: `order=True`, three int fields, and a `@classmethod parse` that splits on '.' and calls `cls(...)`.",
+    "Other data: `@dataclass class Song: title: str; plays: list[int] = field(default_factory=list)`; `@classmethod def from_csv(cls, line): a, b = line.split(','); return cls(a, int(b))`.",
+    "Near-answer: `if self.price < 0: raise ValueError(...)` inside `__post_init__`, and `major, minor, patch = (int(p) for p in text.split('.')); return cls(major, minor, patch)`."
   ]
 }

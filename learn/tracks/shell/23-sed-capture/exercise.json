@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 165,
   "hints": [
-    "`sed -E` enables extended regex: `( )` groups and `{4}`, the same on macOS and Linux.",
-    "Refer to groups in the replacement with `\\1`, `\\2`, `\\3`."
+    "README → New syntax: `sed -E` with three capture groups and `\\1 \\2 \\3` in the replacement.",
+    "Capture year, month and day separately (`[0-9]{4}` and so on), then write them back in the other order with dots.",
+    "`echo 'Doe, Jane' | sed -E 's/([A-Za-z]+), ([A-Za-z]+)/\\2 \\1/'` prints `Jane Doe`.",
+    "`sed -E 's/([0-9]{4})-([0-9]{2})-([0-9]{2})/.../' \"$DATA/orders.csv\"`: write the replacement."
   ]
 }

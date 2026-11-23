@@ -2,7 +2,18 @@
 
 > Which endpoints returned 503? Ripgrep can print a capture group instead of the whole match.
 
-**Task:** Print the distinct `path` values from `app.log` lines with `status=503`, sorted.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `( )` | a capture group: remembers the text it matched | `user=(\w+)` captures the name |
+| `-o -r '$1'` | rg prints group 1 instead of the whole match. Single quotes stop the shell expanding `$1` | `echo 'user=ana id=7' \| rg -o -r '$1' 'user=(\w+)'` → `ana` |
+| `\S`, `\w`, `\d` | non-space, word character, digit (rg/Perl shorthands; grep knows `\S` and `\w`, not `\d`) | `echo 'id=42' \| rg -o '\d+'` → `42` |
+| `sort`, `sort -u` | sort lines / sort and drop duplicates | `printf 'pear\napple\npear\n' \| sort -u` → `apple`, `pear` |
+
+## Your task
+
+Print the distinct `path` values from `app.log` lines with `status=503`, sorted.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

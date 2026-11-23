@@ -14,8 +14,9 @@
   "open": "regs.sv",
   "check": "check.sh",
   "hints": [
-    "Async reset goes in the sensitivity list: `always_ff @(posedge clk or negedge rst_n)`.",
-    "Sync reset is just an `if` inside `always_ff @(posedge clk)`.",
-    "Always use `<=` (nonblocking) in always_ff."
+    "Compare the starter with the README's code block: the async reset is in the sensitivity list, the sync one isn't.",
+    "`q_async`: wake on `posedge clk` or `negedge rst_n`, check `!rst_n` first, then load `d` only when `en`. `q_sync`: keep `@(posedge clk)`; if `srst` load `8'hFF`, else `d`.",
+    "Other data: `always_ff @(posedge clk or negedge rst_n) if (!rst_n) led <= 1'b0; else if (tick) led <= ~led;`",
+    "Near-answer: `if (!rst_n) q_async <= 8'h00; else if (en) q_async <= d;` and `if (srst) q_sync <= 8'hFF; else q_sync <= d;`"
   ]
 }

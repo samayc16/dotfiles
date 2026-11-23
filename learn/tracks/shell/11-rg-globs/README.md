@@ -2,7 +2,21 @@
 
 > Count the FIXMEs per file, but leave the test files out of it.
 
-**Task:** From inside `$DATA/src`, print `path:count` of `FIXME` occurrences for every file **except** test files (names containing `_test.`).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `rg -c` | count matching lines **per file**, printed as `path:count` | `rg -c TODO` → `draft.md:2`, `run.py:1` |
+| `-g 'GLOB'` | only search paths that match the glob | `rg -c TODO -g '*.md'` → `draft.md:2` |
+| `-g '!GLOB'` | skip paths that match the glob | `rg TODO -g '!*.md'` |
+| glob `*` | in a glob, `*` means "any text" (a regex would say `.*`) | `*_old.*` = names containing `_old.` |
+| quoting | quote globs, or the shell expands `*` (and `!`) before rg sees them | |
+
+_Examples use level 10's made-up folder: `draft.md` has 2 TODOs, `run.py` has 1._
+
+## Your task
+
+From inside `$DATA/src`, print `path:count` of `FIXME` occurrences for every file **except** test files (names containing `_test.`).
 
 **Input:** the source tree in `$DATA/src` (`ls -R "$DATA/src"` to look around).
 

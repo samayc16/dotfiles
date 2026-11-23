@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "func parseAge(_ text: String) throws(AgeError) -> Int { guard !text.isEmpty else { throw .empty }; guard let n = Int(text) else { throw .notANumber(text) }; ... }",
-    "With typed throws, `catch` gives you an AgeError directly: do { ... } catch { switch error { case .empty: ... } }.  try? turns a throw into nil."
+    "Look at the README's 'New syntax' (`throws(E)`, `throw`, `try?`, `do`/`catch`). The starter's signature says plain `throws`; it needs `throws(AgeError)`.",
+    "Idea: parseAge is three guards in order (empty → not a number → outside 0...150), each throwing its case; ageOrNil is a single `try?`; message(for:) calls parseAge inside `do` and switches on `error` in `catch`.",
+    "Example on other data: `guard pin.count >= 4 else { throw .tooShort }` · `catch { switch error { case .tooShort: ... case .notDigits(let raw): ... } }`.",
+    "Near-answer: `guard !text.isEmpty else { throw .empty }`, `guard let age = Int(text) else { throw .notANumber(text) }`, `guard (0...150).contains(age) else { throw .outOfRange(age) }`; success message: `return \"age \\(try parseAge(text))\"`."
   ]
 }

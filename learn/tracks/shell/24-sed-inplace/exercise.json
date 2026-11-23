@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 220,
   "hints": [
-    "Restrict commands to a range: `/^\\[web\\]/,/^$/{ ...; }`.",
-    "Inside the braces, separate commands with `;` and end with `;}` (BSD sed needs it).",
-    "`sed -i.bak ... && rm services.conf.bak`."
+    "README → New syntax and the portability note: use `sed -i.bak`, then delete the `.bak`.",
+    "Limit the edits to the `[web]` range (level 21) and run two substitutions inside it: one for `port`, one for `debug`.",
+    "`sed -i.bak '/^\\[a\\]/,/^$/{s/^x = .*/x = 2/;}' t.conf && rm t.conf.bak` changes `x` only in section `[a]`.",
+    "`sed -i.bak '/^\\[web\\]/,/^$/{s/^port = .*/.../;s/^debug = .*/.../;}' services.conf && rm services.conf.bak`."
   ]
 }

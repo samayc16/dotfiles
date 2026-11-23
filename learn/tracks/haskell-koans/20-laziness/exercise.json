@@ -15,8 +15,9 @@
   "open": "Lazy.hs",
   "check": "check.sh",
   "hints": [
-    "[0 ..] never ends, but take 5 only asks for five.",
-    "fibs = 0 : 1 : zipWith (+) fibs (tail fibs)",
-    "collatz: takeWhile (/= 1) (iterate step n) ++ [1]"
+    "README 'New syntax': infinite ranges, take/takeWhile/iterate, and lists that refer to themselves.",
+    "naturals: an open range from 0. firstSquaresOver: square the naturals, keep those > n, take 5. fibs: start with 0 : 1 :, then add the list to its own tail pairwise. primes: keep the first number, remove its multiples from the rest, repeat. collatz: iterate the step, stop before 1, then add [1].",
+    "Other data: `powers = 1 : map (* 2) powers` · `take 3 (filter even (map (* 3) [1 ..]))` → [6,12,18] · `takeWhile (< 100) (iterate (* 3) 1)` → [1,3,9,27,81].",
+    "`fibs = 0 : 1 : zipWith (+) fibs (tail fibs)` · `primes = sieve [2 ..] where sieve (p : xs) = p : sieve [x | x <- xs, mod x p /= 0]` · `collatz n = takeWhile (/= 1) (iterate step n) ++ [1]`."
   ]
 }

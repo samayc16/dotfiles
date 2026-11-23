@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "swap: int tmp = *a; *a = *b; *b = tmp;  An array argument decays to a pointer to its first element.",
-    "reverse: walk two pointers from both ends towards the middle (int *lo = xs, *hi = xs + n - 1; while (lo < hi) ...)."
+    "Re-read 'New syntax': `*p` reads or writes through a pointer, `&x` takes an address, `xs + i` moves i elements along.",
+    "swap needs a temporary. sum and max_element walk a pointer from xs up to (not including) xs + n. reverse: one pointer at each end; swap them and step both towards the middle until they meet.",
+    "Other data, doubling every element in place: `for (int *p = xs; p < xs + n; p++) *p *= 2;` · finding the first zero: `for (int *p = xs; p < xs + n; p++) if (*p == 0) return p;`",
+    "Near-answer: swap is `int tmp = *a; *a = *b; *b = tmp;`. reverse: return early if n < 2, then `for (int *lo = xs, *hi = xs + n - 1; lo < hi; lo++, hi--) swap(lo, hi);`. max_element: nullptr for n == 0, and only replace `best` when `*p > *best` (so the FIRST max wins)."
   ]
 }

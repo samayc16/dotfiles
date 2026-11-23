@@ -14,8 +14,9 @@
   "open": "Lambdas.hs",
   "check": "check.sh",
   "hints": [
-    "A section fixes one side of an operator: (*2) is \\x -> x * 2.",
-    "(f . g) x == f (g x). shout = (++ \"!\") . map toUpper",
-    "foldr (.) id fs composes every function in the list."
+    "README 'New syntax': sections, lambdas, `map` and `.`. Every answer here is point-free: no parameter before `=`, just a function built from pieces (applyAll keeps its `fs`).",
+    "doubleAll / incrementAll: `map` with a section or a lambda. shout: uppercase every char, then append \"!\" (two functions joined with `.`). lengthsOfWords: split into words, then map length. applyAll: glue every function in the list together with `.`.",
+    "Other data: `negateAll = map negate` · `map (\\x -> x * 10) [1, 2]` → [10,20] · `shrink = (/ 2) . abs` · `foldr (+) 0 [1, 2, 3]` → 6.",
+    "`shout = (++ \"!\") . map toUpper` · `lengthsOfWords = map length . words` · `applyAll fs = foldr (.) id fs` (id is the do-nothing function, the answer for an empty list)."
   ]
 }

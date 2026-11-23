@@ -14,7 +14,9 @@
   "open": "Shapes.hs",
   "check": "check.sh",
   "hints": [
-    "One equation per constructor: area (Circle r) = pi * r * r",
-    "Data.List.maximumBy (comparing area) picks by a key, like Python's max(key=...)."
+    "README 'New syntax': one equation per constructor. For `largest`, add the two import lines shown in the README.",
+    "area/perimeter: match `(Circle r)`, `(Rect w h)`, `(Triangle a b c)` and use the formulas (Heron for the triangle area, with s in a where). next: three equations. largest: [] → Nothing, else Just the shape with the biggest area.",
+    "Other data: `worth (Coins n) = n` / `worth (Note v c) = v * c` · `maximumBy (comparing length) [\"ab\", \"abcd\"]` → \"abcd\".",
+    "`area (Triangle a b c) = sqrt (s * (s - a) * (s - b) * (s - c)) where s = (a + b + c) / 2` · `largest shapes = Just (maximumBy (comparing area) shapes)`."
   ]
 }

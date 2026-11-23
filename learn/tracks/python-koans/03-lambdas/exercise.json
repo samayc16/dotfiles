@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "sorted(people, key=lambda p: (p['age'], p['name'])) sorts by age, then name.",
-    "A closure: def make_multiplier(n): return lambda x: x * n. For apply_all: [f(x) for f in funcs]."
+    "Look at the README's 'New syntax' table: `key=`, tuple keys, closures and `reverse=True` cover all four functions.",
+    "people: a key returning `(age, name)`. make_multiplier: return a lambda that uses `n`. apply_all: call each function in a comprehension. top_n_by: sort by `key`, largest first, then slice.",
+    "Other data: `sorted(cars, key=lambda c: (c['year'], c['make']))`; `def adder(k): return lambda x: x + k`; `[g(10) for g in (str, hex)]`; `sorted(ws, key=len)[:2]` = the two shortest.",
+    "Near-answer: `return sorted(items, key=key, reverse=True)[:n]`, and make_multiplier is `return lambda x: x * n`."
   ]
 }

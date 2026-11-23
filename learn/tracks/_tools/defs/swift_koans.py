@@ -32,9 +32,94 @@ KOANS = [
         xp=10,
         concepts=["Optional", "if let", "guard let", "nil-coalescing ??", "optional chaining"],
         hints=[
-            "greet: \"Hello, \\(name ?? \"stranger\")!\". firstEven: xs.first { $0 % 2 == 0 }.",
-            "parsePort: guard let n = Int(text), (1...65535).contains(n) else { return nil }; return n.  streetLength: user?.address?.street.count",
+            "Look at the README's 'New syntax' table: `??`, `guard let`, `?.`, ranges and `{ $0 ... }` are all you need. Each body is one or two lines.",
+            "Ideas: greet interpolates `name ?? <default>`; firstEven asks `first` for the first element passing an even-test closure; parsePort unwraps Int(text) AND range-checks it in one guard; streetLength chains `?.` through user and address.",
+            r'Same shapes on other data: "Bye, \(nick ?? "pal")."  ·  scores.first { $0 > 90 }  ·  guard let n = Int(s), n < 10 else { return nil }  ·  order?.customer?.email.count',
+            "Near-answer: `guard let port = Int(text), (1...65535).contains(port) else { return nil }` then `return port`. firstEven: `numbers.first { $0 % 2 == 0 }`.",
         ],
+        primer=r"""
+## Swift in 2 minutes
+
+How to read a koan file (`Koan.swift`):
+
+```swift
+// a comment, like # in Python.   /* a block comment */
+let rate = 0.2                    // constant: can never be reassigned (prefer let)
+var total: Int = 0                // variable, with an explicit type annotation
+total += 5
+
+struct Point {                    // a small value type with two stored properties
+    let x: Int
+    let y: Int
+}
+let p = Point(x: 1, y: 2)         // structs get a free initializer with labels
+
+func area(width: Int, height: Int) -> Int {   // labels, types, -> return type
+    return width * height
+}
+let a = area(width: 3, height: 4)             // labels are written at the call → 12
+
+func double(_ n: Int) -> Int { n * 2 }        // `_` = no label at the call site;
+let d = double(21)                            // a one-expression body needs no return
+print("p is (\(p.x), \(p.y))")                // \( ) interpolates, like f"{...}"
+```
+
+| Python | Swift | Note |
+|---|---|---|
+| `x = 1` (never changes) | `let x = 1` | the compiler nags if a `var` is never changed |
+| `def f(a: int) -> int:` | `func f(a: Int) -> Int {` | types are capitalised; body in `{ }` |
+| `f(a=3)` | `f(a: 3)` | labels are required unless declared `_` |
+| `f"hi {name}"` | `"hi \(name)"` | |
+| `None` | `nil` | only allowed in optional types (`String?`, below) |
+| `list[int]`, `len(s)` | `[Int]`, `s.count` | |
+
+**Running it:** `learn check` (or `<leader>lc`) compiles your `Koan.swift` with the read-only checks in `main.swift` (Swift 6 mode) and runs them. The text after `—` is what your code returned:
+
+```
+  ✗ greet with a name — Hello!
+  ✓ streetLength nil chain
+
+  1/6 checks passing
+```
+
+A compile error reads *file:line:column*, then the problem; fix the first one first:
+
+```
+Koan.swift:2:21: error: cannot convert value of type 'Int' to specified type 'String'
+2 | let label: String = count
+  |                     `- error: cannot convert value of type 'Int' to specified type 'String'
+```
+
+To experiment, put a few lines in a scratch `.swift` file and run it with `<leader>rr` (top-level code runs top to bottom).
+""",
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `T?` | optional: a `T` **or** `nil` | `var nickname: String? = nil` |
+| `Int(text)` | text → number can fail, so it returns `Int?` | `Int("12")` → `12`, `Int("hi")` → `nil` |
+| `a ?? b` | the value inside `a`, or `b` if `a` is `nil` | `nickname ?? "anon"` → `"anon"` |
+| `if let x = opt { }` | run the block only if `opt` has a value, bound to `x` | see below |
+| `guard let x = opt else { return … }` | exit early on `nil`; after it, `x` is a plain value | see below |
+| `a?.b?.c` | optional chaining: the whole thing is `nil` at the first `nil` | `user?.name.count` is an `Int?` |
+| `opt!` | force unwrap: crashes on `nil`. Banned in this koan | |
+| `1...10`, `.contains(x)` | closed range (both ends included), membership test | `(1...10).contains(11)` → `false` |
+| `{ $0 > 3 }` | a tiny inline function (closure); `$0` is its argument | `[1, 5, 2].first { $0 > 3 }` → `5` |
+| `%` `==` `&&` `\|\|` `!` | remainder, equals, and, or, not | `7 % 3 == 1 && !false` → `true` |
+
+```swift
+func shoutName(_ name: String?) -> String {
+    if let name {                                // short for `if let name = name`
+        return name.uppercased()
+    }
+    return "NOBODY"
+}
+
+func parseEvenCount(_ text: String) -> Int? {
+    guard let n = Int(text), n % 2 == 0 else { return nil }   // comma = "and also"
+    return n                                                  // n is a plain Int here
+}
+```
+""",
         why="Optionals make 'might be missing' part of the type, so the compiler forces you to handle nil. Most Swift crashes come from force-unwrapping (!) instead.",
         task="Implement `greet`, `firstEven`, `parsePort` and `streetLength` without using `!`.",
         code="""
@@ -82,9 +167,40 @@ koan.check(streetLength(User(name: "b", address: nil)) == nil && streetLength(ni
         xp=15,
         concepts=["struct", "class", "mutating", "value semantics", "reference semantics", "===" ],
         hints=[
-            "Structs are copied on assignment; classes are shared. Change `class Counter` to `struct Counter` and mark increment() as `mutating`.",
-            "For the class, identity is checked with === (same instance).",
+            "Look at the README rows for `struct`, `mutating` and `===`. Only `Counter` needs to change; `Account` is already right.",
+            "Idea: struct copies are independent, class copies share one object. The check copies a Counter and expects two different counts, so Counter must be a value type.",
+            "Example on other data: `struct Tally { var hits = 0; mutating func hit() { hits += 1 } }`. A struct method that changes the struct itself needs `mutating`.",
+            "Near-answer: replace `final class Counter` with `struct Counter` and declare `mutating func increment()`.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `struct Name { … }` | value type: assigning or passing it makes a **copy** | `var b = a` → two separate values |
+| `class Name { … }` | reference type: assigning shares the **same** object | `let r2 = r1` → one object, two names |
+| `final class` | a class that can't be subclassed (the usual choice) | `final class Logger { }` |
+| `var hits = 0` in a type | stored property with a default; type inferred | |
+| `func name() { … }` in a type | a method; call it as `value.name()` | `meter.reset()` |
+| `mutating func` | a struct method that changes the struct's own properties | see below |
+| `init(…) { self.x = x }` | initializer; `self` is the instance being built | see below |
+| `a === b` | identity: the very same class instance? (`==` compares values) | `l1 === l2` → `true` |
+| `x += 1` | add and assign | `hits += 1` |
+
+```swift
+struct Tally {
+    var hits = 0
+    mutating func hit() { hits += 1 }      // without `mutating`: "'self' is immutable"
+}
+
+final class Lamp {
+    var watts: Int
+    init(watts: Int) { self.watts = watts }   // self.watts = property, watts = parameter
+}
+
+var t1 = Tally(); var t2 = t1; t2.hit()        // t1.hits == 0, t2.hits == 1
+let l1 = Lamp(watts: 40); let l2 = l1
+l2.watts = 60                                  // l1.watts == 60 too: same object
+```
+""",
         why="Choosing struct vs class decides whether assignment copies or shares. Swift defaults to structs (value types) because copies can't be mutated behind your back.",
         task="Make `Counter` a value type (struct with a `mutating` increment) so copies are independent; keep `Account` a class so copies are shared.",
         code="""
@@ -123,9 +239,51 @@ koan.check(x.balance == 15 && x === y, "class references share one instance")
         xp=20,
         concepts=["enum", "associated values", "switch pattern matching", "CaseIterable", "failable init"],
         hints=[
-            "switch self { case .circle(let r): return .pi * r * r; case let .rect(w, h): return w * h; case let .triangle(b, h): return b * h / 2 }",
-            "Parse: switch text.split(separator: \" \") { case [\"go\", let dir]: return .go(String(dir)) ... }  — or use if/guard on parts.",
+            "Look at the README's 'New syntax' (switch with `let`, `init?`, `CaseIterable`). `area` needs one `case` per shape; `Suit` needs only a conformance.",
+            "Idea: `area` switches on `self` and pulls out each case's numbers; the parser splits the text on spaces, then decides by word count and first word, returning nil for anything else.",
+            r'Example on other data: `case .card(let last4): ...`, `case let .split(a, b): ...`, and `"move 3".split(separator: " ").map(String.init)` → `["move", "3"]`.',
+            r'Near-answer: `case let .rect(width, height): return width * height`; in the init: `case 2 where parts[0] == "go": self = .go(parts[1])`, `default: return nil`; and `enum Suit: CaseIterable { ... }`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `import Foundation` | Apple's base library (math, JSON, dates…) | |
+| `enum E { case a, b }` | a type with a fixed set of cases | `enum Dir { case up, down }` |
+| `case card(last4: String)` | associated value: a case can carry its own data | `Payment.card(last4: "1234")` |
+| `.up` | leading dot: the type is inferred from context | `let d: Dir = .up` |
+| `var x: T { … }` | computed property: code that runs on every read | see below |
+| `switch v { case …: }` | must cover every case; no fall-through, no `break` | see below |
+| `case .card(let n):` / `case let .split(a, b):` | bind the associated values to names | see below |
+| `case let x where x < 0:` / `default:` | extra condition on a case / catch-all | |
+| `init?(…)` | failable initializer: may `return nil` instead of a value | see below |
+| `init?(parsing text: String)` | `parsing` is the call-site label, `text` the name inside | `Command(parsing: "x")` |
+| `enum E: CaseIterable, Equatable` | conformances go after `:`. `CaseIterable` adds `E.allCases`; `Equatable` enables `==` | `Dir.allCases` → `[.up, .down]` |
+| `.split(separator:)`, `String(sub)` | split text into `Substring`s; convert back to `String` | `"a-b".split(separator: "-")` → `["a", "b"]` |
+| `Double.pi` | π | |
+
+```swift
+enum Payment {
+    case cash
+    case card(last4: String)
+    case split(Int, Int)
+
+    var label: String {                          // computed property
+        switch self {
+        case .cash: return "cash"
+        case .card(let last4): return "card …\(last4)"
+        case let .split(a, b): return "split \(a)/\(b)"
+        }
+    }
+
+    init?(code: String) {                        // Payment(code: "?") == nil
+        switch code {
+        case "c": self = .cash                   // inside an enum init, pick the case
+        default: return nil
+        }
+    }
+}
+```
+""",
         why="Swift enums carry data per case, so one type can model 'a circle with a radius OR a rect with sides'. switch must be exhaustive, so adding a case shows you every place to update.",
         task="- `Shape.area` for each case\n- `Command(parsing:)` turns \"go north\" / \"wait\" into cases (nil otherwise)\n- `Suit` lists all cases via `CaseIterable`",
         code="""
@@ -182,9 +340,38 @@ koan.check(Suit.allCases.count == 4, "CaseIterable")
         xp=20,
         concepts=["protocol", "default implementation", "extension", "protocol conformance"],
         hints=[
-            "protocol Describable { var summary: String { get } }  extension Describable { func shout() -> String { summary.uppercased() + \"!\" } }",
-            "Conform: struct Book: Describable { ... var summary: String { \"\\(title) by \\(author)\" } }.  extension Int { var isEven: Bool { self % 2 == 0 } }",
+            "Look at the README's 'New syntax' (protocol, `: P` conformance, extension). The three TODO comments mark the three spots.",
+            "Idea: Book declares `: Describable` and supplies `summary` as a computed property; `shout()` goes in an `extension Describable` so every conformer gets it; `isEven` is a computed property in `extension Int` that uses `self`.",
+            r'Example on other data: `extension Priced { func priceTag() -> String { "$\(cents / 100)" } }` and `extension Int { var squared: Int { self * self } }`.',
+            r'Near-answer: inside Book, `var summary: String { "\(title) by \(author)" }`; in the extension, `func shout() -> String { summary.uppercased() + "!" }`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `protocol P { … }` | a list of requirements (like a Python `Protocol` or C++ concept) | `protocol Priced { var cents: Int { get } }` |
+| `var x: T { get }` | requirement: a readable property (stored or computed) | |
+| `struct S: P` | S promises to meet P's requirements | `struct Mug: Priced` |
+| `extension T { … }` | add methods / computed properties to any type, even `Int` | `extension String { var shouted: String { uppercased() } }` |
+| `extension P { … }` | default implementation every conforming type gets for free | see below |
+| `{ expr }` body | a one-expression body returns `expr`, no `return` needed | `var cents: Int { 250 }` |
+| `self` in an extension | the value the member was called on | `extension Int { var squared: Int { self * self } }` |
+| `some P` | "some concrete type conforming to P" (used in `main.swift`) | `func show(_ x: some Priced)` |
+| `.uppercased()`, `+` | uppercase a String, join Strings | `"ok".uppercased() + "?"` → `"OK?"` |
+
+```swift
+protocol Priced { var cents: Int { get } }
+
+extension Priced {                               // every Priced type gets this
+    func priceTag() -> String { "$\(cents / 100)" }
+}
+
+struct Mug: Priced {
+    let size: Int
+    var cents: Int { size * 100 }                // meets the requirement
+}
+// Mug(size: 3).priceTag() == "$3"
+```
+""",
         why="Swift is 'protocol-oriented': shared behaviour comes from protocols + extensions rather than class inheritance, and works for structs and enums too.",
         task="- `Book` conforms to `Describable`\n- give every `Describable` a default `shout()` via an extension\n- add `isEven` to `Int` via an extension",
         code="""
@@ -229,9 +416,35 @@ koan.check(4.isEven && !7.isEven, "Int.isEven")
         xp=25,
         concepts=["generic types", "generic functions", "Equatable constraint", "where clause"],
         hints=[
-            "struct Stack<Element> { private var items: [Element] = []; mutating func push(_ x: Element) { items.append(x) }; mutating func pop() -> Element? { items.popLast() } ... }",
-            "func allEqual<C: Collection>(_ c: C) -> Bool where C.Element: Equatable { guard let first = c.first else { return true }; return c.allSatisfy { $0 == first } }",
+            "Look at the README's 'New syntax' (generics, constraints, `where`) and its array-API row. `largest` is a one-liner.",
+            "Idea: Stack wraps a private array: push appends, pop removes the last element (which is already optional), peek reads the last. allEqual: an empty collection is all-equal; otherwise every element must equal the first.",
+            "Example on other data: `struct Queue<Item> { private var items: [Item] = []; mutating func enqueue(_ i: Item) { items.append(i) } }` · `[2, 4].allSatisfy { $0 % 2 == 0 }`.",
+            "Near-answer: `guard let first = collection.first else { return true }` then `return collection.allSatisfy { $0 == first }`. largest: `values.max()`. Stack: `mutating func pop() -> Element? { items.popLast() }`.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `struct Box<T> { … }` | generic type: `T` is a placeholder, filled in where it's used | `Box<Int>`, `Queue<String>()` |
+| `func f<T>(_ x: T)` | generic function | `func twice<T>(_ x: T) -> [T] { [x, x] }` |
+| `<T: Comparable>` | constraint: T must support `<`, `>`, `max()`… | `func smaller<T: Comparable>(_ a: T, _ b: T) -> T` |
+| `Collection`, `C.Element` | protocol for arrays, strings, sets…; `C.Element` is its element type | `"abc"` is a Collection of `Character` |
+| `where C.Element: Equatable` | extra constraint written after the signature | see below |
+| `private var` | visible only inside this type | `private var log: [String] = []` |
+| `[T] = []`, `[Int]()` | empty arrays (the element type must be known) | |
+| array API | `.append(x)`, `.popLast()` → `T?`, `.first`/`.last` → `T?`, `.isEmpty`, `.count`, `.max()` → `T?`, `.allSatisfy { }` | `[2, 4].allSatisfy { $0 % 2 == 0 }` → `true` |
+
+```swift
+struct Queue<Item> {
+    private var items: [Item] = []
+    mutating func enqueue(_ item: Item) { items.append(item) }
+    var front: Item? { items.first }
+}
+
+func startsWithSame<C: Collection>(_ a: C, _ b: C) -> Bool where C.Element: Equatable {
+    a.first == b.first                           // startsWithSame("vim", "vi") == true
+}
+```
+""",
         why="Generics let one implementation work for every type while staying fully type-checked. Constraints (`where`) say exactly what a type must support.",
         task="- generic `Stack<Element>` with push/pop/peek/isEmpty/count\n- `allEqual` for any collection of Equatable elements\n- `largest` returns the max of a non-empty array of Comparable values, or nil",
         code="""
@@ -277,9 +490,42 @@ koan.check(largest([3, 9, 2]) == 9 && largest(["vim", "awk"]) == "vim" && larges
         xp=25,
         concepts=["closures", "trailing closures", "capturing", "@escaping", "shorthand $0"],
         hints=[
-            "names.sorted { ($0.count, $0) < ($1.count, $1) } — tuples compare element by element.",
-            "makeIncrementer: var total = 0; return { total += step; return total }.  Storing a closure for later needs @escaping: func on(_ handler: @escaping (String) -> Void) { handlers.append(handler) }",
+            "Look at the README's 'New syntax' (trailing closures, `$0`/`$1`, tuple comparison, capturing, `@escaping`).",
+            "Idea: sort by a (length, word) pair so equal lengths fall back to alphabetical; the incrementer keeps a `var total` OUTSIDE the closure it returns; EventBus appends each handler to its array and loops over them in emit.",
+            "Example on other data: `people.sorted { ($0.age, $0.name) < ($1.age, $1.name) }` · `func add(_ a: @escaping () -> Void) { actions.append(a) }` · the README's makeLogger.",
+            "Near-answer: `names.sorted { ($0.count, $0) < ($1.count, $1) }`; `var total = 0` then `return { total += step; return total }`; emit: `for handler in handlers { handler(event) }`.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `{ (a: Int, b: Int) -> Bool in a < b }` | full closure: parameters, return type, `in`, body | |
+| `{ a, b in a > b }` | same, types inferred from context | `nums.sorted { a, b in a > b }` |
+| `$0`, `$1` | shorthand for the 1st / 2nd argument | `nums.sorted { $0 > $1 }` |
+| `f(x) { … }`, `f { … }` | trailing closure: a last closure argument goes after `)`; drop `()` if it's the only one | `alarm.add { print("beep") }` |
+| `() -> Int`, `(String) -> Void` | function types: no args returning Int; String in, nothing out | `let ping: () -> Void = { print("ping") }` |
+| `(a, b) < (c, d)` | tuples compare element by element, left to right | `(1, "z") < (2, "a")` → `true` |
+| capturing | a closure keeps (and can change) the local `var`s it uses, even after the function returns | see below |
+| `@escaping` | a closure parameter that is stored and called later must say so | see below |
+| `for x in xs { }` | loop over a collection | `for w in words { print(w) }` |
+
+```swift
+func makeLogger() -> (String) -> [String] {
+    var lines: [String] = []              // captured: lives on inside the closure
+    return { line in
+        lines.append(line)
+        return lines
+    }
+}
+let log = makeLogger()
+_ = log("boot")                           // `_ =` ignores a result
+log("ready")                              // ["boot", "ready"]
+
+final class Alarm {
+    private var actions: [() -> Void] = []
+    func add(_ action: @escaping () -> Void) { actions.append(action) }   // stored → escaping
+}
+```
+""",
         why="Closures are everywhere in Swift: sorting, SwiftUI, async callbacks. Knowing when a closure captures state and when it 'escapes' the function is key to avoiding leaks and races.",
         task="- `byLengthThenAlpha` sorts with a trailing closure\n- `makeIncrementer(step:)` returns a closure keeping a running total\n- `EventBus.on` stores handlers (needs `@escaping`), `emit` calls them all",
         code="""
@@ -333,9 +579,42 @@ koan.check(seen == ["a:save", "b:save"], "every handler ran", "\\(seen)")
         xp=25,
         concepts=["Error", "throws", "typed throws (Swift 6)", "do/catch", "try?"],
         hints=[
-            "func parseAge(_ text: String) throws(AgeError) -> Int { guard !text.isEmpty else { throw .empty }; guard let n = Int(text) else { throw .notANumber(text) }; ... }",
-            "With typed throws, `catch` gives you an AgeError directly: do { ... } catch { switch error { case .empty: ... } }.  try? turns a throw into nil.",
+            "Look at the README's 'New syntax' (`throws(E)`, `throw`, `try?`, `do`/`catch`). The starter's signature says plain `throws`; it needs `throws(AgeError)`.",
+            "Idea: parseAge is three guards in order (empty → not a number → outside 0...150), each throwing its case; ageOrNil is a single `try?`; message(for:) calls parseAge inside `do` and switches on `error` in `catch`.",
+            r'Example on other data: `guard pin.count >= 4 else { throw .tooShort }` · `catch { switch error { case .tooShort: ... case .notDigits(let raw): ... } }`.',
+            r'Near-answer: `guard !text.isEmpty else { throw .empty }`, `guard let age = Int(text) else { throw .notANumber(text) }`, `guard (0...150).contains(age) else { throw .outOfRange(age) }`; success message: `return "age \(try parseAge(text))"`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `enum E: Error` | an error type: any type conforming to `Error` can be thrown | `enum PinError: Error { case tooShort }` |
+| `func f() throws -> T` | f may throw any `Error` | |
+| `func f() throws(E) -> T` | typed throws (Swift 6): f can only throw an `E` | see below |
+| `throw .tooShort` | stop and throw (the type is inferred from `throws(E)`) | |
+| `try f()` | required in front of every call that can throw | `let pin = try checkPin("1234")` |
+| `try? f()` | a throw becomes `nil`; the result is optional | `try? checkPin("12")` → `nil` |
+| `do { … } catch { … }` | run throwing code; inside `catch`, `error` is what was thrown | see below |
+| `!cond` | logical NOT (not the same as force-unwrap `x!`) | `guard !name.isEmpty else { … }` |
+
+```swift
+enum PinError: Error { case tooShort, notDigits(String) }
+
+func checkPin(_ pin: String) throws(PinError) -> String {
+    guard pin.count >= 4 else { throw .tooShort }
+    guard Int(pin) != nil else { throw .notDigits(pin) }
+    return pin
+}
+
+do {
+    print("ok \(try checkPin("12"))")
+} catch {                                  // typed throws: `error` is a PinError
+    switch error {
+    case .tooShort: print("too short")
+    case .notDigits(let raw): print("\(raw)?")
+    }
+}
+```
+""",
         why="Swift errors are explicit: a throwing call must be marked with try. Swift 6's typed throws let the compiler know exactly which errors can come out.",
         task="- `parseAge` throws `.empty`, `.notANumber(text)` or `.outOfRange(n)` (valid: 0...150), using typed throws\n- `ageOrNil` uses `try?`\n- `message(for:)` turns the result into a friendly string with do/catch",
         code="""
@@ -391,9 +670,41 @@ koan.check(message(for: "200") == "200 is out of range" && message(for: "30") ==
         xp=20,
         concepts=["Result", "map", "flatMap", "get()", "switch on Result"],
         hints=[
-            "divide: b == 0 ? .failure(.divisionByZero) : .success(a / b).  Chain: divide(a, b).flatMap { divide($0, c) }",
-            "describe: switch result { case .success(let v): ... case .failure(let e): ... }",
+            "Look at the README's 'New syntax' (Result, ternary, flatMap, switch as a value). Each body is one expression.",
+            "Idea: divide picks failure or success with a ternary on `b == 0`; divideTwice divides once and flatMaps that success into a second divide; describe switches on success / failure.",
+            r'Example on other data: `host.isEmpty ? .failure(.offline) : .success(42)` · `ping("a").flatMap { ms in ping("b") }` · `case .success(let ms): "\(ms) ms"`.',
+            r'Near-answer: `divide(a, b).flatMap { divide($0, c) }`; describe: `case .success(let value): "ok \(value)"` and `case .failure(.divisionByZero): "error: division by zero"`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `Result<Success, Failure>` | an enum: `.success(value)` or `.failure(error)` | `Result<Int, NetError>` |
+| `.success(x)`, `.failure(e)` | build one; the type comes from the return type | `return .failure(.offline)` |
+| `c ? a : b` | ternary: `a` if `c` is true, else `b` | `n > 0 ? "pos" : "neg"` |
+| `r.map { }` | transform a success value; a failure passes through | `ping("a").map { $0 * 2 }` |
+| `r.flatMap { }` | chain a step that itself returns a Result; first failure wins | see below |
+| `r.get()` | success → value, failure → throws (so use `try`) | `try? ping("a").get()` → `42` |
+| `switch` as a value | if every case is one expression, the switch is the function's result | see below |
+| `case .failure(.timeout):` | nested pattern: a case inside a case | |
+
+```swift
+enum NetError: Error { case offline, timeout }
+
+func ping(_ host: String) -> Result<Int, NetError> {
+    host.isEmpty ? .failure(.offline) : .success(42)
+}
+
+let total = ping("a").flatMap { ms in ping("b").map { ms + $0 } }   // .success(84)
+
+func show(_ r: Result<Int, NetError>) -> String {
+    switch r {
+    case .success(let ms): "\(ms) ms"
+    case .failure(.offline): "offline"
+    case .failure(.timeout): "timeout"
+    }
+}
+```
+""",
         why="Result packages 'value or error' as a value you can store, pass around and transform: handy for callbacks and for code that collects errors instead of stopping at the first.",
         task="- `divide` returns `.failure(.divisionByZero)` for zero\n- `divideTwice` chains with `flatMap`\n- `describe` renders a Result",
         code="""
@@ -435,9 +746,32 @@ koan.check(((try? divide(9, 3).get()) ?? 0) == 3, "get() rethrows")
         xp=20,
         concepts=["map/filter/reduce", "compactMap", "Dictionary(grouping:)", "reduce(into:)", "zip"],
         hints=[
-            "Dictionary(grouping: words) { $0.first! } groups by first character. compactMap { Int($0) } drops failures.",
-            "Frequencies: words.reduce(into: [:]) { counts, w in counts[w, default: 0] += 1 }.  Sum of odd squares: nums.filter { $0 % 2 != 0 }.map { $0 * $0 }.reduce(0, +)",
+            "Look at the README's 'New syntax' table: each function is one row's tool (grouping, compactMap, reduce(into:), filter/map/reduce, zip).",
+            "Idea: group words by their first character (`.first` is optional, so give it a default with ??); compactMap over `Int(...)`; reduce(into: [:]) bumps a `default: 0` counter; keep odds → square → sum; zip, then format \"key=value\".",
+            r'Example on other data: `Dictionary(grouping: [1, 2, 3]) { $0 % 2 }` · `[2, 3].reduce(1, *)` · `zip([1, 2], ["a", "b"]).map { "\($1)\($0)" }` → `["a1", "b2"]`.',
+            r'Near-answer: `words.reduce(into: [:]) { counts, word in counts[word, default: 0] += 1 }`; `Dictionary(grouping: words) { $0.first ?? " " }`; `numbers.filter { $0 % 2 != 0 }.map { $0 * $0 }.reduce(0, +)`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `[K: V]`, `[:]` | dictionary type, empty dictionary | `var ages: [String: Int] = [:]` |
+| `Character` | one character; `"abc".first` is a `Character?` | `let c: Character = "x"` |
+| `.filter { }`, `.map { }` | keep matching elements / transform each one | `[1, 2, 3].map { $0 * 10 }` → `[10, 20, 30]` |
+| `.compactMap { }` | map, then drop the `nil`s | `["4", "x"].compactMap { Double($0) }` → `[4.0]` |
+| `.reduce(start, op)` | fold with a start value; operators are functions too | `[2, 3].reduce(1, *)` → `6` |
+| `.reduce(into: start) { acc, x in … }` | fold by mutating an accumulator | see below |
+| `dict[k, default: v]` | read with a fallback; `+=` / `.append` write back | `tally["x", default: 0] += 1` |
+| `Dictionary(grouping: xs) { key }` | bucket elements by a computed key | `Dictionary(grouping: [1, 2, 3]) { $0 % 2 }` → `[1: [1, 3], 0: [2]]` |
+| `zip(a, b)` | pair elements up; stops at the shorter one | `zip([1, 2], ["a"])` → `[(1, "a")]` |
+| `.a { }.b { }` | chain calls; reads left to right | `xs.filter { … }.map { … }` |
+
+```swift
+let byLength = ["ox", "yak", "emu"].reduce(into: [Int: [String]]()) { acc, word in
+    acc[word.count, default: []].append(word)
+}
+// [2: ["ox"], 3: ["yak", "emu"]]
+```
+""",
         why="Swift's collection API turns most loops into readable pipelines, and compactMap/reduce(into:) are the idioms you'll see in every codebase.",
         task="Implement each function as a pipeline, no `for` loops.",
         code="""
@@ -487,9 +821,38 @@ koan.check(pairs(["x", "y", "z"], [1, 2]) == ["x=1", "y=2"], "zip stops at the s
         xp=30,
         concepts=["@propertyWrapper", "wrappedValue", "projectedValue", "generic constraints"],
         hints=[
-            "@propertyWrapper struct Clamped<Value: Comparable> { private var value: Value; let range: ClosedRange<Value>; var wrappedValue: Value { get { value } set { value = min(max(newValue, range.lowerBound), range.upperBound) } } }",
-            "init(wrappedValue: Value, _ range: ClosedRange<Value>) { self.range = range; self.value = min(max(wrappedValue, range.lowerBound), range.upperBound) }  — then: @Clamped(0...10) var level = 5",
+            "Look at the README's 'New syntax' (`@propertyWrapper`, `wrappedValue`, `get`/`set`, `init(wrappedValue:_:)`). Replace the TODO lines with a generic wrapper struct and annotate `level`.",
+            "Idea: store a private value plus the range; clamp in BOTH the init and the setter with `min(max(x, lower), upper)`. The init's first parameter must be called `wrappedValue`; the range comes second, unlabeled (`_`).",
+            "Example on other data: the README's `Lowercased` wrapper has the same structure; it lowercases where you need to clamp.",
+            "Near-answer: `init(wrappedValue: Value, _ range: ClosedRange<Value>) { self.range = range; value = min(max(wrappedValue, range.lowerBound), range.upperBound) }`, and `@Clamped(0...10) var level: Int = 5`.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `@propertyWrapper struct W` | a type that controls how a property is stored, read and written | |
+| `var wrappedValue: T` | required: the value users of the property see | |
+| `get { } set { }` | computed property with a setter; `newValue` is what was assigned | see below |
+| `init(wrappedValue: T, …)` | receives the property's initial value (`= v`) plus your own arguments | |
+| `@W(args) var x: T = v` | apply a wrapper: Swift calls `W(wrappedValue: v, args)` | `@Lowercased var email: String = "A@B.COM"` |
+| `ClosedRange<T>`, `.lowerBound`, `.upperBound` | the type of `a...b` and its two ends | `(1...6).upperBound` → `6` |
+| `min(a, b)`, `max(a, b)` | the smaller / larger of two values | `max(-2, 0)` → `0` |
+| `static func`, `Self.f()` | a type-level helper (no instance needed); `Self` = this type | |
+| `projectedValue` | optional extra exposed as `$x` (SwiftUI's `$binding`); not needed here | |
+
+```swift
+@propertyWrapper
+struct Lowercased {
+    private var text = ""
+    init(wrappedValue: String) { text = wrappedValue.lowercased() }
+    var wrappedValue: String {
+        get { text }
+        set { text = newValue.lowercased() }      // runs on every assignment
+    }
+}
+
+struct Login { @Lowercased var email: String = "A@B.COM" }   // reads back "a@b.com"
+```
+""",
         why="Property wrappers package reusable get/set logic (clamping, validation, persistence). SwiftUI's @State and @Binding are property wrappers.",
         task="Write `@Clamped(range)` so values assigned to the property are clamped into the range; `Volume.level` uses it with 0...10.",
         code="""
@@ -538,9 +901,38 @@ koan.check(volume.level == 0, "clamped to the lower bound", "level=\\(volume.lev
         xp=25,
         concepts=["Codable", "JSONEncoder/JSONDecoder", "CodingKeys", "snake_case keys"],
         hints=[
-            "struct Todo: Codable, Equatable { let id: Int; let title: String; let isDone: Bool; enum CodingKeys: String, CodingKey { case id, title, isDone = \"is_done\" } }",
-            "Decode: try JSONDecoder().decode([Todo].self, from: Data(json.utf8)).  Encode: try JSONEncoder().encode(todo).",
+            "Look at the README's 'New syntax' (Codable, CodingKeys, JSONDecoder / JSONEncoder, `.self`).",
+            "Idea: add `Codable` to Todo's conformances plus a CodingKeys enum that lists every property and renames only isDone; decodeTodos decodes an ARRAY of Todo from the string's UTF-8 bytes; roundTrip encodes, then decodes.",
+            "Example on other data: the `Pet` struct in the README (`case birthYear = \"birth_year\"`) and `try JSONDecoder().decode(Pet.self, from: Data(text.utf8))`.",
+            "Near-answer: `try JSONDecoder().decode([Todo].self, from: Data(json.utf8))`; roundTrip: `let data = try JSONEncoder().encode(todo)`, then decode `Todo.self` from `data`.",
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `: Codable` | conform and Swift writes the JSON encode/decode code for you | `struct Pet: Codable { let name: String }` |
+| `enum E: String { case a = "x" }` | raw-value enum: each case has a String (default: its own name) | `Theme.dark.rawValue` → `"dark_mode"` |
+| `enum CodingKeys: String, CodingKey` | nested enum listing every property; raw values are the JSON key names | see below |
+| `JSONDecoder().decode(T.self, from: data)` | JSON bytes → a `T` (throws on bad JSON) | |
+| `T.self` | the type itself, passed as a value | `[Pet].self` |
+| `JSONEncoder().encode(x)` | a value → JSON bytes (`Data`, throws) | |
+| `Data(text.utf8)` | a String's bytes | |
+| `#"…"#` | raw string: quotes and `\` need no escaping (used in `main.swift`) | `#"{"a": 1}"#` |
+
+```swift
+import Foundation
+
+struct Pet: Codable {
+    let name: String
+    let birthYear: Int
+    enum CodingKeys: String, CodingKey {
+        case name
+        case birthYear = "birth_year"            // the JSON says birth_year
+    }
+}
+let json = #"{"name": "Rex", "birth_year": 2020}"#
+let pet = try JSONDecoder().decode(Pet.self, from: Data(json.utf8))   // pet.birthYear == 2020
+```
+""",
         why="Codable turns JSON (APIs, config files) into typed Swift values and back with almost no code, and the compiler checks it.",
         task="Make `Todo` Codable with `isDone` mapped to the JSON key `is_done`, then implement `decodeTodos` and `roundTrip`.",
         code="""
@@ -592,9 +984,45 @@ koan.check(encoded.contains("\\"is_done\\""), "encoded JSON uses is_done", encod
         xp=35,
         concepts=["async/await", "async let", "withTaskGroup", "Task.sleep", "structured concurrency"],
         hints=[
-            "Run two at once: async let a = fetch(...); async let b = fetch(...); return await (a, b)",
-            "Many at once, order preserved: await withTaskGroup(of: (Int, String).self) { group in for (i, n) in names.enumerated() { group.addTask { (i, await fetch(n, delay: delay)) } } ... collect, sort by index }",
+            "Look at the README's 'New syntax' (`async let`, `withTaskGroup`, `for await`). The starter awaits one fetch after another, which is why the timing checks fail.",
+            "Idea: fetchBoth starts both fetches with `async let` and awaits the pair; fetchAll adds one child task per name that returns (index, result), collects them, then sorts by index to restore input order.",
+            "Example on other data: `async let a = slowSquare(3); async let b = slowSquare(4); let sum = await a + b`, and the README's task-group block.",
+            r'Near-answer: inside `for (index, name) in names.enumerated()`, `group.addTask { (index, await fetch(name, delay: delay)) }`; afterwards `results.sorted { $0.0 < $1.0 }.map(\.1)`.',
         ],
+        syntax=r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `func f() async -> T` | f can pause while waiting (sleep, network) without blocking a thread | |
+| `await f()` | call an async function; marks a point where it may pause | `let n = await slowSquare(3)` |
+| `Task.sleep(for:)`, `Duration` | pause; durations look like `.milliseconds(100)`, `.seconds(1)` | `try? await Task.sleep(for: .seconds(1))` |
+| `async let x = f()` | start `f` now, in parallel; `await x` later for the result | see below |
+| `withTaskGroup(of: T.self) { group in … }` | run any number of child tasks returning `T`; returns the closure's result | see below |
+| `group.addTask { … }` | start one child task | |
+| `for await r in group` | collect results as they finish (in **finish** order, not start order) | |
+| `for (i, x) in xs.enumerated()` | loop with an index; `(i, x)` unpacks a tuple | |
+| `t.0`, `t.1`, `\.1` | tuple elements; `\.1` is a key path usable as a function | `[(1, "a")].map(\.1)` → `["a"]` |
+
+```swift
+func slowSquare(_ n: Int) async -> Int {
+    try? await Task.sleep(for: .milliseconds(100))
+    return n * n
+}
+
+func demo() async -> (Int, [Int]) {
+    async let a = slowSquare(3)                  // both start immediately…
+    async let b = slowSquare(4)
+    let sum = await a + b                        // …so this takes ~100 ms, not 200
+
+    let squares = await withTaskGroup(of: Int.self) { group in
+        for n in [1, 2, 3] { group.addTask { await slowSquare(n) } }
+        var out: [Int] = []
+        for await s in group { out.append(s) }
+        return out.sorted()
+    }
+    return (sum, squares)                        // (25, [1, 4, 9])
+}
+```
+""",
         why="Structured concurrency runs work in parallel while guaranteeing child tasks finish (or are cancelled) before the parent returns: no forgotten background tasks.",
         task="`fetchBoth` and `fetchAll` must run their fetches CONCURRENTLY (the checks time them) and keep results in input order.",
         code="""
@@ -647,9 +1075,39 @@ koan.check(allTime < .milliseconds(500), "fetchAll runs concurrently", "took \\(
         xp=40,
         concepts=["actor", "isolation", "await on actor methods", "Sendable", "Swift 6 strict concurrency"],
         hints=[
-            "Swift 6 refuses to compile the class version: a mutable class shared between tasks is a data race. Change `final class BankAccount` to `actor BankAccount`.",
-            "Outside the actor, calls need await: await account.deposit(1). Inside withTaskGroup, each addTask can safely call the actor. Transaction is a struct of Sendable fields, so mark it `: Sendable`.",
+            "Look at the README's 'New syntax' (actor, Sendable), then read the compiler error: it names the type that isn't safe to share.",
+            "Idea: a class shared by 1,000 concurrent tasks is a data race, so Swift 6 refuses it. An actor lets only one task at a time touch its state. Transaction crosses task boundaries, so it must be marked Sendable.",
+            "Example on other data: `actor Scoreboard { private(set) var points = 0; func add(_ n: Int) { points += n } }` · `struct Move: Sendable { let x: Int }`.",
+            "Near-answer: change `final class BankAccount` to `actor BankAccount` and `struct Transaction` to `struct Transaction: Sendable`. Nothing else changes.",
         ],
+        syntax=r"""
+The starter doesn't compile, on purpose. Swift 6 reports something like:
+
+```
+main.swift:7:31: error: non-Sendable type 'BankAccount' of let 'account' cannot exit main actor-isolated context
+```
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `actor A { … }` | like a class, but only one task at a time may touch its state | `actor Scoreboard { var points = 0 }` |
+| `await a.method()` | from outside, every actor call (and property read) may wait its turn | `await board.add(3)` |
+| `private(set) var` | readable from outside, writable only inside the type | `private(set) var points = 0` |
+| `: Sendable` | safe to pass between tasks (e.g. a struct of `let` Sendable fields) | `struct Move: Sendable { let x: Int }` |
+| `0..<n` | half-open range: 0 up to n − 1 | `for i in 0..<3` → 0, 1, 2 |
+| `try await` | call something that is both throwing and async | `try await vault.withdraw(5)` |
+| `withTaskGroup(of: Void.self)` | a task group whose children return nothing | |
+
+```swift
+actor Scoreboard {
+    private(set) var points = 0
+    func add(_ n: Int) { points += n }           // inside the actor: no await
+}
+
+let board = Scoreboard()
+await board.add(3)                               // outside: await
+let now = await board.points                     // reads await too
+```
+""",
         why="Data races are the nastiest concurrency bugs. Swift 6 rejects them at compile time; actors are the tool that makes shared mutable state safe. (Fun fact: the starter doesn't even compile: that's the point.)",
         task="Make `BankAccount` an actor so 1,000 concurrent deposits add up exactly, and make `Transaction` Sendable so it can cross task boundaries.",
         code="""

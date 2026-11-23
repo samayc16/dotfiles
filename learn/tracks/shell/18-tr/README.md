@@ -2,7 +2,18 @@
 
 > The inventory file has the same hosts in three different capitalisations.
 
-**Task:** Print the distinct hostnames from `hosts.txt`, lowercased, sorted.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `tr SET1 SET2` | swap each character of SET1 for the matching one in SET2. Reads stdin only | `echo Hi \| tr 'a-z' 'A-Z'` → `HI` |
+| `'[:lower:]'`, `'[:upper:]'` | named character sets in tr | `echo Ab \| tr '[:lower:]' '[:upper:]'` → `AB` |
+| `tr -d`, `tr -s` | delete those characters / squeeze repeats into one | `echo a-b-c \| tr -d -` → `abc` |
+| `cmd < file` | feed a file into a command's stdin | `sort < list.txt` |
+
+## Your task
+
+Print the distinct hostnames from `hosts.txt`, lowercased, sorted.
 
 **Input** `$DATA/hosts.txt` (first lines):
 ```text

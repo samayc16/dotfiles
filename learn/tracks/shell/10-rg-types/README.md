@@ -2,7 +2,21 @@
 
 > Maybe the bug is in code. Ripgrep searches whole trees fast and skips junk for you.
 
-**Task:** From inside `$DATA/src`, list the **Python** files that contain `TODO` (paths relative to `src`, one per line). `vendor/` is listed in `src/.ignore`, so rg skips it: don't fight that.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `rg PATTERN [DIR]` | ripgrep: search every file under DIR (default: here), skipping hidden and ignored files | `rg install` |
+| `-t TYPE` | only files of one type; `rg --type-list` lists them | `rg -t md install` → only Markdown files |
+| `-l` | print the names of matching files, not the lines | `rg -l install` → `run.py`, `setup.md` |
+| `a && b` | run `b` only if `a` succeeded | `cd /tmp && ls` |
+| `.ignore` | a file of gitignore-style paths that rg skips | a line `old/` hides that folder |
+
+_Examples run in a made-up folder: `setup.md`, `run.py`, `draft.md` and an ignored `old/`._
+
+## Your task
+
+From inside `$DATA/src`, list the **Python** files that contain `TODO` (paths relative to `src`, one per line). `vendor/` is listed in `src/.ignore`, so rg skips it: don't fight that.
 
 **Input:** the source tree in `$DATA/src` (`ls -R "$DATA/src"` to look around).
 

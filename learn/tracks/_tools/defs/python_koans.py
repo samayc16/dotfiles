@@ -24,11 +24,60 @@ KOANS = [
         "xp": 10,
         "concepts": ["f-strings", "format spec", "debug ="],
         "hints": [
-            "Format spec goes after a colon: f'{value:<12}' left-aligns in 12 columns, f'{x:>8.2f}' right-aligns a 2-decimal float.",
-            "Percent: f'{0.256:.1%}' → '25.6%'. Self-documenting: f'{x=}' → 'x=42'.",
+            "Look at the README's 'New syntax' table (or `python3 -m pydoc FORMATTING`): each function is ONE f-string with a format spec after a colon.",
+            "Inside each `{}`: `<` / `>` pick the side, the number is the width, `.2f` sets decimals; `%` is its own type; `=` right before `}` is the debug form.",
+            "Same tools on other data: `f\"{'tea':<6}|{5:>4}\"` → `'tea   |   5'`, `f\"{0.125:.2%}\"` → `'12.50%'`, `n = 3; f\"{n=}\"` → `'n=3'`.",
+            "Near-answer for the hardest one: `f\"{item:<12}{qty:>3} x {price:>8.2f}\"`. percent uses the spec `.1%`.",
         ],
         "why": "f-strings are how modern Python builds every string: logs, reports, CLI output. The format-spec mini-language (alignment, width, precision) saves you from manual padding.",
         "task": "- `receipt_line` pads the item to 12 chars (left), qty to 3 (right), price to 8 with 2 decimals (right)\n- `percent` renders a ratio as a percentage with one decimal\n- `debug_expr` returns the `x=` self-documenting form",
+        "primer": r"""
+## Python koans in 2 minutes
+
+This track assumes everyday Python 3 (functions, lists/dicts, classes, `try`/`except`) and drills one
+*modern* feature per koan. The checker uses `~/learn/.venv/bin/python` if it exists, else `python3`;
+koans need Python 3.12+ (they use `def f[T]` generics).
+
+| File | Role |
+|---|---|
+| `koan.py` (your workspace) | the only file you edit: replace each `raise NotImplementedError(...)` / `# TODO` |
+| `test_koan.py` (next to this README) | read-only checks: open it to see the exact expected values |
+| `_lib/harness.py` | runs every `test_*` function in order and prints ✓ / ✗ per check |
+
+Run: `learn check` or `<leader>lc`. `<leader>rr` runs `koan.py` itself (handy with a quick `print`).
+
+What the koan 01 starter prints:
+
+```
+  ✗ receipt line is aligned — got 'apple 3 x 1.5'
+  ✗ percent has one decimal — not implemented yet: use the % format spec
+  ✗ debug form — not implemented yet: f-strings have a debugging form
+
+  0/3 checks passing
+```
+
+| After the dash | Means |
+|---|---|
+| `got ...` | your function returned something else; compare with `test_koan.py` |
+| `not implemented yet: ...` | the stub is still there; its message is a mini-hint |
+| `TypeError: ...` (any exception) | your code crashed; fix that first |
+
+Every line ✓ (exit code 0) = pass.
+""",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `f"{expr:spec}"` | everything after the `:` is a *format spec* for that value | `f"{7:03}"` → `'007'` |
+| `<` `>` `^` + width | left / right / centre align in that many columns | `f"[{'tea':>6}]"` → `'[   tea]'` |
+| `.Nf` | fixed-point float with N decimals | `f"{3.14159:.3f}"` → `'3.142'` |
+| align + width + `.Nf` | combine them, in that order | `f"[{2.5:>7.3f}]"` → `'[  2.500]'` |
+| `.N%` | ×100, add `%`, N decimals | `f"{0.5:.0%}"` → `'50%'` |
+| `{expr=}` | self-documenting: the expression's text, `=`, then its repr | `name = "ada"; f"{name=}"` → `"name='ada'"` |
+| `{expr!r}` | use `repr()` instead of `str()` (the tests use it to show quotes) | `f"{'hi'!r}"` → `"'hi'"` |
+
+Full spec order: `[fill][align][sign][width][,][.precision][type]`, e.g. `f"{1234.5:*>10,.1f}"` → `'***1,234.5'`.
+Offline reference: `python3 -m pydoc FORMATTING`.
+""",
         "code": '''
 def receipt_line(item: str, qty: int, price: float) -> str:
     """'apple         3 x     1.50'"""
@@ -79,11 +128,23 @@ run(globals())
         "xp": 10,
         "concepts": ["list comprehension", "dict comprehension", "set comprehension", "zip"],
         "hints": [
-            "[x * x for x in nums if x % 2 == 0] — the filter goes at the end.",
-            "Dict: {w: len(w) for w in words}. Set: {w[0].lower() for w in words if w}. Nested: [x for row in m for x in row]. Transpose: [list(col) for col in zip(*m)].",
+            "Look at the README's 'New syntax' table: each body is one `return` of a `[...]`, `{k: v ...}` or `{...}` comprehension.",
+            "Pick the bracket from the return type (list / dict / set). Filters go after the `for`. Two `for`s = nested loops, outer first. Transpose = `zip` over the unpacked rows.",
+            "Other data: `[w.upper() for w in ws if len(w) > 2]`, `{w: w[::-1] for w in ws}`, `{len(w) for w in ws}`, `[ch for word in ws for ch in word]`.",
+            "Near-answer for transpose: `zip(*matrix)` yields tuples like `(1, 4)`; wrap each one in `list(...)` inside a list comprehension.",
         ],
         "why": "Comprehensions replace most for-loops that build a collection. They are shorter, faster, and make intent obvious: 'a list of X for each Y where Z'.",
         "task": "Implement each function as a single comprehension (no explicit for-loop statements).",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `[expr for x in xs if cond]` | list comprehension; the filter goes last | `[c.upper() for c in "abc" if c != "b"]` → `['A', 'C']` |
+| `{k: v for x in xs}` | dict comprehension | `{n: n % 3 for n in (4, 5)}` → `{4: 1, 5: 2}` |
+| `{expr for x in xs}` | set comprehension: duplicates vanish | `{len(w) for w in ["ab", "cd", "e"]}` → `{1, 2}` |
+| `[y for a in outer for y in a]` | several `for`s read left → right, like nested loops (outer first) | `[(r, c) for r in "ab" for c in "12"]` → `[('a', '1'), ('a', '2'), ('b', '1'), ('b', '2')]` |
+| `f(*xs)` | `*` spreads a list into separate arguments | `list(zip(*[("a", 1), ("b", 2)]))` → `[('a', 'b'), (1, 2)]` |
+| `list[int]`, `dict[str, int]`, `set[str]` | built-in generic type hints (3.9+), no `typing.List` needed | `def ids() -> set[int]: ...` |
+""",
         "code": '''
 def squares_of_evens(nums: list[int]) -> list[int]:
     #>> raise NotImplementedError
@@ -150,11 +211,25 @@ run(globals())
         "xp": 15,
         "concepts": ["lambda", "sorted key", "closures", "map/filter"],
         "hints": [
-            "sorted(people, key=lambda p: (p['age'], p['name'])) sorts by age, then name.",
-            "A closure: def make_multiplier(n): return lambda x: x * n. For apply_all: [f(x) for f in funcs].",
+            "Look at the README's 'New syntax' table: `key=`, tuple keys, closures and `reverse=True` cover all four functions.",
+            "people: a key returning `(age, name)`. make_multiplier: return a lambda that uses `n`. apply_all: call each function in a comprehension. top_n_by: sort by `key`, largest first, then slice.",
+            "Other data: `sorted(cars, key=lambda c: (c['year'], c['make']))`; `def adder(k): return lambda x: x + k`; `[g(10) for g in (str, hex)]`; `sorted(ws, key=len)[:2]` = the two shortest.",
+            "Near-answer: `return sorted(items, key=key, reverse=True)[:n]`, and make_multiplier is `return lambda x: x * n`.",
         ],
         "why": "Functions are values in Python. Passing small lambdas as `key=` is the idiomatic way to sort, group, min/max by anything.",
         "task": "- sort people by age, then name\n- `make_multiplier(n)` returns a function\n- `apply_all` calls each function on x\n- `top_n_by(items, n, key)` returns the n largest by key",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `lambda args: expr` | anonymous one-expression function | `lambda s: s.strip()` |
+| `key=f` | `sorted` / `min` / `max` compare `f(item)` instead of the item | `max(["ox", "zebra"], key=len)` → `'zebra'` |
+| tuple key | tuples compare element by element → sort by several fields | `sorted(pts, key=lambda p: (p.y, p.x))` (y, then x) |
+| `sorted(xs)` vs `xs.sort()` | `sorted` returns a NEW list; `.sort()` mutates in place and returns `None` | |
+| `reverse=True` | largest first | `sorted([3, 1, 2], reverse=True)` → `[3, 2, 1]` |
+| closure | an inner function / lambda remembers the variables of the call that made it | `def adder(k): return lambda x: x + k` → `adder(5)(1)` → `6` |
+| `Callable[[A, B], R]` | "a function taking A and B, returning R" (`collections.abc`) | `Callable[[str], bool]` |
+| `def f[T](xs: Iterable[T]) -> list[T]` | PEP 695 generic function (3.12+): `T` is a type variable, same type in and out | `def last[T](xs: list[T]) -> T: return xs[-1]` |
+""",
         "code": '''
 from collections.abc import Callable, Iterable
 
@@ -224,11 +299,40 @@ run(globals())
         "xp": 20,
         "concepts": ["@dataclass", "field(default_factory)", "__post_init__", "order=True", "classmethod"],
         "hints": [
-            "from dataclasses import dataclass, field. A mutable default must be field(default_factory=list), never `= []`.",
-            "Validate in def __post_init__(self): if self.price < 0: raise ValueError(...). Ordering: @dataclass(order=True) compares fields in declaration order.",
+            "Look at the README's 'New syntax' block and press `K` on `dataclass` / `field`. The imports are already there.",
+            "Item: decorate it, declare three annotated fields (tags needs a factory default), validate price in `__post_init__`. Version: `order=True`, three int fields, and a `@classmethod parse` that splits on '.' and calls `cls(...)`.",
+            "Other data: `@dataclass class Song: title: str; plays: list[int] = field(default_factory=list)`; `@classmethod def from_csv(cls, line): a, b = line.split(','); return cls(a, int(b))`.",
+            "Near-answer: `if self.price < 0: raise ValueError(...)` inside `__post_init__`, and `major, minor, patch = (int(p) for p in text.split('.')); return cls(major, minor, patch)`.",
         ],
         "why": "Dataclasses generate __init__, __repr__ and __eq__ (and optionally ordering) from type-annotated fields. They are the standard way to model plain data in modern Python.",
         "task": "- Turn `Item` into a dataclass with a per-instance `tags` list and price validation\n- Make `Version` an ordered dataclass with a `parse('1.2.3')` classmethod",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `@dataclass` | generates `__init__`, `__repr__`, `__eq__` from the annotated class attributes | see below |
+| `name: type = default` (in the class body) | one field; field order = `__init__` argument order | `label: str = ""` |
+| `field(default_factory=list)` | a fresh default per instance (`= []` would be shared, so dataclasses refuse it) | `seen: set[str] = field(default_factory=set)` |
+| `def __post_init__(self)` | runs right after the generated `__init__`: validate or derive fields | |
+| `@dataclass(order=True)` | adds `<` `<=` `>` `>=`, comparing fields as a tuple in declaration order | |
+| `@classmethod` + `cls(...)` | alternative constructor; `cls` is the class itself | `Temp.from_text("21.5C")` |
+| `from __future__ import annotations` | lets a method's hints name its own class (`-> Temp`) before it exists (3.14 does this by default) | |
+
+```python
+@dataclass(order=True)
+class Temp:
+    celsius: float
+    label: str = ""
+    readings: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.celsius < -273.15:
+            raise ValueError("below absolute zero")
+
+    @classmethod
+    def from_text(cls, text: str) -> Temp:      # "21.5C" -> Temp(celsius=21.5, ...)
+        return cls(float(text.removesuffix("C")))
+```
+""",
         "code": '''
 from __future__ import annotations
 
@@ -309,11 +413,22 @@ run(globals())
         "xp": 20,
         "concepts": ["frozen=True", "slots=True", "dataclasses.replace", "hashability"],
         "hints": [
-            "@dataclass(frozen=True, slots=True). Frozen instances raise FrozenInstanceError on assignment and become hashable.",
-            "Return modified copies: return replace(self, x=self.x + dx, y=self.y + dy). For the tuple field: replace(self, items=(*self.items, item)).",
+            "Look at the README's 'New syntax' table: two decorator flags plus `dataclasses.replace` (already imported).",
+            "Freeze both classes (Point also slotted). Never assign to `self.x`; return `replace(self, ...)` with the new values. For the tuple, build a new one with `*`.",
+            "Other data: `replace(user, name=user.name.title())`; `(\"a\",) + (\"b\",)` and `(*(\"a\",), \"b\")` both build `('a', 'b')`.",
+            "Near-answer: `return replace(self, x=self.x + dx, y=self.y + dy)`; Inventory gets `@dataclass(frozen=True)` and `replace(self, items=(*self.items, item))`.",
         ],
         "why": "Immutable values can't be changed behind your back, can be dict keys/set members, and are safe to share. Producing a new copy instead of mutating is a habit that removes whole classes of bugs.",
         "task": "- `Point` is frozen, slotted, and `moved()` returns a NEW point\n- `Inventory.added()` returns a new inventory, leaving the original untouched",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `@dataclass(frozen=True)` | assigning a field raises `FrozenInstanceError`; instances become hashable (set members, dict keys) | `len({Temp(1), Temp(1)})` → `1` |
+| `slots=True` | fields live in `__slots__`: no per-instance `__dict__`, less memory, no stray attributes | `hasattr(t, "__dict__")` → `False` |
+| `replace(obj, f=v)` | copy with some fields changed; the original is untouched (`dataclasses`) | `replace(Temp(1, "a"), label="b")` |
+| `tuple[str, ...]` | a tuple of any length, all `str` (the `...` is literal syntax) | `flags: tuple[str, ...] = ()` |
+| `(*t, x)` | a NEW tuple: everything in `t`, then `x` | `(*(1, 2), 3)` → `(1, 2, 3)` |
+""",
         "code": '''
 from __future__ import annotations
 
@@ -393,11 +508,25 @@ run(globals())
         "xp": 15,
         "concepts": ["Enum", "auto", "IntEnum", "StrEnum", "methods on enums"],
         "hints": [
-            "class Color(Enum): RED = auto(). Methods work like on any class: def complement(self) -> Color: ...",
-            "StrEnum members ARE strings: Status('done') looks a member up by value; IntEnum members compare with ints.",
+            "Look at the README's 'New syntax' table and press `K` on `Enum` / `StrEnum`. Each class needs the right base class and its members.",
+            "Color subclasses `Enum` with three `auto()` members plus a `complement` method (RED↔GREEN, everything else maps to itself). Level subclasses `IntEnum`, Status subclasses `StrEnum`, both with explicit values.",
+            "Other data: `class Dir(Enum): N = auto(); S = auto()` with `def flipped(self) -> Dir: return Dir.S if self is Dir.N else Dir.N`; `class Prio(IntEnum): LOW = 1; HIGH = 3`.",
+            "Near-answer: `pairs = {Color.RED: Color.GREEN, Color.GREEN: Color.RED}; return pairs.get(self, self)`; `class Status(StrEnum): TODO = \"todo\"; DONE = \"done\"`.",
         ],
         "why": "Enums turn magic strings and numbers into named, typo-proof constants that your editor can autocomplete and your type checker can verify.",
         "task": "- `Color` with RED/GREEN/BLUE and `complement()` (RED↔GREEN, BLUE↔BLUE)\n- `Level` is an IntEnum DEBUG=10 INFO=20 ERROR=40\n- `Status` is a StrEnum TODO='todo' DONE='done'",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `class C(Enum): A = 1` | an enum: a fixed set of named members | `Suit.HEARTS` |
+| `auto()` | let Python pick the value (1, 2, 3, ...) | `HEARTS = auto()` |
+| `.name`, `.value`, `for m in C` | member name, member value, iterate in definition order | `Suit.HEARTS.name` → `'HEARTS'` |
+| `C(value)` | look a member up by its value | `Suit(1)` → `Suit.HEARTS` |
+| `is` | members are singletons: compare with `is` | `s is Suit.SPADES` |
+| methods | define them like on any class; `self` is the member | `def is_red(self) -> bool: ...` |
+| `IntEnum` | members are also `int`s, so they compare with numbers | `Prio.HIGH > 2` → `True` |
+| `StrEnum` (3.11+) | members are also `str`s; `f"{m}"` gives the value | `f"{Mode.READ}"` → `'r'` |
+""",
         "code": '''
 from __future__ import annotations
 
@@ -466,11 +595,39 @@ run(globals())
         "xp": 25,
         "concepts": ["match/case", "class patterns", "sequence patterns", "mapping patterns", "guards"],
         "hints": [
-            "Class patterns use the dataclass fields: case Circle(radius=r): ...  case Rect(w, h) if w == h: ...",
-            "Sequences: match command.split(): case ['go', direction]: ...  case ['take', *items]: ...  Mappings: case {'type': 'click', 'pos': (x, y)}: ...",
+            "Look at the README's 'New syntax' block: one `match` per function. `test_koan.py` shows every expected string.",
+            "describe: keyword class pattern for Circle; positional `Rect(w, h)` with a guard for the square BEFORE the general Rect. handle: `match command.split()` with list patterns, `*items` and `|`. on_event: mapping patterns. End each with `case _`.",
+            "Other data: `case Point(x=0, y=y): ...`, `case [\"say\", *words]: ...`, `case [\"help\"] | [\"?\"]: ...`, `case {\"kind\": \"temp\", \"value\": float(v)}: ...`.",
+            "Near-answer: `case [\"take\", *items] if items:` (a bare `take` must fall through to 'what?') and `case {\"type\": \"key\", \"key\": str(key)}:`.",
         ],
         "why": "match/case destructures data while it branches. It replaces chains of isinstance/len/key checks with patterns that read like the data's shape.",
         "task": "- `describe(shape)`: 'circle r=2', 'square 3', 'rect 2x5', or 'unknown'\n- `handle(command)`: 'going north', 'taking sword, shield', 'bye', or 'what?'\n- `on_event(event)`: 'click at 3,4', 'key q', or 'ignored'",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `match x:` / `case PATTERN:` | the first matching case runs; patterns check shape AND bind names | see below |
+| `case _:` | wildcard, matches anything (the "else") | |
+| `case Cls(attr=name)` | class pattern: `isinstance` check + bind the attribute | `case Point(x=0, y=y):` |
+| `case Cls(a, b)` | positional class pattern; dataclasses define the order (`__match_args__`) | `case Point(x, y):` |
+| `case P if cond:` | guard: the pattern must match AND `cond` be true | `case Point(x, y) if x == y:` |
+| `case ["cmd", arg]` | sequence pattern: exact length, literals + captures | `case ["say", word]:` |
+| `case ["cmd", *rest]` | `*rest` captures the remaining items as a list (possibly empty) | `case ["say", *words]:` |
+| `case A \| B` | either pattern | `case ["help"] \| ["?"]:` |
+| `case {"k": pattern}` | mapping pattern: those keys must exist (extra keys are ignored) | `case {"kind": "temp", "at": (h, m)}:` |
+| `int(n)`, `str(s)` in a pattern | type check + capture | `case {"value": float(v)}:` |
+
+```python
+match reading:
+    case {"kind": "temp", "value": float(v)} if v > 30:
+        return f"hot {v}"
+    case Point(x=0, y=y):
+        return f"on the y axis at {y}"
+    case ["say", *words]:
+        return " ".join(words)
+    case _:
+        return "?"
+```
+""",
         "code": '''
 from dataclasses import dataclass
 
@@ -560,11 +717,32 @@ run(globals())
         "xp": 25,
         "concepts": ["yield", "yield from", "itertools.islice", "lazy evaluation"],
         "hints": [
-            "def fib(): a, b = 0, 1; while True: yield a; a, b = b, a + b. take(n, it) is list(islice(it, n)).",
-            "chunked: collect into a list, yield it when it reaches size, yield the leftover at the end. flatten_deep: for x in nested: yield from flatten_deep(x) if isinstance(x, list) else [x].",
+            "Look at the README's 'New syntax' block: every function uses `yield` (or `yield from`) except `take`, which is one `islice` call.",
+            "fib keeps two numbers and yields forever. chunked fills a list, yields it when full, and yields the leftover at the end. flatten_deep recurses into sublists with `yield from`. running_total yields the sum so far after each number.",
+            "Other data: `def evens(): n = 0; while True: yield n; n += 2`; `def running_max(xs): best = None; for x in xs: best = x if best is None else max(best, x); yield best`.",
+            "Near-answer for chunked: `chunk = []`; `for item in iterable: chunk.append(item)`, and when `len(chunk) == size`: `yield chunk; chunk = []`; after the loop `if chunk: yield chunk`.",
         ],
         "why": "Generators produce values on demand, so you can process infinite streams or huge files in constant memory, and compose pipelines like shell pipes.",
         "task": "Implement `fib`, `take`, `chunked`, `flatten_deep` and `running_total` as generators (use `yield`).",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `yield v` | makes the function a generator: each `next()` runs it to the next `yield` | see below |
+| `Iterator[int]` | return type of a generator function (`collections.abc`) | `def ticks() -> Iterator[int]:` |
+| `next(it)` | pull one value from an iterator | `next(iter("ab"))` → `'a'` |
+| `islice(it, n)` | the first `n` items of any iterable, lazily (`itertools`) | `list(islice("abcdef", 2))` → `['a', 'b']` |
+| `yield from sub` | yield everything `sub` yields (handy for recursion) | `yield from range(3)` |
+| `while True: yield ...` | an infinite generator is fine: callers only take what they need | |
+
+```python
+def countdown(n: int) -> Iterator[int]:
+    while n > 0:
+        yield n          # pauses here until the caller asks for the next value
+        n -= 1
+
+list(countdown(3))       # [3, 2, 1]
+```
+""",
         "code": '''
 from collections.abc import Iterable, Iterator
 from itertools import islice
@@ -656,11 +834,33 @@ run(globals())
         "xp": 25,
         "concepts": ["groupby", "pairwise", "accumulate", "reduce", "cache", "partial"],
         "hints": [
-            "groupby only groups ADJACENT items: sort first. {k: list(g) for k, g in groupby(sorted(words), key=lambda w: w[0])}",
-            "pairwise(nums) yields (a, b) neighbours; accumulate(nums) gives prefix sums; reduce(operator.mul, nums, 1); @cache memoizes; partial(pow, exp=2).",
+            "Look at the README's 'New syntax' table: one itertools/functools tool per function, in the same order as the imports.",
+            "group: sort, then `groupby` on the first letter inside a dict comprehension. diffs: `pairwise` + subtract. prefix sums: `accumulate`. product: `reduce` with `operator.mul` and start 1. fib_memo: one decorator. square: `partial` with pow's `exp=` keyword.",
+            "Other data: `{k: list(g) for k, g in groupby(sorted(ws, key=len), key=len)}`; `[b / a for a, b in pairwise(prices)]`; `reduce(max, nums, 0)`; `parse_hex = partial(int, base=16)`.",
+            "Near-answer: `{k: list(g) for k, g in groupby(sorted(words), key=lambda w: w[0])}`; `reduce(operator.mul, nums, 1)`; `@cache` goes on the line above `def fib_memo`.",
         ],
         "why": "The standard library already has the loops you keep rewriting. Knowing itertools/functools makes code shorter and usually faster.",
         "task": "Use itertools/functools (no hand-written loops) for each function. `fib_memo(80)` must be instant.",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `groupby(xs, key=f)` | `(key, group)` pairs for runs of **adjacent** items with equal `f(x)`: sort first | `[(k, len(list(g))) for k, g in groupby("aabccc")]` → `[('a', 2), ('b', 1), ('c', 3)]` |
+| `pairwise(xs)` (3.10+) | overlapping neighbours | `list(pairwise("abc"))` → `[('a', 'b'), ('b', 'c')]` |
+| `accumulate(xs, fn)` | running results (default `fn` is `+`) | `list(accumulate([3, 1, 4], max))` → `[3, 3, 4]` |
+| `reduce(fn, xs, start)` | fold a list into one value; `start` is the result for `[]` | `reduce(operator.add, ["a", "b"], "")` → `'ab'` |
+| `operator.mul`, `operator.add` | operators as plain functions | `operator.mul(3, 4)` → `12` |
+| `@cache` | memoize by arguments; adds `.cache_info()` | see below |
+| `partial(fn, kw=v)` | pre-fill some arguments → a new callable | `parse_bin = partial(int, base=2)`; `parse_bin("101")` → `5` |
+
+```python
+@cache
+def slow_square(n: int) -> int:
+    time.sleep(1)
+    return n * n
+
+slow_square(4), slow_square(4)   # the second call is instant
+```
+""",
         "code": '''
 import operator
 from functools import cache, partial, reduce
@@ -743,11 +943,43 @@ run(globals())
         "xp": 25,
         "concepts": ["decorators", "functools.wraps", "decorator factories", "function attributes"],
         "hints": [
-            "def count_calls(fn): @wraps(fn) def wrapper(*a, **kw): wrapper.calls += 1; return fn(*a, **kw); wrapper.calls = 0; return wrapper",
-            "A decorator WITH arguments is a function returning a decorator: def retry(times): def deco(fn): ... return deco",
+            "Look at the README's 'New syntax' block: it shows both shapes, a plain decorator (count_calls) and a factory (retry).",
+            "count_calls: a `wrapper(*args, **kwargs)` that bumps a counter attribute and calls `fn`; set `wrapper.calls = 0` before returning it; decorate it with `@wraps(fn)`. retry: three nested functions; the innermost tries `times` attempts and re-raises after the last.",
+            "Other data: `def timed(fn): @wraps(fn) def w(*a, **k): w.last = time.time(); return fn(*a, **k); w.last = None; return w`.",
+            "Near-answer for retry's loop: `for attempt in range(1, times + 1): try: return fn(*args, **kwargs)` / `except Exception: if attempt == times: raise`.",
         ],
         "why": "Decorators wrap behaviour (caching, retries, timing, auth) around functions without touching their bodies. They're everywhere: @dataclass, @cache, @pytest.fixture, Flask routes.",
         "task": "- `@count_calls` tracks `.calls` and keeps the wrapped function's name/docstring\n- `@retry(times=n)` re-runs a failing function up to n times, then re-raises",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `@deco` above `def f` | shorthand for `f = deco(f)` | |
+| `*args, **kwargs` | accept / forward any positional and keyword arguments | `def log(*args, **kwargs): print(args, kwargs)` |
+| `@wraps(fn)` | copy `__name__`, `__doc__`, ... from `fn` onto the wrapper (`functools`) | |
+| function attributes | functions are objects: you can hang data on them | `wrapper.hits = 0` |
+| `@deco(arg)` | decorator *factory*: `deco(arg)` runs first and must return the real decorator | see below |
+| bare `raise` | inside `except`, re-raise the exception being handled | |
+
+```python
+def shout(fn):                          # plain decorator
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        return fn(*args, **kwargs).upper()
+    return wrapper
+
+def repeat(n):                          # factory: returns a decorator
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            return [fn(*args, **kwargs) for _ in range(n)]
+        return wrapper
+    return decorator
+
+@repeat(2)
+@shout
+def hi(name): return f"hi {name}"       # hi("bo") -> ['HI BO', 'HI BO']
+```
+""",
         "code": '''
 from collections.abc import Callable
 from functools import wraps
@@ -834,11 +1066,38 @@ run(globals())
         "xp": 20,
         "concepts": ["with", "__enter__/__exit__", "@contextmanager", "try/finally"],
         "hints": [
-            "Class-based: __enter__ returns self (record start), __exit__(self, *exc) records elapsed and returns None (don't swallow errors).",
-            "@contextmanager def working_dir(path): old = os.getcwd(); os.chdir(path); try: yield path; finally: os.chdir(old)",
+            "Look at the README's 'New syntax' block: Timer is the class form (`__enter__` / `__exit__`), working_dir the generator form (`@contextmanager`).",
+            "Timer: store `perf_counter()` in `__enter__` and return self; compute `self.elapsed` in `__exit__` and return None. working_dir: save the cwd, chdir, `yield` inside `try`, restore in `finally`.",
+            "Other data: `class Quiet: def __enter__(self): self.old = sys.stdout; sys.stdout = io.StringIO(); return self` and `def __exit__(self, *exc): sys.stdout = self.old`.",
+            "Near-answer: `previous = os.getcwd(); os.chdir(path)` then `try: yield path` / `finally: os.chdir(previous)`.",
         ],
         "why": "`with` guarantees cleanup (closing files, releasing locks, restoring state) even when exceptions fly. Writing your own is one decorator away.",
         "task": "- `Timer` measures the time spent inside its `with` block in `.elapsed`\n- `working_dir(path)` switches cwd and ALWAYS restores it, even on error",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `with cm as x:` | calls `cm.__enter__()`, binds its return value to `x`, runs the block, then ALWAYS calls `cm.__exit__(...)` | `with open(p) as f:` |
+| `def __enter__(self)` | setup; its return value is the `as` target (usually `self`) | |
+| `def __exit__(self, *exc_info)` | teardown; the args are `None` when there was no error; return a falsy value so exceptions propagate | |
+| `time.perf_counter()` | high-resolution clock for durations, in seconds | `t0 = time.perf_counter()` |
+| `@contextmanager` | write one as a generator: code before `yield` = enter, after = exit (`contextlib`) | see below |
+| `try: yield ... finally:` | makes the "after" part run even if the `with` block raised | |
+| `-> "Timer"` | string annotation: a forward reference to a class that isn't finished yet | |
+
+```python
+@contextmanager
+def env_var(name: str, value: str) -> Iterator[None]:
+    old = os.environ.get(name)
+    os.environ[name] = value
+    try:
+        yield                      # the body of the `with` runs here
+    finally:
+        if old is None:
+            del os.environ[name]
+        else:
+            os.environ[name] = old
+```
+""",
         "code": '''
 import os
 import time
@@ -912,11 +1171,42 @@ run(globals())
         "xp": 30,
         "concepts": ["PEP 695 generics", "Protocol", "runtime_checkable", "TypedDict", "Self"],
         "hints": [
-            "class Stack[T]: def __init__(self) -> None: self._items: list[T] = [] ... def __len__(self) -> int, def __bool__(self) -> bool.",
-            "@runtime_checkable class HasArea(Protocol): def area(self) -> float: ...  — any class with an area() method matches, no inheritance needed.",
+            "Look at the README's 'New syntax' block: it covers all four parts, and the imports are already in place.",
+            "Stack wraps a `list[T]`: push appends; pop / peek raise IndexError when empty; `__len__` / `__bool__` delegate to the list. first: a conditional expression. HasArea: a Protocol with one `...` method plus the decorator. Movie: two annotated keys. make_movie: a dict literal.",
+            "Other data: `class Queue[T]: def __init__(self) -> None: self._q: list[T] = []`; `def last[T](xs: Sequence[T]) -> T | None: return xs[-1] if xs else None`; `sum(s.perimeter() for s in shapes)`.",
+            "Near-answer: `@runtime_checkable class HasArea(Protocol): def area(self) -> float: ...`; `def pop(self) -> T: if not self._items: raise IndexError(\"empty\"); return self._items.pop()`.",
         ],
         "why": "Type hints power your LSP: completion, go-to-definition and error squiggles before you run anything. Protocols give you duck typing that the type checker understands.",
         "task": "- generic `Stack[T]` with push/pop/peek, len() and truthiness\n- `first[T]` returns the first element or None\n- `HasArea` protocol + `total_area`\n- `Movie` TypedDict and `make_movie`\n\nTip: hover with `K` on `Stack[int]` and watch basedpyright infer types.",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `class Box[T]:` | PEP 695 generic class (3.12+): `T` is a type parameter | `b: Box[int] = Box()` |
+| `self._items: list[T] = []` | annotate an attribute where you create it | |
+| `__len__`, `__bool__` | make `len(obj)` and `if obj:` work | `def __bool__(self) -> bool: return self.count > 0` |
+| `T \| None` | union: a `T` or `None` (3.10+) | `def find(...) -> int \| None:` |
+| `Sequence[T]` | anything indexable with a length: list, tuple, str (`collections.abc`) | `def mid[T](xs: Sequence[T]) -> T:` |
+| `class P(Protocol)` | structural interface: any class with matching methods fits, no inheritance | see below |
+| `@runtime_checkable` | lets `isinstance(x, P)` check a Protocol at runtime (method names only) | |
+| `class D(TypedDict)` | type for a plain dict with fixed keys; at runtime it's just a `dict` | see below |
+
+```python
+@runtime_checkable
+class Named(Protocol):
+    def name(self) -> str: ...          # `...` = no body, just the signature
+
+class Dog:
+    def name(self) -> str: return "rex"
+
+isinstance(Dog(), Named)                # True: Dog never mentions Named
+
+class Pixel(TypedDict):
+    x: int
+    y: int
+
+p: Pixel = {"x": 1, "y": 2}
+```
+""",
         "code": '''
 from collections.abc import Iterable, Sequence
 from typing import Protocol, TypedDict, runtime_checkable
@@ -1034,11 +1324,42 @@ run(globals())
         "xp": 30,
         "concepts": ["custom exceptions", "raise from", "ExceptionGroup", "except*"],
         "hints": [
-            "class NotFound(AppError): def __init__(self, key): super().__init__(f'not found: {key}'); self.key = key. Chain with: raise NotFound(key) from err",
-            "Collect errors in a list, then: if errors: raise ExceptionGroup('invalid items', errors). Split with: except* ValueError as group: ...",
+            "Look at the README's 'New syntax' block: a custom class, `raise ... from`, `ExceptionGroup` and `except*`.",
+            "NotFound calls `super().__init__` with a message containing the key and stores `.key`. lookup wraps the dict access in try/except KeyError and raises NotFound from it. validate_all collects ValueErrors and raises a group only if there are any. count_value_errors sets a counter inside `except*` and returns after the try.",
+            "Other data: `try: cfg[k]` / `except KeyError as e: raise ConfigError(k) from e`; `errs = [TypeError(x) for x in xs if not isinstance(x, int)]`; `if errs: raise ExceptionGroup(\"bad\", errs)`.",
+            "Near-answer: `count = 0`; `try: validate_all(items)`; `except* ValueError as group: count = len(group.exceptions)`; `return count`.",
         ],
         "why": "Good error types make failures debuggable. `raise ... from` keeps the original cause in tracebacks; ExceptionGroup reports several failures at once (validation, concurrent tasks).",
         "task": "- `AppError` base + `NotFound(key)` subclass with a `.key` attribute\n- `lookup` turns KeyError into NotFound, chained with `from`\n- `validate_all` raises an ExceptionGroup of every invalid item\n- `count_value_errors` uses `except*` to count ValueErrors in a group",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `class E(Base): ...` | custom exception: subclass `Exception` or your own base | `class ConfigError(Exception): pass` |
+| `super().__init__(msg)` | sets the message that `str(err)` shows | |
+| `raise New(...) from err` | chaining: the original error is kept as `new.__cause__` and shown in the traceback | see below |
+| `ExceptionGroup(msg, [errs])` | one exception carrying several (3.11+) | `ExceptionGroup("bad rows", [ValueError(1), ValueError(2)])` |
+| `except* T as g:` | handle only the `T` members of a group; `g.exceptions` lists them | see below |
+| inside `except*` | `return` / `break` / `continue` are not allowed: set a variable instead | |
+
+```python
+class ParseError(Exception):
+    def __init__(self, line: int) -> None:
+        super().__init__(f"bad line {line}")
+        self.line = line
+
+try:
+    int("x")
+except ValueError as err:
+    raise ParseError(3) from err         # ParseError.__cause__ is the ValueError
+
+try:
+    raise ExceptionGroup("batch", [KeyError("a"), KeyError("b"), TypeError("c")])
+except* KeyError as g:
+    missing = len(g.exceptions)          # 2
+except* TypeError:
+    pass
+```
+""",
         "code": '''
 #>> class AppError(Exception):
 #>>     pass
@@ -1133,11 +1454,25 @@ run(globals())
         "xp": 20,
         "concepts": ["pathlib.Path", "glob", "read_text", ":= (walrus)"],
         "hints": [
-            "sum(len(p.read_text().splitlines()) for p in folder.glob(pattern)). max(path.read_text().splitlines(), key=len, default='').",
-            "while (chunk := stream.read(size)): yield chunk",
+            "Look at the README's 'New syntax' table: `Path.glob`, `read_text`, `splitlines`, `max(..., default=)` and `:=` are all you need.",
+            "count_lines: sum the number of lines of every file `folder.glob(pattern)` yields. longest_line: `max` over the lines with `key=len` and a default for empty files. read_chunks: loop while reading gives a non-empty string, yielding each chunk.",
+            "Other data: `sum(p.stat().st_size for p in Path('.').glob('*.md'))`; `while (line := f.readline()): print(line)`.",
+            "Near-answer: `while chunk := stream.read(size): yield chunk`; `sum(len(p.read_text().splitlines()) for p in folder.glob(pattern))`.",
         ],
         "why": "pathlib replaces os.path string juggling with objects (`folder / 'a.txt'`). The walrus operator assigns inside an expression, which tidies read loops.",
         "task": "- `count_lines(folder, pattern)` sums lines over matching files\n- `longest_line(path)` returns the longest line\n- `read_chunks(stream, size)` yields chunks using `:=`",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `Path(p)` | a path object (`pathlib`) | `Path("logs")` |
+| `folder / "a.txt"` | join paths with `/` | `Path("logs") / "today.txt"` |
+| `.glob("*.txt")` | iterate matching paths in that folder (`**/*.txt` recurses) | `list(Path(".").glob("*.md"))` |
+| `.read_text()`, `.write_text(s)` | the whole file as one `str`; write one `str` | `Path("notes.txt").read_text()` |
+| `s.splitlines()` | split into lines, dropping the `\n`s | `"a\nb\n".splitlines()` → `['a', 'b']` |
+| `max(xs, key=f, default=v)` | `default` is returned for an empty iterable instead of raising | `max([], default=0)` → `0` |
+| `(name := expr)` | walrus: assign AND use the value in one expression (3.8+) | `if (n := len(xs)) > 3: print(n)` |
+| `IO[str]`, `stream.read(n)` | a text stream; `read(n)` returns up to `n` chars, `""` at the end | `io.StringIO("hey").read(2)` → `'he'` |
+""",
         "code": '''
 from collections.abc import Iterator
 from pathlib import Path
@@ -1202,11 +1537,44 @@ run(globals())
         "xp": 35,
         "concepts": ["async def", "await", "asyncio.gather", "TaskGroup", "asyncio.timeout"],
         "hints": [
-            "Concurrency: return list(await asyncio.gather(*(fetch(n, delay) for n in names))) — all sleeps overlap.",
-            "async with asyncio.TaskGroup() as tg: tasks = [tg.create_task(...)]; then [t.result() for t in tasks]. Timeout: try: async with asyncio.timeout(s): return await coro  except TimeoutError: return None",
+            "Look at the README's 'New syntax' block. The starter's `[await fetch(...) for ...]` waits for each fetch before starting the next; start them all first, then wait.",
+            "fetch_all: pass every coroutine to `asyncio.gather` with `*`. fetch_grouped: one task per name inside a TaskGroup, then read `.result()` after the block. with_timeout: await inside `asyncio.timeout(seconds)`, catch `TimeoutError`, return None.",
+            "Other data: `sizes = await asyncio.gather(*(download(u) for u in urls))`; `async with asyncio.TaskGroup() as tg: ts = [tg.create_task(ping(h)) for h in hosts]`.",
+            "Near-answer: `return list(await asyncio.gather(*(fetch(n, delay) for n in names)))`; `try: async with asyncio.timeout(seconds): return await awaitable` / `except TimeoutError: return None`.",
         ],
         "why": "async/await lets one thread juggle thousands of waiting operations (network, subprocesses). Knowing gather, TaskGroup and timeouts covers most real-world async code.",
         "task": "- `fetch_all` runs every fetch CONCURRENTLY (the check times it)\n- `fetch_grouped` does the same with a TaskGroup\n- `with_timeout` returns None if the coroutine takes too long",
+        "syntax": r"""
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `async def f()` | coroutine function: calling it returns a coroutine; nothing runs until it's awaited | `async def ping() -> str:` |
+| `await x` | run `x` and wait for its result, letting other tasks run meanwhile | `await asyncio.sleep(0.1)` |
+| `asyncio.run(main())` | start the event loop (the harness does this for async tests) | |
+| `await asyncio.gather(*coros)` | run many concurrently; results come back in argument order | `await asyncio.gather(ping(), ping())` → `['pong', 'pong']` |
+| `async with asyncio.TaskGroup() as tg:` | structured concurrency (3.11+): leaving the block waits for every task; one failure cancels the rest | see below |
+| `tg.create_task(coro)`, `task.result()` | schedule a coroutine now; read its value once it has finished | |
+| `async with asyncio.timeout(s):` | cancel the block after `s` seconds and raise `TimeoutError` (3.11+) | see below |
+| `Awaitable[T]` | anything you can `await` that produces a `T` | |
+
+```python
+async def slow_add(a: int, b: int) -> int:
+    await asyncio.sleep(0.2)
+    return a + b
+
+async def main() -> None:
+    async with asyncio.TaskGroup() as tg:
+        t1 = tg.create_task(slow_add(1, 2))
+        t2 = tg.create_task(slow_add(3, 4))
+    print(t1.result(), t2.result())       # 3 7 after ~0.2 s total, not 0.4 s
+    try:
+        async with asyncio.timeout(0.05):
+            await slow_add(5, 6)
+    except TimeoutError:
+        print("too slow")
+
+asyncio.run(main())
+```
+""",
         "code": '''
 import asyncio
 from collections.abc import Awaitable

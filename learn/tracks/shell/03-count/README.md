@@ -2,7 +2,15 @@
 
 > Your manager is awake too and wants one number.
 
-**Task:** Print the **number** of `ERROR` lines in `app.log` (just the number).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-c` | print how many lines match, instead of the lines | `printf 'tea\ncoffee\ngreen tea\n' \| grep -c tea` → `2` |
+
+## Your task
+
+Print the **number** of `ERROR` lines in `app.log` (just the number).
 
 **Input** `$DATA/app.log` (first lines):
 ```text

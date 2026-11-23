@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "sum(len(p.read_text().splitlines()) for p in folder.glob(pattern)). max(path.read_text().splitlines(), key=len, default='').",
-    "while (chunk := stream.read(size)): yield chunk"
+    "Look at the README's 'New syntax' table: `Path.glob`, `read_text`, `splitlines`, `max(..., default=)` and `:=` are all you need.",
+    "count_lines: sum the number of lines of every file `folder.glob(pattern)` yields. longest_line: `max` over the lines with `key=len` and a default for empty files. read_chunks: loop while reading gives a non-empty string, yielding each chunk.",
+    "Other data: `sum(p.stat().st_size for p in Path('.').glob('*.md'))`; `while (line := f.readline()): print(line)`.",
+    "Near-answer: `while chunk := stream.read(size): yield chunk`; `sum(len(p.read_text().splitlines()) for p in folder.glob(pattern))`."
   ]
 }

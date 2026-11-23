@@ -2,7 +2,20 @@
 
 > The new deploy system wants environment variables, not INI files.
 
-**Task:** Turn `services.conf` into `SECTION_KEY=VALUE` lines (uppercase section and key, inline comments dropped), e.g. `WEB_PORT=8000`, in file order. Skip comments and blank lines.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-F' *= *'` | the separator can be a regex: here `=` with any spaces around it | `echo 'a - b' \| awk -F' *- *' '{print $2}'` → `b` |
+| `/re/ {...}` | a regex as the condition: lines that match | `/^#/ {next}` skips comment lines |
+| `sub(/re/, "x", v)`, `gsub(...)` | replace the first / every match inside v (default `$0`) | `echo '(x)' \| awk '{gsub(/[()]/, ""); print}'` → `x` |
+| `toupper(s)`, `tolower(s)` | change case | `toupper("ab")` → `AB` |
+| `[][]` | a class holding `]` and `[` (the `]` must come first) | |
+| memory | a variable set on one line keeps its value on the following lines | |
+
+## Your task
+
+Turn `services.conf` into `SECTION_KEY=VALUE` lines (uppercase section and key, inline comments dropped), e.g. `WEB_PORT=8000`, in file order. Skip comments and blank lines.
 
 **Input** `$DATA/services.conf` (first lines):
 ```text

@@ -12,7 +12,9 @@
   "check": "check.sh",
   "par": 115,
   "hints": [
-    "`grep PATTERN FILE` prints the lines of FILE that contain PATTERN.",
-    "Quote the path: `\"$DATA/app.log\"`."
+    "README → New syntax: grep's basic form is `grep PATTERN FILE`, and the file is `\"$DATA/app.log\"`.",
+    "Every line you want contains the literal text `ERROR`, so that word alone is the whole pattern.",
+    "Same shape on fake input: `printf 'INFO ok\\nERROR bad\\n' | grep INFO` prints `INFO ok`.",
+    "`grep WARN \"$DATA/app.log\"` would print the warnings. Swap in the level you need."
   ]
 }

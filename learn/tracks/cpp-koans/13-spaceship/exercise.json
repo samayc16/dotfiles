@@ -14,7 +14,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "auto operator<=>(const Version&) const = default; generates <, <=, >, >= and (with = default ==) equality, member by member.",
-    "Case-insensitive: std::weak_ordering operator<=>(const CiString& o) const { return lower(text) <=> lower(o.text); } and bool operator==(const CiString& o) const { return lower(text) == lower(o.text); }"
+    "New syntax table: defaulted `operator<=>`, `std::weak_ordering`, and why a custom `<=>` needs its own `operator==`.",
+    "Version: one defaulted `<=>` compares members in declaration order (major, minor, patch). CiString: compare lowered copies with `<=>` (std::string gives strong_ordering, which converts to weak_ordering) and write `==` the same way.",
+    "On other data: `std::weak_ordering operator<=>(const Mag& o) const { return std::abs(v) <=> std::abs(o.v); }` plus `bool operator==(const Mag& o) const { return std::abs(v) == std::abs(o.v); }`",
+    "Near-answer: `auto operator<=>(const Version&) const = default;` · `return lower(text) <=> lower(other.text);` · `return lower(text) == lower(other.text);`"
   ]
 }

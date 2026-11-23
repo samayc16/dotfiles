@@ -15,8 +15,9 @@
   "open": "Bank.hs",
   "check": "check.sh",
   "hints": [
-    "Write a helper balanceOf :: Accounts -> String -> Either BankError Int using Map.lookup.",
-    "In an Either do-block, `when (bal < amt) (Left ...)` aborts with that error.",
-    "applyAll = foldM apply Map.empty"
+    "README 'New syntax' and the rules table: write `apply` as one equation per Txn constructor (`apply accounts (Open name) = …`), each an Either `do` block. Add `when` to the Control.Monad import.",
+    "Two helpers make it easy: balanceOf (Map.lookup turned into an Either with NoSuchAccount) and a check that the amount is > 0. Each case: check the amount, fetch balance(s), `when` too low → InsufficientFunds, then pure the updated map. applyAll: foldM from Map.empty. richest: Nothing for an empty map, else the pair with the largest snd. statement: format each pair of Map.toAscList.",
+    "Other data: `sell` in the README is a whole 'fetch, check, update' step; `foldM sell stock [\"tea\", \"tea\"]` runs a history of them.",
+    "`balanceOf accounts name = maybe (Left (NoSuchAccount name)) Right (Map.lookup name accounts)` · `applyAll = foldM apply Map.empty` · `richest accounts = Just (maximumBy (comparing snd) (Map.toList accounts))` after an empty check (`Map.null`)."
   ]
 }

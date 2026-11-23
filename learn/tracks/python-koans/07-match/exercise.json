@@ -15,7 +15,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "Class patterns use the dataclass fields: case Circle(radius=r): ...  case Rect(w, h) if w == h: ...",
-    "Sequences: match command.split(): case ['go', direction]: ...  case ['take', *items]: ...  Mappings: case {'type': 'click', 'pos': (x, y)}: ..."
+    "Look at the README's 'New syntax' block: one `match` per function. `test_koan.py` shows every expected string.",
+    "describe: keyword class pattern for Circle; positional `Rect(w, h)` with a guard for the square BEFORE the general Rect. handle: `match command.split()` with list patterns, `*items` and `|`. on_event: mapping patterns. End each with `case _`.",
+    "Other data: `case Point(x=0, y=y): ...`, `case [\"say\", *words]: ...`, `case [\"help\"] | [\"?\"]: ...`, `case {\"kind\": \"temp\", \"value\": float(v)}: ...`.",
+    "Near-answer: `case [\"take\", *items] if items:` (a bare `take` must fall through to 'what?') and `case {\"type\": \"key\", \"key\": str(key)}:`."
   ]
 }

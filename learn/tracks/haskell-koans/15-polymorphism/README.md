@@ -4,6 +4,28 @@
 
 **Why it matters:** A constraint like `Ord a =>` says "any type that can be compared". It's how generic code stays type-safe, like C++ concepts or Swift's `where T: Comparable`.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `Ord a =>` | `a` can be compared: `<`, `min`, `max`, `maximum` | `smaller :: Ord a => a -> a -> a` |
+| `Show a =>` | `a` can be turned into text with `show` | `label :: Show a => a -> String` |
+| `Num a =>` | `a` supports `+ - *` and number literals (`Int`, `Double`, …) | `twice :: Num a => a -> a` |
+| `(Eq a, Show a) =>` | several constraints at once | |
+| `maximum`, `product`, `min`, `max` | largest element / multiply all / smaller / larger of two | `max 3 8` → `8`, `product [2, 3]` → `6` |
+| ``x `elem` xs`` | is `x` in the list? | ``'z' `elem` "lazy"`` → `True` |
+| no type signature | GHC infers the most general type; `:t` or the HLS code lens shows it | |
+| `go` helper | a local recursive function that carries extra state (an accumulator) | see below |
+
+```haskell
+runningMax :: [Int] -> [Int]
+runningMax = go 0
+  where
+    go _ [] = []
+    go best (x : rest) = let b = max best x in b : go b rest
+-- runningMax [3, 1, 5] → [3,3,5]
+```
+
 ## Your task
 
 Edit `Polymorphism.hs` and replace every `undefined`.

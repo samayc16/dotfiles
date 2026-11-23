@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "divide: b == 0 ? .failure(.divisionByZero) : .success(a / b).  Chain: divide(a, b).flatMap { divide($0, c) }",
-    "describe: switch result { case .success(let v): ... case .failure(let e): ... }"
+    "Look at the README's 'New syntax' (Result, ternary, flatMap, switch as a value). Each body is one expression.",
+    "Idea: divide picks failure or success with a ternary on `b == 0`; divideTwice divides once and flatMaps that success into a second divide; describe switches on success / failure.",
+    "Example on other data: `host.isEmpty ? .failure(.offline) : .success(42)` · `ping(\"a\").flatMap { ms in ping(\"b\") }` · `case .success(let ms): \"\\(ms) ms\"`.",
+    "Near-answer: `divide(a, b).flatMap { divide($0, c) }`; describe: `case .success(let value): \"ok \\(value)\"` and `case .failure(.divisionByZero): \"error: division by zero\"`."
   ]
 }

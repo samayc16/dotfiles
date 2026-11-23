@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "switch self { case .circle(let r): return .pi * r * r; case let .rect(w, h): return w * h; case let .triangle(b, h): return b * h / 2 }",
-    "Parse: switch text.split(separator: \" \") { case [\"go\", let dir]: return .go(String(dir)) ... }  — or use if/guard on parts."
+    "Look at the README's 'New syntax' (switch with `let`, `init?`, `CaseIterable`). `area` needs one `case` per shape; `Suit` needs only a conformance.",
+    "Idea: `area` switches on `self` and pulls out each case's numbers; the parser splits the text on spaces, then decides by word count and first word, returning nil for anything else.",
+    "Example on other data: `case .card(let last4): ...`, `case let .split(a, b): ...`, and `\"move 3\".split(separator: \" \").map(String.init)` → `[\"move\", \"3\"]`.",
+    "Near-answer: `case let .rect(width, height): return width * height`; in the init: `case 2 where parts[0] == \"go\": self = .go(parts[1])`, `default: return nil`; and `enum Suit: CaseIterable { ... }`."
   ]
 }

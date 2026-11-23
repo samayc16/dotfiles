@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 153,
   "hints": [
-    "`[[:alnum:].]+` matches letters, digits and dots.",
-    "Escape the literal dot in the domain: `example\\.`.",
-    "`(org|net)` needs `-E`."
+    "README → New syntax: named classes like `[[:alnum:]]`, escaping a dot, `(a|b)` with `-E`, and `-o`.",
+    "An address is name characters (letters, digits, dots), then `@example.`, then `org` or `net`. Print only the match.",
+    "`echo 'a.txt b.csv c.md' | grep -oE '[[:alnum:]]+\\.(txt|md)'` prints `a.txt` and `c.md`.",
+    "`grep -oE '[[:alnum:].]+@example\\.(...)' \"$DATA/users.csv\"`: fill in the alternation."
   ]
 }

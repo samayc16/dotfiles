@@ -19,6 +19,17 @@ module summer (stream_if.sink s, ...);   // this module is a sink
 **Handshake rule:** a beat moves on a rising edge where **valid && ready**. The source holds `valid` and `data`
 steady until that happens; the sink can stall with `ready = 0`.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `interface i #(...) (input logic clk); ... endinterface` | a bundle of signals with its own parameters and ports | `stream_if.sv` |
+| `modport m (input a, output b);` | one side's view of the bundle, directions as seen from that side | `modport monitor (input valid, ready, data, clk);` |
+| `stream_if.sink s` (a port) | a module port carrying the whole interface, through one modport | `bus_if.monitor m` |
+| `s.valid` | a signal inside the interface port | `m.ready` |
+| `stream_if bus (clk);` (in `tb.sv`) | an interface is instantiated like a module | |
+| `16'(x)` | widen 8-bit data to 16 bits before adding it to a 16-bit sum | `total + 16'(m.data)` |
+
 **Your task:** add the `sink` modport to `stream_if.sv`, then make `summer.sv` accept beats and keep a running
 `sum` and `beats` count. (This exercise opens `summer.sv`. Open the interface too: `:e stream_if.sv`.)
 

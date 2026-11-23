@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 153,
   "hints": [
-    "First delete comments with `s/...//`, then delete lines that became empty.",
-    "`[[:space:]]*#.*` matches optional spaces, the `#`, and everything after it.",
-    "`/^$/d` deletes empty lines. Chain commands with `-e ... -e ...`."
+    "README → New syntax: two sed commands chained with `-e`: a substitution, then `d`.",
+    "First erase optional spaces + `#` + the rest of the line. Whole-line comments become empty lines, so then delete empty lines.",
+    "`printf 'a  // x\\n// y\\nb\\n' | sed -e 's/ *\\/\\/.*//' -e '/^$/d'` prints `a` and `b`.",
+    "`sed -e 's/[[:space:]]*#.*//' -e '...' \"$DATA/services.conf\"`: the second command deletes empty lines."
   ]
 }

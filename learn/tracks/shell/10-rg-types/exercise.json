@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 123,
   "hints": [
-    "`cd` into the directory first so paths come out relative.",
-    "`rg -t py` restricts the search to Python files (`rg --type-list` shows all types).",
-    "`-l` prints file names instead of matching lines."
+    "README → New syntax: `cd` into `$DATA/src` first, then use rg's type flag and its list-files flag.",
+    "Three pieces: `cd` (so paths come out relative), restrict to Python files, print only file names.",
+    "In a notes folder, `rg -t md -l install` lists the Markdown files that mention `install`.",
+    "`cd \"$DATA/src\" && rg -t ... -l TODO`: find the type name with `rg --type-list | grep -i python`."
   ]
 }

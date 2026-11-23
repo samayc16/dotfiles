@@ -4,6 +4,36 @@
 
 **Why it matters:** `Either err a` is `Maybe` that also explains *why* it failed. Errors are plain values in the type, not exceptions you might forget to catch.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `data E = A String \| B Int` | a new type with alternatives ("constructors"), each carrying data | `data Temp = Freezing \| Fine Int` |
+| `deriving (Show, Eq)` | auto-generate printing and `==` for the type | |
+| `Either e a`: `Left err` / `Right x` | a result that is an error (`Left`) or a success (`Right`) | `Right 3 :: Either String Int` |
+| `readMaybe s` | parse a `String`; `Nothing` if it isn't valid. Target type comes from context | `readMaybe "12" :: Maybe Int` → `Just 12` |
+| `e :: T` | annotate one expression's type inline | `(readMaybe "x" :: Maybe Int)` → `Nothing` |
+| `Just n \| cond -> …` | a `case` branch can have guards too | see below |
+| `do` + `x <- step` | run steps in order; a `Left` stops the whole block | see below |
+| `pure x` | wrap a plain value as a success (`Right x` here) | |
+| `mapM f xs` | run `f` on every element, collect the successes; the first `Left` wins (`traverse` is the same) | see below |
+
+```haskell
+parseNum :: String -> Either String Int
+parseNum s = case readMaybe s of
+  Nothing -> Left ("not a number: " ++ s)
+  Just n
+    | n > 99    -> Left "too big"
+    | otherwise -> Right n
+
+doubled :: String -> Either String Int
+doubled s = do
+  n <- parseNum s        -- a Left here is returned immediately
+  pure (n * 2)           -- doubled "21" → Right 42
+
+-- mapM parseNum ["1", "x", "y"] → Left "not a number: x"
+```
+
 ## Your task
 
 Edit `Errors.hs` and replace every `undefined`.

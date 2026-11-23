@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "def fib(): a, b = 0, 1; while True: yield a; a, b = b, a + b. take(n, it) is list(islice(it, n)).",
-    "chunked: collect into a list, yield it when it reaches size, yield the leftover at the end. flatten_deep: for x in nested: yield from flatten_deep(x) if isinstance(x, list) else [x]."
+    "Look at the README's 'New syntax' block: every function uses `yield` (or `yield from`) except `take`, which is one `islice` call.",
+    "fib keeps two numbers and yields forever. chunked fills a list, yields it when full, and yields the leftover at the end. flatten_deep recurses into sublists with `yield from`. running_total yields the sum so far after each number.",
+    "Other data: `def evens(): n = 0; while True: yield n; n += 2`; `def running_max(xs): best = None; for x in xs: best = x if best is None else max(best, x); yield best`.",
+    "Near-answer for chunked: `chunk = []`; `for item in iterable: chunk.append(item)`, and when `len(chunk) == size`: `yield chunk; chunk = []`; after the loop `if chunk: yield chunk`."
   ]
 }

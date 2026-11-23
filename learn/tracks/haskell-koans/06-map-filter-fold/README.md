@@ -4,6 +4,25 @@
 
 **Why it matters:** `map`, `filter` and folds capture the recursion patterns from the last koan. Most real Haskell list code is a pipeline of these.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `filter p xs` | keep the elements where `p` is `True` | `filter (> 2) [1, 5, 2, 7]` → `[5,7]` |
+| `x ^ n` | power with a whole-number exponent | `3 ^ 2` → `9`; the section `(^ 3)` cubes |
+| `foldr f z xs` | combine from the right, starting at `z` | `foldr max 0 [3, 9, 4]` → `9` |
+| `foldl f z xs` | combine from the left with an accumulator: `f (f z a) b` | see below |
+| `\acc x -> …` | a lambda with two parameters | |
+| `[1 .. 6]` | range: `[1,2,3,4,5,6]` | `[3 .. 5]` → `[3,4,5]` |
+| `Maybe a`: `Just x` / `Nothing` | a value that might be missing (Python's `Optional` / `None`) | `Just 2.5 :: Maybe Double` |
+| `sum xs` | add up a list | `sum [1.5, 2.5]` → `4.0` |
+
+```haskell
+-- foldl: walk left to right, carrying an accumulator
+digitsToInt :: [Int] -> Int
+digitsToInt ds = foldl (\acc d -> acc * 10 + d) 0 ds   -- [1,2,3] → 123
+```
+
 ## Your task
 
 Edit `Folds.hs` and replace every `undefined`.

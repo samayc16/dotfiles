@@ -4,6 +4,32 @@
 
 **Why it matters:** Parsing and evaluating a tiny language is the classic Haskell showcase: a recursive data type mirrors the grammar, and each grammar rule becomes one small function.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `s@(c : cs)` | as-pattern: name the whole value `s` *and* its parts | `dupFirst all@(x : _) = x : all` |
+| `span p xs` | split into (longest prefix where `p` holds, rest) | `span isDigit "42+1"` → `("42","+1")` |
+| `read s` | parse a `String` into the needed type (crashes on bad input) | `(read "42" :: Int)` |
+| `(x :)` | section of `:`, "put x in front" | `(0 :) <$> Just [1]` → `Just [0,1]` |
+| `rest'` | `'` is just part of a name: "the next version of rest" | |
+| `(TPlus : rest)` | a list pattern can also check the first element's constructor | |
+| `(a, b) <- m` | in a `do` block, unpack a tuple result | |
+| `uncurry f (a, b)` | call a 2-argument function with a pair | `uncurry max (3, 8)` → `8` |
+| mutual recursion | functions may call each other (atom → sum → product → atom) | |
+
+```haskell
+data Tok = TInt Int | TComma deriving (Show, Eq)
+
+-- "1,2,3" as tokens → their sum plus the leftover tokens, read left to right
+sumList :: [Tok] -> Either String (Int, [Tok])
+sumList (TInt n : rest) = go n rest
+  where
+    go acc (TComma : TInt m : rest') = go (acc + m) rest'
+    go acc rest' = Right (acc, rest')
+sumList _ = Left "expected a number"
+```
+
 ## Your task
 
 Edit `Calc.hs` and replace every `undefined`.

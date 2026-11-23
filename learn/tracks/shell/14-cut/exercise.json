@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 132,
   "hints": [
-    "`tail -n +2` prints from line 2 onward, skipping the header.",
-    "`cut -d, -f3` splits on commas and keeps field 3."
+    "README → New syntax: `tail -n +2` drops the header, `cut` picks a column.",
+    "Pipe the headerless file into `cut`, splitting on commas. email is field 3.",
+    "`printf 'h\\na,b,c\\n' | tail -n +2 | cut -d, -f2` prints `b`.",
+    "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f...`."
   ]
 }

@@ -16,7 +16,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "Pipelines read left to right: values | std::views::filter(is_even) | std::views::transform(square) | std::ranges::to<std::vector>()",
-    "Infinite source: std::views::iota(2) | std::views::filter(is_prime) | std::views::take(n). zip pairs two ranges: for (auto [a, b] : std::views::zip(xs, ys))."
+    "New syntax table: `std::views::filter`, `transform`, `iota`, `take`, `zip`, and `std::ranges::to<std::vector>()`.",
+    "Build each answer as a left-to-right pipeline and materialise it with `ranges::to`. first_primes starts from an infinite `iota(2)`, keeps primes and stops with `take(n)`. dot: zip the two vectors and add up x*y in a range-for.",
+    "On other data: `std::views::iota(1, 6) | std::views::transform([](int x) { return x * 10; }) | std::ranges::to<std::vector>()` → {10,20,30,40,50} · `for (auto [name, score] : std::views::zip(names, scores))`.",
+    "Near-answer: `values | std::views::filter(/*even*/) | std::views::transform(/*square*/) | std::ranges::to<std::vector>()` · `std::views::iota(2) | std::views::filter(is_prime) | std::views::take(n) | std::ranges::to<std::vector>()`."
   ]
 }

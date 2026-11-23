@@ -13,7 +13,9 @@
   "open": "lfsr.sv",
   "check": "check.sh",
   "hints": [
-    "Feedback = XOR of the tap bits: `q[7] ^ q[5] ^ q[4] ^ q[3]`.",
-    "Shift left and insert the feedback at bit 0: `q <= {q[6:0], fb};`"
+    "The comment above `fb` gives the tap formula, and the README shows the shift `{q[6:0], fb}`.",
+    "`fb` is an `assign`: the XOR of four bits of `q`. Then in `always_ff`, shift `fb` in instead of `1'b0`.",
+    "A 4-bit LFSR on other names: `assign f = r[3] ^ r[2];` and `r <= {r[2:0], f};`",
+    "Near-answer: `assign fb = q[7] ^ q[5] ^ q[4] ^ q[3];` and `q <= {q[6:0], fb};`"
   ]
 }

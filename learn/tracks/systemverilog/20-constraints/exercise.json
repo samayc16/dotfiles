@@ -16,8 +16,9 @@
   "open": "txn_pkg.sv",
   "check": "check.sh",
   "hints": [
-    "`constraint c_align { addr[1:0] == 0; }`",
-    "`constraint c_len { (kind == IDLE) -> len == 0; (kind != IDLE) -> len inside {[1:8]}; }`",
-    "`constraint c_kind { kind dist { READ := 4, WRITE := 4, IDLE := 2 }; }`"
+    "The four rules are in the TODO in `txn_pkg.sv`; the README class shows one constraint of each kind.",
+    "One constraint per rule: the low two addr bits are 0; an implication for the addr range of READ/WRITE (and addr == 0 for IDLE); an implication for len; a `dist` on kind with weights 4, 4, 1.",
+    "Other data: `constraint c_even { size[0] == 0; }` · `constraint c_fast { (mode == FAST) -> size inside {[4:12]}; }` · `constraint c_mix { mode dist { SLOW := 1, FAST := 3 }; }`",
+    "Near-answer: `constraint c_len { (kind == IDLE) -> len == 0; (kind != IDLE) -> len inside {[1:8]}; }` and `constraint c_kind { kind dist { READ := 4, WRITE := 4, IDLE := 1 }; }`"
   ]
 }

@@ -14,8 +14,9 @@
   "open": "Ciphers.hs",
   "check": "check.sh",
   "hints": [
-    "Shift relative to 'a' or 'A': chr (ord base + (ord c - ord base + n) `mod` 26)",
-    "`mod` in Haskell is always non-negative for a positive divisor, so negative shifts just work.",
-    "unwords . map capitalize . words"
+    "README 'New syntax': ord/chr do arithmetic on letters, `mod` 26 wraps, isLower/isUpper pick the base letter.",
+    "caesar: map a per-character shift over the text: lowercase letters rotate around 'a', uppercase around 'A', anything else stays. rot13: caesar with 13 (point-free). isPalindrome: keep the letters, lowercase them, compare with the reverse. capitalizeWords: split into words, uppercase each first letter, join back.",
+    "Other data: `spinDigit` in the README rotates digits the same way · `[toUpper c | c <- \"a-b\", isAlpha c]` → \"AB\".",
+    "Shift helper: `rotate base c = chr (ord base + mod (ord c - ord base + n) 26)` · `capitalizeWords = unwords . map capitalize . words` with `capitalize (c : cs) = toUpper c : cs` and `capitalize [] = []`."
   ]
 }

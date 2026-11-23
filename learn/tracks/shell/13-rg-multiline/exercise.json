@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 158,
   "hints": [
-    "`-U` lets a pattern span lines; write newlines as `\\n`.",
-    "A traceback is `Traceback...` then indented lines (two leading spaces), then the exception line.",
-    "`(?:  .*\\n)+` repeats indented lines without capturing; capture the next line with `(.+)`."
+    "README → New syntax: `-U`, `\\n` inside the pattern, and a non-capturing group `(?:...)`.",
+    "Shape: the `Traceback` line, then one or more lines starting with two spaces, then the exception line (capture that one).",
+    "`printf 'name:\\n  ana\\n' | rg -U -o -r '$1' 'name:\\n  (.+)'` prints `ana`.",
+    "`rg -U -o -r '$1' 'Traceback.*\\n(?:...)+(.+)' \"$DATA/deploy.log\"`: the group is two spaces, the rest of the line, `\\n`."
   ]
 }

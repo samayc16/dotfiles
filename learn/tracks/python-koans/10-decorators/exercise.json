@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "def count_calls(fn): @wraps(fn) def wrapper(*a, **kw): wrapper.calls += 1; return fn(*a, **kw); wrapper.calls = 0; return wrapper",
-    "A decorator WITH arguments is a function returning a decorator: def retry(times): def deco(fn): ... return deco"
+    "Look at the README's 'New syntax' block: it shows both shapes, a plain decorator (count_calls) and a factory (retry).",
+    "count_calls: a `wrapper(*args, **kwargs)` that bumps a counter attribute and calls `fn`; set `wrapper.calls = 0` before returning it; decorate it with `@wraps(fn)`. retry: three nested functions; the innermost tries `times` attempts and re-raises after the last.",
+    "Other data: `def timed(fn): @wraps(fn) def w(*a, **k): w.last = time.time(); return fn(*a, **k); w.last = None; return w`.",
+    "Near-answer for retry's loop: `for attempt in range(1, times + 1): try: return fn(*args, **kwargs)` / `except Exception: if attempt == times: raise`."
   ]
 }

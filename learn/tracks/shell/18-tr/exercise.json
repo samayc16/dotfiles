@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 147,
   "hints": [
-    "`tr` translates characters; it only reads stdin, so redirect the file in with `<`.",
-    "`tr '[:upper:]' '[:lower:]'` lowercases."
+    "README → New syntax: `tr` only reads stdin, so feed the file in with `<`.",
+    "Lowercase every character, then sort with duplicates removed.",
+    "`echo Hi | tr 'a-z' 'A-Z'` prints `HI`.",
+    "`tr '[:upper:]' '[:lower:]' < \"$DATA/hosts.txt\" | ...`."
   ]
 }

@@ -14,8 +14,9 @@
   "open": "workers_pkg.sv",
   "check": "check.sh",
   "hints": [
-    "`m.put(x)` blocks only on a bounded, full mailbox; `m.get(x)` blocks until an item arrives.",
-    "Timeout pattern: `fork begin work(); ok = 1; end begin #limit; end join_any disable fork;`",
-    "Events: `-> done;` to trigger, `@(done)` to wait."
+    "Each task's comment in `workers_pkg.sv` says exactly what to do; the README block shows the fork/join variants and events.",
+    "produce: loop 1..n, `#1` then put. consume: `get` n times into a local int and add. run_pipeline: fork both, `join`. wait_or_timeout: guarded fork; one branch waits `@(ev)` and sets got_event, the other waits `#(limit)`.",
+    "Other data: `repeat (3) begin #2; box.put(7); end` · a race: `fork begin @(ping); seen = 1; end #(10); join_any disable fork;`",
+    "Near-answer: `task consume(int n); int x; sum = 0; repeat (n) begin mb.get(x); sum += x; end endtask` and wrap the race as `fork begin fork ... join_any disable fork; end join`."
   ]
 }

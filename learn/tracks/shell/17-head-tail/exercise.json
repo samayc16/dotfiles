@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 155,
   "hints": [
-    "`sort -t SEP -k3,3n` sorts numerically by field 3 only.",
-    "In bash, `$'\\t'` is a literal tab character.",
-    "`head -3` keeps the first three lines."
+    "README → New syntax: `sort -t` sets the separator, `-k3,3nr` sorts by column 3, numeric, descending.",
+    "Skip the header, sort by the cpu column with a tab as separator, keep the top 3.",
+    "`printf 'b,7\\na,12\\nc,3\\n' | sort -t, -k2,2nr | head -n 1` prints `a,12`.",
+    "`tail -n +2 \"$DATA/metrics.tsv\" | sort -t$'\\t' -k... | head -3`."
   ]
 }

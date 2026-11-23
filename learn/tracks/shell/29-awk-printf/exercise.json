@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 293,
   "hints": [
-    "`%-10s` is left-aligned width 10; `%5d` is right-aligned width 5.",
-    "Inside awk, `print ... | \"sort\"` pipes rows through sort; `close(\"sort\")` flushes it before you print TOTAL.",
-    "Or build it in pieces with the shell: `{ echo header; awk ... | sort; awk ... total; }`."
+    "README → New syntax: printf widths `%-10s %5d`, and awk's `| \"sort\"` with `close()` (or a shell `{ ...; }` group).",
+    "Count users per team, skipping the header. In END: printf the header row, printf each team through sort, close sort, then printf TOTAL (= NR - 1).",
+    "`awk 'BEGIN {printf \"%-6s|%4d\\n\", \"ab\", 42}'` prints `ab    |  42`.",
+    "`awk -F, 'NR > 1 {n[$4]++} END {printf \"%-10s %5s\\n\", \"TEAM\", \"USERS\"; for (t in n) printf ... | \"sort\"; close(\"sort\"); printf ...}'`."
   ]
 }
