@@ -1,8 +1,9 @@
 """Workspaces: ~/learn/workspace/<track>/<slug>, one per exercise.
 
 Preparing a workspace copies the learner-editable files (never overwriting edits),
-writes README.md, a `.learn.json` marker, and editor support files so the language
-server understands the exercise (pyrightconfig.json, compile_flags.txt).
+refreshes read-only support files (exercise.json "support": a Cargo.toml, tests), writes
+README.md, a `.learn.json` marker, and editor support files so the language server
+understands the exercise (pyrightconfig.json, compile_flags.txt).
 """
 
 from __future__ import annotations
@@ -63,6 +64,16 @@ def _write_if_missing(path: Path, text: str) -> None:
         path.write_text(text)
 
 
+def _refresh(src: Path, dst: Path) -> None:
+    """Make dst a copy of src, writing only on change (an untouched mtime keeps language
+    servers from reloading a project file on every `learn check`)."""
+    data = src.read_bytes()
+    if dst.is_file() and dst.read_bytes() == data:
+        return
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(data)
+
+
 def _ide_files(exercise: Exercise, ws: Path) -> None:
     language = exercise.language
     if language == "python":
@@ -111,6 +122,11 @@ def _prepare_format(exercise: Exercise, ws: Path) -> None:
         else:
             (ws / rel).parent.mkdir(parents=True, exist_ok=True)
             (ws / rel).touch(exist_ok=True)
+    # Read-only project files (a Cargo.toml, the tests): kept current, never opened for editing.
+    for rel in exercise.extra.get("support", ()):
+        src = exercise.source_dir / rel
+        if src.is_file():
+            _refresh(src, ws / rel)
     readme = exercise.source_dir / "README.md"
     if readme.is_file():
         shutil.copyfile(readme, ws / "README.md")  # instructions, not learner code: keep current

@@ -1,0 +1,25 @@
+{
+  "name": "Rust \u00b7 Koans (2024 edition)",
+  "slug": "rust-koans",
+  "language": "rust",
+  "description": "Ownership, borrowing, enums, errors, traits, iterators, lifetimes, smart pointers, modules, threads, const generics and unsafe/FFI: Rust for C/C++ programmers, std only.",
+  "order": [
+    "01-ownership",
+    "02-borrowing",
+    "03-structs",
+    "04-enums-match",
+    "05-errors",
+    "06-traits-generics",
+    "07-trait-objects",
+    "08-iterators-closures",
+    "09-collections",
+    "10-lifetimes",
+    "11-smart-pointers",
+    "12-modules",
+    "13-patterns",
+    "14-threads",
+    "15-const-generics",
+    "16-unsafe-ffi",
+    "17-boss-calculator"
+  ]
+}

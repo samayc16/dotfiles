@@ -1,0 +1,27 @@
+{
+  "title": "Box, Rc and RefCell: heap, sharing, interior mutability",
+  "difficulty": 4,
+  "xp": 25,
+  "concepts": [
+    "Box<T>",
+    "recursive types",
+    "Rc<T>",
+    "RefCell<T>",
+    "Drop"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: `Box` is for the list, `Rc` + `RefCell` for the playlist and the log, `Drop` for `Guard`.",
+    "Ideas: `from_slice` builds from the back (`iter().rev()`), wrapping the list so far in `Cons(x, Box::new(list))`; `sum` recurses on `Cons(x, rest)`; `join` stores `Rc::clone(playlist)`; `add` and `count` go through `borrow_mut()` / `borrow()`; `owners` asks `Rc::strong_count`; `Guard::open` logs and then builds the guard, `drop` logs \"close …\"; `try_double` uses `try_borrow_mut()?`.",
+    "E0072 'recursive type has infinite size' means a missing `Box`. E0596 'cannot borrow data in an `Rc` as mutable' means you want `RefCell` and `.borrow_mut()`. A runtime panic 'already borrowed' means a `borrow()` guard was still alive.",
+    "Same shapes on other data: `let mut stack = Stack::Empty; for &x in xs.iter().rev() { stack = Stack::Push(x, Box::new(stack)); }` · `Stack::Push(x, rest) => x.max(rest.top())` · `self.inbox.borrow_mut().push(msg.to_string());` · `impl Drop for Timer { fn drop(&mut self) { self.log.borrow_mut().push(format!(\"stop {}\", self.label)); } }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

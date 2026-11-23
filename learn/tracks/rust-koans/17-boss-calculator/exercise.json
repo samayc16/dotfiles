@@ -1,0 +1,28 @@
+{
+  "title": "Boss: a calculator with variables",
+  "difficulty": 5,
+  "xp": 50,
+  "concepts": [
+    "enums + Box (an AST)",
+    "lifetimes (borrowed tokens)",
+    "Result + ?",
+    "recursive descent",
+    "HashMap",
+    "Display"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Work stage by stage and watch the ✓s grow: `tokenize` first, then the parser methods (`atom` → `unary` → `term` → `expr`), then `eval` and `Display`, and finally `Calculator::run`. The tests for `eval` and `Display` build trees by hand, so they don't need the parser.",
+    "tokenize: peek at the next char. Skip whitespace; on a digit or '.', `scan` to the end of the number and parse that slice; on a letter or '_', `scan` an identifier and push `Ident(&src[start..end])` (a borrow, not a String); single characters map to `Op`/`LParen`/`RParen`/`Assign`; anything else is `BadChar`. Parser: each rule calls the next-tighter rule and loops while the next token is one of *its* operators, folding into `Expr::Bin(Box::new(left), op, Box::new(right))`.",
+    "eval: `match self`, recurse with `?`, and check for a zero divisor before dividing. run: if the tokens start with `[Ident(name), Assign, rest @ ..]`, evaluate `rest` first and only then insert into the map, so a failing line changes nothing. An `Unexpected(\"Num(2.0)\")` error comes from `parse_all` finding leftover tokens.",
+    "Same shapes on other data: `while let Some(Token::Op(op @ ('<' | '>'))) = self.peek() { self.next(); left = Expr::Cmp(Box::new(left), op, Box::new(self.sum()?)); }` · `Some(Token::LParen) => { let inner = self.expr()?; match self.next() { Some(Token::RParen) => Ok(inner), Some(t) => Err(CalcError::Unexpected(format!(\"{t:?}\"))), None => Err(CalcError::UnexpectedEnd) } }` · `Node::Not(e) => Ok(!e.eval(env)?)` · `if let [Token::Ident(cmd), args @ ..] = tokens.as_slice() { … }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

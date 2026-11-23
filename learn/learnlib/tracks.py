@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from . import exercism, ui
 from .model import Exercise, Track
@@ -20,6 +20,8 @@ PREFERRED_ORDER = (
     "c",
     "cpp-koans",
     "cpp",
+    "rust-koans",
+    "rust",
     "swift-koans",
     "swift",
     "systemverilog",
@@ -40,6 +42,20 @@ def _clamp(value: object, low: int, high: int, default: int) -> int:
         return max(low, min(high, int(value)))  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return default
+
+
+def _inside(rel: str) -> bool:
+    """A relative path that stays inside the directory it's resolved against."""
+    path = PurePosixPath(rel)
+    return bool(rel) and not path.is_absolute() and ".." not in path.parts
+
+
+def _support_files(meta: dict, ex_dir: Path) -> tuple[str, ...]:
+    support = tuple(str(f) for f in meta.get("support", []))
+    unsafe = [f for f in support if not _inside(f)]
+    if unsafe:
+        ui.warn(f"{ex_dir}: ignoring support paths outside the exercise: {', '.join(unsafe)}")
+    return tuple(f for f in support if _inside(f))
 
 
 def load_exercise(track: str, language: str, ex_dir: Path) -> Exercise | None:
@@ -65,7 +81,7 @@ def load_exercise(track: str, language: str, ex_dir: Path) -> Exercise | None:
         par=int(par) if isinstance(par, (int, float)) and par > 0 else None,
         kind="format",
         language=language,
-        extra={"check": str(meta.get("check", "check.sh"))},
+        extra={"check": str(meta.get("check", "check.sh")), "support": _support_files(meta, ex_dir)},
     )
 
 

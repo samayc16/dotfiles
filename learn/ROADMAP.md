@@ -65,6 +65,22 @@ Target is **C++26** (`-std=c++26`, Apple clang 21 + libc++). Think "C with owner
 
 Not available in this libc++ yet: `<generator>`, `views::enumerate/chunk/slide/stride`. The koans avoid them.
 
+## Rust: start here
+
+**Rust 2024 edition**, std only, so it all works offline. From C/C++, think "RAII and move-by-default, with a
+compiler that proves there are no dangling references or data races".
+
+1. `learn next rust-koans`: 17 koans: ownership and moves → borrowing and slices → structs → enums and `match` →
+   errors with `?` → traits and generics → `dyn` trait objects → iterators and closures → collections and UTF-8 →
+   lifetimes → `Box`/`Rc`/`RefCell` → modules → let-else and let chains → threads, channels and `Arc<Mutex>` →
+   const generics → `unsafe` and calling C → a boss: a calculator with variables. Each koan is a Cargo project:
+   rust-analyzer just works, the checks are plain `#[test]`s you can read (and `cargo test`), and clippy's tips
+   appear once you pass.
+2. `learn next rust`: Exercism Rust (a Cargo crate per exercise; every test runs, the `#[ignore]`d ones too).
+3. Docs: `learn docs rust`: The Book, the standard library and Rust by Example, installed by rustup (`rust-docs`).
+4. In nvim: `K` on anything, `<leader>ce` explains an error code, `<leader>th` shows inferred types and elided
+   lifetimes, `<leader>rn` runs a single test.
+
 ## Swift: start here
 
 **Swift 6** language mode (strict concurrency on), so data races are compile errors.

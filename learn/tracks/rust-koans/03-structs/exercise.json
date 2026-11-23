@@ -1,0 +1,27 @@
+{
+  "title": "Structs and impl: methods, Self and private fields",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "struct",
+    "impl blocks",
+    "&self / &mut self / self",
+    "associated functions",
+    "privacy"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: constructors are `fn new(...) -> Self`, readers take `&self`, changers `&mut self`, and `report` takes `self`. Fields are reached as `self.field`.",
+    "Ideas: `square` can call `Self::new`; `can_hold` compares both sides with `<=`; `scale` multiplies each field with `*=`; the thermostat clamps in `new` *and* in `adjust` (and counts every adjustment); `report` uses `format!` with an `if` to choose \"change\" or \"changes\".",
+    "E0616 'field is private' in tests/checks.rs means a check wants a getter: that's the point of private fields. E0596 'cannot borrow `*self` as mutable' means the method needs `&mut self`.",
+    "Same shapes on other data: `fn empty() -> Self { Self { items: Vec::new(), total: 0 } }` · `fn fits(&self, b: &Box3) -> bool { b.d <= self.d && b.w <= self.w }` · `fn louder(&mut self, by: u8) { self.vol = (self.vol + by).min(Self::MAX_VOL); }` · `format!(\"{} {}\", n, if n == 1 { \"song\" } else { \"songs\" })`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

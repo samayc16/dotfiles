@@ -1,0 +1,27 @@
+{
+  "title": "Trait objects: dyn Trait and dynamic dispatch",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "dyn Trait",
+    "Box<dyn Trait>",
+    "&dyn Trait",
+    "vtables",
+    "builder methods"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. The three `apply`s are one-liners with `str` methods; everything else is about *where* `Box<dyn Transform>` and `&dyn Transform` go.",
+    "Ideas: `then` pushes into `self.steps` and returns `self` (it must be `mut self`); `run` starts from `input.to_string()` and replaces the text with `step.apply(&text)` for each step; `parse_step` splits the spec into words and matches their shape (`Box::new(Upper)` becomes a `Box<dyn Transform>` by itself); `total_len` loops over the borrowed steps.",
+    "E0308 'expected `Box<dyn Transform>`, found `Box<Upper>`' usually goes away once the expected type is known (a return type, a `let x: Box<dyn Transform>`), or write `Box::new(Upper) as Box<dyn Transform>`. In `parse_step`, `n.parse().ok()?` returns `None` for a bad number.",
+    "Same shapes on other data: `fn with(mut self, f: Box<dyn Filter>) -> Self { self.filters.push(f); self }` · `let mut v = x; for f in &self.filters { v = f.run(v); }` · `match parts.as_slice() { [\"scale\", k] => Some(Box::new(Scale(k.parse().ok()?))), _ => None }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

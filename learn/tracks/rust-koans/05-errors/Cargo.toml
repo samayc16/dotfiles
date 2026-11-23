@@ -1,0 +1,21 @@
+# Read-only: `learn check` builds your src/ with the exercise's original copy of this file.
+[package]
+name = "koan-errors"
+version = "0.1.0"
+edition = "2024"
+publish = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+
+[lib]
+name = "koan"
+path = "src/lib.rs"
+
+[[test]]
+name = "checks"
+path = "tests/checks.rs"
+
+# A project of its own, even inside a directory that holds a Cargo workspace.
+[workspace]

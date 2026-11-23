@@ -1,0 +1,27 @@
+{
+  "title": "Const generics: sizes in the type",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "const generics",
+    "arrays [T; N]",
+    "fixed capacity",
+    "TryFrom slice → array",
+    "inline const"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. Inside the `impl`, `N` is an ordinary `usize` value (the capacity), and `[None; N]` builds the empty storage.",
+    "Ideas: `push` hands the value back as `Err(value)` when `len == N`, else stores `Some(value)` at `items[len]`; `pop` steps `len` back and `take()`s that slot; `chunk_sums` sums each array that `as_chunks::<N>()` hands back and ignores the leftover; `transpose` writes `out[c][r] = m[r][c]` into a `[[0; R]; C]`; `first_n` gets `..N` with `get` and converts with `try_into().ok()`.",
+    "E0308 'expected an array with a size of 3, found one with a size of 2' is const generics doing their job: check which of R and C goes where. `[None; N]` needs `Option<T>: Copy`, which is why the impl requires `T: Copy`.",
+    "Same shapes on other data: `struct Ring<T, const CAP: usize> { buf: [Option<T>; CAP], head: usize }` · `fn groups<const K: usize>(xs: &[u8]) -> usize { xs.as_chunks::<K>().0.len() }` · `let mut grid = [[' '; W]; H];` · `let magic: [u8; 2] = data.get(..2)?.try_into().ok()?;`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

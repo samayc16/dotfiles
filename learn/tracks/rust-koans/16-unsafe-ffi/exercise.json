@@ -1,0 +1,28 @@
+{
+  "title": "unsafe and FFI: raw pointers and calling C",
+  "difficulty": 4,
+  "xp": 25,
+  "concepts": [
+    "unsafe blocks",
+    "raw pointers",
+    "unsafe extern \"C\"",
+    "CString",
+    "callbacks",
+    "safe wrappers"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. Every `unsafe { }` here is one or two lines; the code around it is what makes it sound (a `CString` that outlives the call, a slice's own pointer and length, bounds you checked).",
+    "Ideas: `c_strlen` builds a `CString` (`.ok()?` for an interior NUL) and calls `strlen(c.as_ptr())`; `distance` calls the `safe` `abs`; `compare_i32` casts both pointers to `*const i32`, reads them, and returns the `Ordering` as a `c_int`; `c_sort` passes `xs.as_mut_ptr().cast()`, `xs.len()`, `size_of::<i32>()` and `compare_i32`; `sum_raw` reads `*ptr.add(i)`; `split_mut` builds two slices with `from_raw_parts_mut`, the second starting at `ptr.add(mid)`.",
+    "E0133 '… is unsafe and requires unsafe block' is the compiler asking you to take responsibility, and in the 2024 edition that includes the body of an `unsafe fn`. Never let a panic reach C: a panic inside `compare_i32` aborts the whole program ('panic in a function that cannot unwind').",
+    "Same shapes on other data: `let c = CString::new(path).ok()?; let fd = unsafe { open(c.as_ptr(), 0) };` · `unsafe extern \"C\" fn by_size(a: *const c_void, b: *const c_void) -> c_int { let (a, b) = unsafe { (*a.cast::<u64>(), *b.cast::<u64>()) }; b.cmp(&a) as c_int }` · `for i in 0..n { max = max.max(unsafe { *p.add(i) }); }` · `unsafe { (slice::from_raw_parts_mut(p, k), slice::from_raw_parts_mut(p.add(k), n - k)) }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

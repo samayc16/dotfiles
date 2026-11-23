@@ -1,0 +1,27 @@
+{
+  "title": "Lifetimes: saying which borrow a result comes from",
+  "difficulty": 4,
+  "xp": 25,
+  "concepts": [
+    "lifetime parameters",
+    "elision rules",
+    "structs holding references",
+    "'static"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Start with the compile errors: each E0106 comes with a `help:` showing where a lifetime could go, and `<leader>ce` explains E0106 in full. Then implement the `todo!()`s.",
+    "For each function ask: which input does the result point into? Give that input and the output the same `'a`, and leave the other inputs unannotated. `Highlight` and `Words` hold a `&str`, so they need `<'a>` too, and so does every mention of them (`Vec<Highlight<'a>>`, `impl<'a> Words<'a>`).",
+    "E0597 '`sep` does not live long enough' (or '`words` …') pointing into tests/checks.rs means your signature ties the result to an input it doesn't come from. In `next_word`, return `Option<&'a str>`: the word borrows from the input, not from the `&mut self` parser.",
+    "Same shapes on other data: `fn first_line<'a>(doc: &'a str, _hint: &str) -> &'a str` · `struct Token<'src> { text: &'src str, line: usize }` · `impl<'src> Lexer<'src> { fn next_token(&mut self) -> Option<&'src str> { … } }` · `doc.match_indices(\"TODO\").map(|(at, m)| Mark { at, text: m }).collect()`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ],
+  "starter_compiles": false
+}

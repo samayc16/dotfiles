@@ -1,0 +1,27 @@
+{
+  "title": "Borrowing: &, &mut and slices",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "shared references",
+    "mutable references",
+    "slices &[T]",
+    "&str",
+    "aliasing XOR mutation"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. Every function here *borrows*: it never owns its input, so nothing is moved or freed. `sum` and `double_all` are `for` loops; `first_word` and `trim_zeros` return slices of their input.",
+    "Ideas: `sum` adds up each `x` (a `&i64`: `total += x` works through the reference); `double_all` loops with `.iter_mut()` and writes through `*x`; `first_word` finds the first space and slices up to it (or returns all of `s`); `trim_zeros` moves a `start` index forward and an `end` index back past zeros, then returns `&xs[start..end]`; `log_twice` pushes `line.to_string()` twice.",
+    "E0499/E0502 ('cannot borrow as mutable because it is also borrowed') means two borrows overlap. E0308 'expected `&str`, found `String`' usually means you built a new String where a borrow of the input was asked for: slice the input instead.",
+    "Same shapes on other data: `let mut best = 0; for p in prices { best += p; }` · `for c in counts.iter_mut() { *c = 0; }` · `&line[..line.find('#').unwrap_or(line.len())]` (drop a comment) · `while end > 0 && bytes[end - 1] == b' ' { end -= 1; }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

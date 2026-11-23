@@ -59,6 +59,8 @@ Run `:XcodebuildSetup` once in the project root (pick scheme and simulator). Aft
 ### Rust projects
 rust-analyzer comes from rustup, so it always matches your compiler. `Space ce` explains the error under the cursor (the `rustc --explain` text), `Space cm` expands a macro, `Space cD` opens docs.rs. `Space rn` / `Space dn` list the tests and binaries rust-analyzer found, to run or debug one. Clippy runs on every save; inferred types and elided lifetimes show inline (`Space th` toggles them). In `Cargo.toml`, crates.nvim marks outdated dependencies.
 
+![Space ce on a borrow-checker error: rustc's explanation of E0505 beside the code, with inferred types inline](img/nvim-rust.png)
+
 ### SystemVerilog projects
 slang-server reads `.slang/server.json` in the project root for include dirs, file lists and UVM paths ([docs](https://hudson-trading.github.io/slang-server/start/config/)). `Space vh` shows the elaborated hierarchy. Snippets cover RTL (`aff`, `fsm`, `intf`, `tb`, `assertp`) and UVM (`uvm_drv`, `uvm_env`, `uvm_test`…); type the prefix and accept.
 

@@ -1,0 +1,27 @@
+{
+  "title": "Enums and match: variants with data, Option",
+  "difficulty": 2,
+  "xp": 15,
+  "concepts": [
+    "enum with data",
+    "match",
+    "exhaustiveness",
+    "range patterns",
+    "Option"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: every function is one `match`, a `switch` that must cover every case and can unpack data. `is_round` is a one-liner with `matches!`.",
+    "Ideas: `area` matches on `self` (`match *self` copies the fields out) with one arm per variant; `size_word` matches `n` against ranges; `run` keeps a `Vec<i64>` as the stack, matches each op, and pops operands with `?`, so an empty stack ends the function with `None`; `greet` matches `Some(name)` against `None`.",
+    "E0004 'non-exhaustive patterns' lists exactly the cases you forgot. Mind the operand order: the first `pop()` returns the *top* value, which is `b`. E0277 'the `?` operator can only be used…' means the function doesn't return an `Option`.",
+    "Same shapes on other data: `match grade { 90..=100 => 'A', 80..=89 => 'B', _ => 'F' }` · `Msg::Move { x, y } => x * y,` · `Op::Max => { let (y, x) = (q.pop()?, q.pop()?); q.push(x.max(y)); }` · `match title { Some(t) => format!(\"Dr. {t}\"), None => \"Doctor\".to_string() }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "title": "Iterators and closures",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "closures",
+    "Fn / FnMut",
+    "iterator adapters",
+    "impl Iterator",
+    "move"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: every free function is ONE iterator chain or ONE closure. `|&x|` and `|&&x|` in closure parameters are patterns that strip references.",
+    "Ideas: `even_squares` = iter, filter the evens, map to squares, collect; `count_longer` = split_whitespace, filter on `len()`, count; `dot` = zip, multiply, sum; `counter` keeps a `let mut n` that a `move` closure updates and returns; `twice` returns `move |x| f(f(x))`; `Fib::next` returns the current `a` and shifts the pair along; `even_fib_sum` = take_while below the limit, filter, sum.",
+    "E0373 'closure may outlive the current function, but it borrows `n`' means the returned closure needs `move`. E0599 '`Fib` is not an iterator' means `next` isn't inside `impl Iterator for Fib`. `.sum()` sometimes needs its type spelled out: `.sum::<i64>()`.",
+    "Same shapes on other data: `words.iter().filter(|w| w.starts_with('a')).map(|w| w.len()).collect()` · `prices.iter().zip(qty).map(|(p, q)| p * q).sum()` · `fn ticker() -> impl FnMut() -> u8 { let mut t = 0; move || { t += 2; t } }` · `Countdown(10).take_while(|&n| n > 3).filter(|n| n % 3 == 0).sum::<u32>()`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

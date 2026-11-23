@@ -1,0 +1,27 @@
+{
+  "title": "Fearless concurrency: threads, channels, Arc<Mutex>",
+  "difficulty": 4,
+  "xp": 25,
+  "concepts": [
+    "thread::spawn / join",
+    "scoped threads",
+    "mpsc channels",
+    "Arc<Mutex<T>>",
+    "Send / Sync"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. `parallel_sum` uses `thread::scope` (so the threads can borrow `xs`); the others use `thread::spawn`, so everything a thread uses must be owned: `move` closures, `Arc::clone`s, cloned `Sender`s.",
+    "Ideas: `parallel_sum` splits `xs` with `chunks`, spawns one scoped thread per chunk and sums the joined results; `map_threads` puts `f` in an `Arc`, gives each thread a clone of it and of the `Sender`, sends `(index, result)`, then sorts by index; `hammer` spawns threads that lock and increment, keeps their `JoinHandle`s and joins them all; the worker loops `for line in rx` and sends back the length.",
+    "'still running after 20s' usually means a receiver is waiting for a sender that never goes away: drop the original `tx` once every worker has its clone. E0373 'closure may outlive the current function' means `thread::spawn` needs a `move` closure; E0277 '`Rc<…>` cannot be sent between threads safely' means use `Arc`.",
+    "Same shapes on other data: `thread::scope(|s| { for part in pixels.chunks_mut(64) { s.spawn(move || brighten(part)); } });` · `let (tx, rx) = mpsc::channel(); for url in urls { let tx = tx.clone(); thread::spawn(move || tx.send(fetch(&url)).unwrap()); } drop(tx);` · `let hits = Arc::new(Mutex::new(0)); let h = Arc::clone(&hits); thread::spawn(move || *h.lock().unwrap() += 1);`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

@@ -34,6 +34,7 @@ Stars: ★ pass · ★★ no hints · ★★★ also under par (shortest solutio
 | Haskell (from zero) | `haskell-koans`: 24 koans, expressions to monads, two boss levels |
 | C | `c-koans` (C23: pointers, memory, ASan) → Exercism `c` |
 | C++ | `cpp-koans` (C++26: move, smart pointers, ranges, concepts, `std::expected`) → Exercism `cpp` |
+| Rust | `rust-koans` (17 koans from ownership to unsafe/FFI, written for C/C++ programmers; `Space ce` explains any compiler error) → Exercism `rust` |
 | Swift | `swift-koans` → Exercism `swift` |
 | SystemVerilog | `systemverilog`: gates → FSMs → FIFO → assertions → classes → UVM-style testbench |
 | Python | `python-koans` (dataclasses, generators, typing, `match`) → Exercism `python` |
@@ -47,7 +48,7 @@ Then read real code with the reading quests in [learn/projects/](../learn/projec
 ~/dotfiles/learn/fetch.sh     # exercises, projects, offline docs (~1 GB in ~/learn)
 ```
 
-`learn docs cpp` (or `c`, `python`, `haskell`, `swift`, `sv`) opens the offline reference.
+`learn docs cpp` (or `c`, `rust`, `python`, `haskell`, `swift`, `sv`) opens the offline reference; `learn docs rust` opens The Book, std and Rust by Example from rustup.
 
 ## Learning with Claude
 

@@ -1,0 +1,42 @@
+name: learn
+
+# The learn CLI and its tracks: unit tests, and the Rust koans proven end to end
+# (every starter fails its checks, every reference solution passes them clippy-clean).
+on:
+  push:
+    branches: [main]
+    paths: [learn/**, .github/workflows/learn.yml]
+  pull_request:
+    paths: [learn/**, .github/workflows/learn.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  learnlib:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:  # learnlib promises 3.8+ (it runs on old distros' python3)
+          - { python: "3.8", os: ubuntu-22.04 }
+          - { python: "3.13", os: ubuntu-latest }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Unit tests
+        working-directory: learn
+        run: python -m unittest discover -s tests -v
+
+  rust-koans:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: rustup toolchain install stable --profile minimal --component clippy && rustup default stable
+      - name: Every starter fails, every solution passes
+        run: LEARN_HOME="$RUNNER_TEMP/learn" bash learn/tracks/rust-koans/_verify.sh

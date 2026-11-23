@@ -46,7 +46,22 @@ def _verilator_examples() -> Path:
     return next((c for c in candidates if c.exists()), candidates[0])
 
 
+def _rust_html() -> Path:
+    """HTML docs from rustup's rust-docs component (The Book, std, Rust by Example)."""
+    keg_only = (Path("/opt/homebrew/opt/rustup/bin/rustc"), Path.home() / ".cargo/bin/rustc")
+    rustc = shutil.which("rustc") or next((str(p) for p in keg_only if p.exists()), None)
+    if rustc:
+        try:
+            sysroot = subprocess.run([rustc, "--print", "sysroot"], capture_output=True, text=True, timeout=10).stdout
+            if sysroot.strip():
+                return Path(sysroot.strip()) / "share/doc/rust/html"
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return DOCS_DIR / "rust (install Rust with rustup: the rust-docs component)"
+
+
 def registry() -> dict[str, list[DocEntry]]:
+    rust = _rust_html()
     return {
         "c": [DocEntry("cppreference: C", DOCS_DIR / "cppreference/reference/en/c.html", "html")],
         "cpp": [DocEntry("cppreference: C++", DOCS_DIR / "cppreference/reference/en/cpp.html", "html")],
@@ -54,6 +69,11 @@ def registry() -> dict[str, list[DocEntry]]:
         "haskell": [
             DocEntry("Learn You a Haskell (book, Markdown)", DOCS_DIR / "haskell/lyah/source_md", "text"),
             DocEntry("GHC base library (haddock)", _first("haskell/base-*-docs/index.html"), "html"),
+        ],
+        "rust": [
+            DocEntry("The Rust Programming Language (book)", rust / "book/index.html", "html"),
+            DocEntry("Rust standard library", rust / "std/index.html", "html"),
+            DocEntry("Rust by Example", rust / "rust-by-example/index.html", "html"),
         ],
         "swift": [
             DocEntry("The Swift Programming Language (Markdown)", DOCS_DIR / "swift/swift-book/TSPL.docc", "text")
@@ -67,7 +87,15 @@ def registry() -> dict[str, list[DocEntry]]:
     }
 
 
-ALIASES = {"c++": "cpp", "py": "python", "hs": "haskell", "systemverilog": "sv", "verilog": "sv", "bash": "shell"}
+ALIASES = {
+    "c++": "cpp",
+    "rs": "rust",
+    "py": "python",
+    "hs": "haskell",
+    "systemverilog": "sv",
+    "verilog": "sv",
+    "bash": "shell",
+}
 
 
 def entries_for(lang: str) -> list[DocEntry] | None:

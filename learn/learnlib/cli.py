@@ -428,7 +428,7 @@ def cmd_complete(all_tracks, what: str) -> int:
     elif what == "exercises":
         lines = [f"{t.slug}/{ex.slug}:{ex.title}" for t in all_tracks for ex in t.exercises]
     else:
-        lines = ["c", "cpp", "python", "haskell", "swift", "sv", "shell"]
+        lines = ["c", "cpp", "rust", "python", "haskell", "swift", "sv", "shell"]
     print("\n".join(lines))  # "value:description", as zsh _describe expects
     return 0
 
@@ -475,7 +475,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="machine-readable status (JSON)")
     p = sub.add_parser("_complete")  # for shell completion: plain lines, no colour
     p.add_argument("what", choices=("tracks", "exercises", "docs"))
-    p = sub.add_parser("docs", help="offline reference docs: c, cpp, python, haskell, swift, sv, shell")
+    p = sub.add_parser("docs", help="offline reference docs: c, cpp, rust, python, haskell, swift, sv, shell")
     p.add_argument("lang", nargs="?")
     p.add_argument("--json", dest="as_json", action="store_true", help="list entries as JSON (used by nvim)")
     return parser

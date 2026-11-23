@@ -1,0 +1,28 @@
+{
+  "title": "Errors: Result, ? and your own error type",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "Result",
+    "the ? operator",
+    "custom error enum",
+    "Display + Error",
+    "From",
+    "Box<dyn Error>"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: `?` is the star. Each function is a few lines: pull values out with `?`, or return an `Err(...)` yourself.",
+    "Ideas: Display is a `match self` with one `write!` per variant; the `From<ParseIntError>` impl wraps the error in `BadNumber`; `parse_line` turns `split_once('=')` into a Result with `ok_or`, then trims both halves; `get_port` loops over `lines().enumerate()`, skips blank lines, calls `parse_line(line, i + 1)?`, and parses the value with `?` when the key is `port`; `sum_list` splits on `,` and parses each part with `?`.",
+    "E0277 '`?` couldn't convert the error to `ConfigError`' means the `From` impl is missing. E0308 'expected `Result<u16, ConfigError>`, found `u16`' means a success value needs wrapping in `Ok(...)`.",
+    "Same shapes on other data: `let (user, host) = email.split_once('@').ok_or(MailError::NoAt)?;` · `return Ok(value.trim().parse()?);` · `Err(MailError::Missing(\"host\".to_string()))` · `for word in csv.split(';') { n += word.trim().parse::<u32>()?; }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Download everything `learn` needs to work OFFLINE (run it before a flight).
 #
-#   ~/learn/vendor/<lang>     Exercism tracks (python, c, cpp, swift), MIT
+#   ~/learn/vendor/<lang>     Exercism tracks (python, c, cpp, swift, rust), MIT
 #   ~/learn/projects/<lang>   small real-world codebases to read with the LSP
 #   ~/learn/docs/<lang>       offline reference docs (cppreference, Python, GHC base, ...)
 #   ~/learn/.venv             Python with pytest for the Python tracks
@@ -125,7 +125,7 @@ else
 fi
 
 section "exercism tracks"
-for track in python c cpp swift; do
+for track in python c cpp swift rust; do
   sync_repo "https://github.com/exercism/$track" "$LEARN_HOME/vendor/$track"
 done
 

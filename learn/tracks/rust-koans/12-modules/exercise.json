@@ -1,0 +1,29 @@
+{
+  "title": "Modules and visibility: mod, pub, use and files",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "mod",
+    "file modules",
+    "pub / pub(crate)",
+    "use and re-exports",
+    "super::"
+  ],
+  "files": [
+    "src/lib.rs",
+    "src/inventory.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Fix the compile errors from the top. A failed import of `koan::inventory` means the file isn't part of the crate yet; E0603 '… is private' names the exact item that needs `pub`.",
+    "In src/lib.rs: declare the file module (public), make the `pricing` module and the functions the checks call `pub`, and re-export `Item` with `pub use`. In src/inventory.rs: `new` and the `name` field need `pub`; `count` stays private.",
+    "`checkout` lives in `pricing::discounts`, so the parent module's `with_tax` is `super::with_tax`. Do the multiplication in u64: `unit_cents * quantity as u64`.",
+    "Same shapes on other data: `pub mod net;` (code in src/net.rs) · `pub mod audio { pub fn beep() {} pub(crate) fn reset() {} }` · `pub use net::Client;` · `pub fn total(&self) -> u64 { super::shipping::fee(self.weight) + self.price }`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ],
+  "starter_compiles": false
+}

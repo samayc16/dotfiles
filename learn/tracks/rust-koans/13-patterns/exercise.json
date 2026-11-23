@@ -1,0 +1,27 @@
+{
+  "title": "Patterns: let-else, if-let chains, slices and @",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "let-else",
+    "if-let chains",
+    "slice patterns",
+    "@ bindings",
+    "nested destructuring"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: each function is one construct. let-else for `parse_point`, slice patterns for `shape`, an if-let chain for `admin_contact`, and a `match` with field values and `@` for `describe`.",
+    "Ideas: `parse_point` splits once on ',' with a let-else whose `else` returns the first error, then parses both trimmed halves with a second let-else; `shape` lists the four slice shapes; `admin_contact` chains `user.admin`, a `let Some(…)` on the email and the domain test with `&&`; `describe` puts the specific arms (`shift: true`, `x: 0, y: 0`, `Scroll(0)`) before the general ones.",
+    "E0005 'refutable pattern in local binding' means a plain `let` got a pattern that can fail: add an `else { return Err(…); }`. An 'unreachable pattern' warning means a general arm sits above a specific one. Matching on `&user.email` keeps you from moving the String out of `user`.",
+    "Same shapes on other data: `let Some((k, v)) = line.split_once(':') else { return Err(format!(\"no colon in {line:?}\")); };` · `match args { [] => usage(), [cmd] => run(cmd), [cmd, rest @ ..] => run_with(cmd, rest) }` · `if let Some(first) = name.chars().next() && first.is_uppercase() { … }` · `Temp::Celsius(t @ 30..) => format!(\"hot {t}\")`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

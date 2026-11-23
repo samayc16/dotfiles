@@ -1,0 +1,27 @@
+{
+  "title": "Traits and generics: shared behaviour, zero cost",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "traits",
+    "default methods",
+    "generic bounds",
+    "operator overloading",
+    "Display"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table. The trait impls already exist with `todo!()` bodies. `largest` and `sum_all` only compile now because they don't *do* anything with `T` yet.",
+    "Ideas: `Dog::name` returns its text; `Robot` builds its name with `format!` and overrides `describe` (uppercase the name); `introduce_all` loops and collects `item.describe()`; `largest` starts from the first element and keeps the bigger one; `sum_all` adds every element onto `zero`; `Money` adds cents, and its Display splits cents into dollars (`/ 100`) and two-digit cents (`% 100` with `{:02}`).",
+    "Once you write `x > best` or `total + x`, rustc stops with E0369 'binary operation cannot be applied to type `T`' and suggests the trait to require: add it to the `<T: …>` list. Copying an element out of a `&[T]` needs `Copy` (E0508).",
+    "Same shapes on other data: `impl Area for Square { fn area(&self) -> f64 { self.side * self.side } }` · `fn product<T: Mul<Output = T> + Copy>(xs: &[T], one: T) -> T { let mut acc = one; for &x in xs { acc = acc * x; } acc }` · `fn smallest<T: PartialOrd + Copy>(xs: &[T]) -> Option<T>` · `write!(f, \"{}h{:02}m\", mins / 60, mins % 60)`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

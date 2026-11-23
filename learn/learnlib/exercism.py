@@ -23,6 +23,7 @@ TRACKS = {
     "c": ("C · Exercism", "c"),
     "cpp": ("C++ · Exercism", "cpp"),
     "swift": ("Swift · Exercism", "swift"),
+    "rust": ("Rust · Exercism", "rust"),
 }
 
 SKIP_STATUS = {"deprecated", "wip"}
@@ -143,4 +144,6 @@ def test_command(exercise: Exercise, venv_python: Path) -> tuple[list[str], dict
         return ["sh", "-c", script], {}
     if lang == "swift":
         return ["swift", "test"], {"RUNALL": "true"}
+    if lang == "rust":
+        return ["cargo", "test", "--offline", "--", "--include-ignored"], {}  # Exercism #[ignore]s all but the first
     raise ValueError(f"no test command for track {lang}")

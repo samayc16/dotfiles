@@ -1,0 +1,27 @@
+{
+  "title": "Collections: HashMap, BTreeMap, HashSet and UTF-8 strings",
+  "difficulty": 3,
+  "xp": 20,
+  "concepts": [
+    "HashMap entry API",
+    "BTreeMap",
+    "HashSet",
+    "sorting",
+    "chars vs bytes"
+  ],
+  "files": [
+    "src/lib.rs"
+  ],
+  "open": "src/lib.rs",
+  "check": "check.sh",
+  "hints": [
+    "Look at the README's 'New syntax' table: `entry` is the counting and grouping workhorse, and `chars()` (not bytes) is how you walk text.",
+    "Ideas: `word_counts` trims non-alphanumeric chars off each whitespace-separated word, lowercases it, skips empties, and bumps `entry(word).or_insert(0)`; `top_words` copies the pairs into a Vec, sorts by count descending then word ascending, and truncates; `by_length` pushes with `entry(len).or_default()` and then sorts each group; `dedup_keep_order` retains the values a `HashSet` hasn't seen; `reverse_chars` collects `chars().rev()`.",
+    "Indexing a `String` with a number doesn't compile (E0277 'the type `str` cannot be indexed by `{integer}`'): UTF-8 characters vary in width, so use `chars()`. To sort descending, compare the other way round: `b.1.cmp(&a.1)`.",
+    "Same shapes on other data: `*by_city.entry(city.to_lowercase()).or_insert(0) += 1;` · `teams.sort_by(|a, b| b.points.cmp(&a.points).then_with(|| a.name.cmp(&b.name)));` · `let mut seen = HashSet::new(); names.retain(|n| seen.insert(n.clone()));` · `word.chars().filter(|c| c.is_uppercase()).collect::<String>()`"
+  ],
+  "support": [
+    "Cargo.toml",
+    "tests/checks.rs"
+  ]
+}

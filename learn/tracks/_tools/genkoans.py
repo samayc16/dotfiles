@@ -13,6 +13,13 @@ Usage: python3 genkoans.py <definition.py> <output track dir>
 A definition module exposes TRACK (dict) and KOANS (list of dicts with keys:
 slug, title, difficulty, xp, concepts, hints, why, task, code, test, file, test_file,
 and optionally primer / syntax: see optional_sections).
+
+Optional, for project-shaped koans (Rust/Cargo):
+  sources       {path: code} instead of code/file: several learner files, the first is opened
+  extra_files   {path: text} written as-is into the exercise dir (e.g. a Cargo.toml)
+  support       read-only files the workspace gets a fresh copy of (koan, else TRACK key)
+  run_tips      TRACK key: extra bullet(s) for the README's "Run it" section
+  starter_compiles=False   the starter's compile error is the lesson (read by _verify.sh)
 """
 
 from __future__ import annotations
@@ -59,18 +66,30 @@ def optional_sections(koan: dict) -> str:
     return "".join(parts)
 
 
+def sources(koan: dict, track: dict) -> dict:
+    """{learner file: marked code}; the first file is the one the exercise opens."""
+    return koan.get("sources") or {koan.get("file", track["file"]): koan["code"]}
+
+
 def readme(koan: dict, track: dict, number: int) -> str:
     keys = track["nvim_tips"]
+    edit = " and ".join(f"`{name}`" for name in sources(koan, track))
+    run_tips = f"{track['run_tips'].strip()}\n" if track.get("run_tips") else ""
     return (
         f"# {number:02d} · {koan['title']}\n\n"
         f"## Why it matters\n{koan['why'].strip()}\n\n"
         f"{optional_sections(koan)}"
         f"## Your task\n{koan['task'].strip()}\n\n"
-        f"Edit `{koan.get('file', track['file'])}` until every check passes.\n\n"
+        f"Edit {edit} until every check passes.\n\n"
         f"## Run it\n- `learn check` in a terminal, or `<leader>lc` in nvim\n"
-        f"- Stuck? `learn hint` / `<leader>lh` (costs ★★)\n\n"
+        f"- Stuck? `learn hint` / `<leader>lh` (costs ★★)\n{run_tips}\n"
         f"## Nvim tips\n{keys}\n"
     )
+
+
+def write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
 
 
 def main() -> int:
@@ -88,11 +107,14 @@ def main() -> int:
         if ex.exists():
             shutil.rmtree(ex)
         (ex / "solution").mkdir(parents=True)
-        file_name = koan.get("file", track["file"])
-        starter, solution = split_variants(koan["code"])
-        (ex / file_name).write_text(starter)
-        (ex / "solution" / file_name).write_text(solution)
-        (ex / koan.get("test_file", track["test_file"])).write_text(koan["test"].strip("\n") + "\n")
+        files = sources(koan, track)
+        for file_name, code in files.items():
+            starter, solution = split_variants(code)
+            write(ex / file_name, starter)
+            write(ex / "solution" / file_name, solution)
+        for file_name, text in koan.get("extra_files", {}).items():
+            write(ex / file_name, text)
+        write(ex / koan.get("test_file", track["test_file"]), koan["test"].strip("\n") + "\n")
         (ex / "README.md").write_text(readme(koan, track, number))
         check = ex / "check.sh"
         check.write_text(f'#!/usr/bin/env bash\nexec bash "$LEARN_EXERCISE_DIR/../_lib/{track["checker"]}"\n')
@@ -102,11 +124,16 @@ def main() -> int:
             "difficulty": koan["difficulty"],
             "xp": koan["xp"],
             "concepts": koan["concepts"],
-            "files": [file_name],
-            "open": file_name,
+            "files": list(files),
+            "open": next(iter(files)),
             "check": "check.sh",
             "hints": koan["hints"],
         }
+        support = koan.get("support", track.get("support"))
+        if support:
+            meta["support"] = list(support)
+        if koan.get("starter_compiles") is False:
+            meta["starter_compiles"] = False
         (ex / "exercise.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
     track_meta = {k: track[k] for k in ("name", "slug", "language", "description")}
     (out_dir / "track.json").write_text(json.dumps({**track_meta, "order": order}, indent=2) + "\n")
