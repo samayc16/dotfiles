@@ -32,7 +32,9 @@ local samples = {
     extra = function(buf)
       local client = vim.lsp.get_clients({ bufnr = buf, name = 'basedpyright' })[1]
       local path = client and vim.tbl_get(client.settings, 'python', 'pythonPath') or ''
-      return path:match '/%.venv/bin/python$' ~= nil, 'venv=' .. path
+      local ok = path:match '/%.venv/bin/python$' ~= nil
+      -- The temp dir's name includes the user name; print the full path only when it's wrong.
+      return ok, 'venv=' .. (ok and '.venv/bin/python' or path)
     end,
   },
   {
