@@ -71,11 +71,19 @@
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,
-    "everything-claude-code@everything-claude-code": true,
+    "ecc@ecc": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "telegram@claude-plugins-official": true,
     "pyright-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "ecc": {
+      "source": {
+        "source": "github",
+        "repo": "affaan-m/everything-claude-code"
+      }
+    }
   },
   "feedbackSurveyRate": 0,
   "alwaysThinkingEnabled": true,

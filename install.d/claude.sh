@@ -53,7 +53,7 @@ main() {
   else
     warn "plugin install failed (offline?): re-run claude/install-plugins.sh later"
   fi
-  run bash "$DOTFILES/claude/trust.sh"
+  run bash "$DOTFILES/claude/trust.sh" || warn "couldn't pre-trust folders (run claude/trust.sh later)"
 }
 
 main "$@"
