@@ -7,7 +7,7 @@ source "$(dirname "$0")/lib.sh"
 
 CLI_FORMULAE=(
   neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k fzf-tab
-  fzf ripgrep fd bat eza git-delta lazygit gh jq tldr htop trash mise git-lfs
+  fzf ripgrep fd bat eza zoxide git-delta lazygit gh jq tldr htop trash mise git-lfs
   tree-sitter-cli
 )
 DEV_FORMULAE=(
