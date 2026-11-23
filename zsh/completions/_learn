@@ -5,6 +5,7 @@ local -a commands=(
   'list:exercises in a track'
   'start:open an exercise (track/slug)'
   'next:open the next exercise'
+  'prev:open the previous exercise'
   'check:run the checks'
   'hint:reveal the next hint'
   'giveup:show the solution (caps at one star)'
@@ -28,7 +29,7 @@ shift words
 local -a items
 case $words[1] in
   list) _arguments '1:track:->track' '--all[include locked exercises]' ;;
-  next) _arguments '1:track:->track' ;;
+  next|prev|previous) _arguments '1:track:->track' ;;
   start) _arguments '1:exercise:->exercise' '--force[open even if locked]' ;;
   check|hint|giveup|reset) _arguments '1:exercise:->exercise' ;;
   solution) _arguments '1:exercise:->exercise' '--paths[print file paths only]' ;;

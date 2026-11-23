@@ -2,9 +2,9 @@
 -- right split; checks run as overseer tasks in a bottom dock. The CLI (bin/learn) does
 -- the real work; this file only drives it.
 --
---   <leader>ll pick exercise   <leader>lc check     <leader>lh hint     <leader>ln next
+--   <leader>ll pick exercise   <leader>lc check     <leader>lh hint     <leader>ln/lp next/prev
 --   <leader>ls solution        <leader>lr README    <leader>ld dashboard   <leader>lD docs
---   :Learn [check|hint|next|solution|giveup|dash|readme|docs [lang]|<track>/<slug>]
+--   :Learn [check|hint|next|prev|solution|giveup|dash|readme|docs [lang]|<track>/<slug>]
 
 local M = {}
 
@@ -26,8 +26,8 @@ local function run(args, opts)
   return vim.system(vim.list_extend({ learn_bin() }, args), { text = true, cwd = opts.cwd, env = env }):wait()
 end
 
-local function run_json(args)
-  local res = run(args)
+local function run_json(args, opts)
+  local res = run(args, opts)
   if res.code ~= 0 then
     vim.notify(vim.trim(res.stderr ~= '' and res.stderr or res.stdout), vim.log.levels.WARN, { title = 'learn' })
     return nil
@@ -100,16 +100,21 @@ function M.start(key, force)
   if payload then M.open(payload) end
 end
 
-function M.next()
+-- `learn next|prev`, staying in the track of the exercise open in this nvim.
+local function step(direction)
   local root = workspace_root()
   local track = nil
   if root then
     local ok, marker = pcall(vim.json.decode, table.concat(vim.fn.readfile(root .. '/.learn.json'), '\n'))
     track = ok and marker.track or nil
   end
-  local payload = run_json(track and { 'next', track, '--print' } or { 'next', '--print' })
+  -- Run from the workspace so the CLI knows which exercise is open.
+  local payload = run_json(track and { direction, track, '--print' } or { direction, '--print' }, { cwd = root })
   if payload then M.open(payload) end
 end
+
+function M.next() step 'next' end
+function M.prev() step 'prev' end
 
 function M.check()
   local root = require_workspace()
@@ -271,6 +276,7 @@ local SUBCOMMANDS = {
   check = M.check,
   hint = M.hint,
   next = M.next,
+  prev = M.prev,
   solution = function() M.solution(false) end,
   giveup = function() M.solution(true) end,
   dash = M.dashboard,
@@ -310,6 +316,7 @@ return {
       { '<leader>lc', M.check, desc = '[L]earn: [c]heck' },
       { '<leader>lh', M.hint, desc = '[L]earn: [h]int (costs ★★)' },
       { '<leader>ln', M.next, desc = '[L]earn: [n]ext exercise' },
+      { '<leader>lp', M.prev, desc = '[L]earn: [p]revious exercise' },
       { '<leader>ls', function() M.solution(false) end, desc = '[L]earn: [s]olution (after passing)' },
       { '<leader>lr', M.toggle_readme, desc = '[L]earn: toggle [R]EADME' },
       { '<leader>ld', M.dashboard, desc = '[L]earn: [d]ashboard' },

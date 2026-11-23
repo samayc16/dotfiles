@@ -193,6 +193,26 @@ def cmd_next(all_tracks: tuple[Track, ...], data: dict, slug: str | None, as_jso
     return 0
 
 
+def cmd_prev(all_tracks: tuple[Track, ...], data: dict, slug: str | None, as_json: bool) -> int:
+    """Open the exercise before the current one: the workspace you're in, else the one
+    `learn next` would open (in `slug`, or the track you were last working in)."""
+    current = workspace.read_marker(Path.cwd()) or ""
+    slug = slug or (current or data.get("last") or "").split("/", 1)[0]
+    track = tracks_mod.find_track(all_tracks, slug) if slug else None
+    if track is None:
+        ui.error(f"no track {slug!r}" if slug else "nothing to go back from yet: open one with `learn next`.")
+        return 2
+    if current.startswith(track.slug + "/"):
+        index = track.index_of(current.split("/", 1)[1])
+    else:
+        upcoming = next_in_track(track, data)
+        index = track.index_of(upcoming.slug) if upcoming else len(track.exercises)
+    if index <= 0:
+        ui.info(f"{track.exercises[0].title} is the first exercise in {track.name}.")
+        return 0
+    return cmd_start(all_tracks, data, track.exercises[index - 1].key, as_json, force=True)
+
+
 def _run_check(exercise: Exercise, ws: Path) -> int:
     env = {**os.environ, "LEARN_EXERCISE_DIR": str(exercise.source_dir), "LEARN_WORKSPACE": str(ws)}
     if exercise.kind == "exercism":
@@ -436,6 +456,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("next", help="open the next exercise")
     p.add_argument("track", nargs="?")
     p.add_argument("--print", dest="as_json", action="store_true")
+    p = sub.add_parser("prev", aliases=["previous"], help="open the previous exercise")
+    p.add_argument("track", nargs="?")
+    p.add_argument("--print", dest="as_json", action="store_true")
     for name, text in (
         ("check", "run the tests/check"),
         ("hint", "reveal the next hint"),
@@ -476,6 +499,8 @@ def main(argv: list[str] | None = None) -> int:
         "list": lambda: cmd_list(all_tracks, data, args.track, args.all),
         "start": lambda: cmd_start(all_tracks, data, args.key, args.as_json, args.force),
         "next": lambda: cmd_next(all_tracks, data, args.track, args.as_json),
+        "prev": lambda: cmd_prev(all_tracks, data, args.track, args.as_json),
+        "previous": lambda: cmd_prev(all_tracks, data, args.track, args.as_json),
         "check": lambda: cmd_check(all_tracks, data, args.key),
         "hint": lambda: cmd_hint(all_tracks, data, args.key),
         "solution": lambda: cmd_solution(all_tracks, data, args.key, args.paths),

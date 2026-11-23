@@ -159,8 +159,13 @@ if (( $+commands[fzf] )) && _source_first ${^_zplug_dirs}/fzf-tab/fzf-tab.zsh; t
   zstyle ':fzf-tab:complete:(-command-|tools|tldr|man):*' fzf-preview 'tldr -C $word 2>/dev/null || man $word 2>/dev/null | col -bx'
 fi
 
-# ── Zoxide (must be after compinit) ──────────────────────────────────
-(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+# ── Zoxide powers cd (must be after compinit) ────────────────────────
+# Real paths work as always; `cd dot` jumps to the best-ranked match (~/dotfiles) and
+# `cdi` picks interactively. z / zi stay as aliases.
+if (( $+commands[zoxide] )); then
+  eval "$(zoxide init zsh --cmd cd)"
+  alias z=cd zi=cdi
+fi
 
 # ── Git delta ─────────────────────────────────────────────────────────
 # Delta is configured via ~/.gitconfig (see git config setup)

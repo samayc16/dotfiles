@@ -19,7 +19,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 ### navigation
 | keys | does |
 |---|---|
-| `z <partial>` / `zi` | zoxide jump to most-frecent matching dir / interactive picker |
+| `cd <partial>` / `cdi` | zoxide-powered cd: real paths as usual, else jump to the best-ranked match / pick interactively (`z` / `zi` also work) |
 | `1` … `5` | `cd ..`, `cd ../..`, … up N levels |
 | `mkcd <dir>` | mkdir + cd |
 | `Ctrl-T` | fzf **file picker** — insert path at cursor |
@@ -291,10 +291,11 @@ Start here: `learn` for exercises, `:Dojo` for vim skills, `play` for everything
 | `learn` | dashboard: level, XP, streak, next up |
 | `learn <Tab>` | every course, plus the commands |
 | `learn <track>` | open that course's next exercise in nvim (same as `learn next <track>`) |
+| `learn prev [track]` | the exercise before the current one (`<leader>lp` in nvim) |
 | `learn list <track>` / `learn next` | exercises with ★ / next exercise where you left off |
 | `learn check` · `hint` · `solution` · `giveup` | run checks · next hint (caps ★) · reference after passing |
 | `learn docs <lang>` | offline docs (cppreference, Python, Haskell, Swift book, Verilator) |
-| `<leader>ll` / `<leader>ln` | pick exercise / next exercise (inside nvim) |
+| `<leader>ll` / `<leader>ln` / `<leader>lp` | pick exercise / next / previous exercise (inside nvim) |
 | `<leader>lc` / `<leader>lh` | check in bottom panel / hint float |
 | `<leader>ls` `<leader>lr` `<leader>ld` `<leader>lD` | solution / README / dashboard / docs |
 | `WAVES=1 learn check` | SystemVerilog: also dump `wave.vcd` → `surfer wave.vcd` |

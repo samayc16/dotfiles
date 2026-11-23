@@ -26,7 +26,7 @@ text|tail|last lines (-f to follow a log)
 text|column|align text into columns
 text|xargs|turn input lines into arguments
 text|diff|compare files (git diff uses delta)
-navigate|zoxide|jump to frequent dirs: z <part>, zi to pick
+navigate|zoxide|powers cd: cd <part> jumps to frequent dirs, cdi to pick
 git|git|version control
 git|lazygit|git UI in the terminal (lg)
 git|gh|GitHub from the terminal: PRs, issues, repos
