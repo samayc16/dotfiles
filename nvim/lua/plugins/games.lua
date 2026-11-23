@@ -80,7 +80,7 @@ return {
   },
 
   -- ── Play ─────────────────────────────────────────────────────────────
-  { 'seandewar/actually-doom.nvim', cmd = 'Doom', build = build_doom },
+  { 'seandewar/actually-doom.nvim', cmd = 'Doom', build = build_doom, cond = vim.uv.fs_stat(vim.env.HOME .. '/games') ~= nil },
   { 'alec-gibson/nvim-tetris', cmd = 'Tetris' },
   { 'seandewar/killersheep.nvim', cmd = 'KillKillKill' },
   { 'seandewar/nvimesweeper', cmd = 'Nvimesweeper' },

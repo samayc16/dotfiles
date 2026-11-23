@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import subprocess
 import threading
 import time
@@ -124,6 +125,7 @@ def step_env(root: Path, host: Host, profile: str, extra: str, without: str, dry
     env = dict(os.environ)
     env.update(
         DOTFILES=str(root),
+        DOTFILES_PYTHON=sys.executable,
         OS=host.os,
         PROFILE=profile,
         WITH=extra,

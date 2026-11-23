@@ -14,7 +14,7 @@ plugins=(
   swift-lsp@claude-plugins-official   # sourcekit-lsp
   pyright-lsp@claude-plugins-official # pyright-langserver
   lua-lsp@claude-plugins-official     # lua-language-server
-  everything-claude-code@everything-claude-code
+  ecc@ecc
   ui-ux-pro-max@ui-ux-pro-max-skill
 )
 

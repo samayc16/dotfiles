@@ -12,7 +12,10 @@ for repo in "$HOME"/learn/projects/*/*/; do
   [[ -d "$repo.git" ]] && dirs+=("${repo%/}")
 done
 
-python3 - "$config" "${dirs[@]}" <<'PY'
+python="${DOTFILES_PYTHON:-$(command -v python3 || true)}"
+[[ -x "$python" ]] || { echo "trust: no python3, skipping"; exit 0; }
+
+"$python" - "$config" "${dirs[@]}" <<'PY'
 import json, os, sys, tempfile
 
 path, dirs = sys.argv[1], sys.argv[2:]
