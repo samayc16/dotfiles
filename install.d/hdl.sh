@@ -1,37 +1,66 @@
 #!/usr/bin/env bash
-# HDL toolchain on Linux: Verilator ≥ 5 (simulate), Icarus Verilog, Surfer (waveforms).
-# macOS gets all three from Homebrew (brew.sh). Order of preference on Linux:
-#   distro package (system.sh, needs sudo) → source build into ~/.local → skip.
-# Source builds take a while: Verilator ~10-20 min, Icarus ~3 min.
-# Disable them with --without hdl-src.
+# HDL toolchain on Linux: Verilator ≥ 5 and Icarus Verilog (simulate), Surfer (waveforms).
+# macOS gets all three from Homebrew (brew.sh). Each simulator comes from the first source
+# that works:
+#   distro package (system.sh, root) → conda-forge build via mise (prebuilt, user-local,
+#   glibc ≥ 2.17; recorded in ~/.config/mise/conf.d/hdl.toml) → source build into ~/.local.
+# Source builds only matter where conda-forge has no build (Icarus on ARM); they are slow
+# (Verilator ~10-20 min) and can be disabled with --without hdl-src.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
 SURFER_URL="https://gitlab.com/api/v4/projects/42073614/packages/generic/surfer/v0.7.0/surfer_linux_v0.7.0.zip"
 VERILATOR_MIN=5.0
+MISE_HDL_CONFIG="$HOME/.config/mise/conf.d/hdl.toml"
+# shellcheck disable=SC2016  # Verilog, not shell
+TEST_DESIGN='module t; initial begin $display("ok"); $finish; end endmodule'
+
+# works <cmd…>: run in a scratch dir holding t.sv. A simulator only counts if it handles a
+# real design: some packages are broken (EPEL 9's Verilator lacks verilated_std.sv).
+works() {
+  local dir status=0
+  dir="$(mktemp -d)"
+  printf '%s\n' "$TEST_DESIGN" >"$dir/t.sv"
+  (cd "$dir" && "$@") >/dev/null 2>&1 || status=1
+  rm -rf "$dir"
+  return "$status"
+}
 
 verilator_ok() {
-  has verilator || return 1
-  version_ge "$(verilator --version | awk '{print $2}')" "$VERILATOR_MIN" || return 1
-  # Every build needs verilated_std.sv; some packages (EPEL 9's 5.022) leave it out.
-  [[ -f "$(verilator --getenv VERILATOR_ROOT)/include/verilated_std.sv" ]]
+  has verilator && version_ge "$(verilator --version | awk '{print $2}')" "$VERILATOR_MIN" &&
+    works verilator --lint-only t.sv
+}
+iverilog_ok() { has iverilog && works sh -c 'iverilog -g2012 -o t.vvp t.sv && vvp t.vvp | grep -q ok'; }
+verilator_version() { verilator --version | cut -d' ' -f2; }
+iverilog_version() { iverilog -V 2>&1 | head -n1 | cut -d' ' -f4; }
+
+# conda_tool <package>: prebuilt build from conda-forge, user-local via mise.
+conda_tool() {
+  has mise || return 1
+  info "$1 from conda-forge (mise)…"
+  run mise use --path "$MISE_HDL_CONFIG" "conda:$1@latest" >/dev/null || return 1
+  run mise reshim
+  hash -r
 }
 
 ensure_verilator() {
-  if verilator_ok; then ok "verilator $(verilator --version | awk '{print $2}')"; return 0; fi
-  wants hdl-src cli || { warn "no usable verilator ≥ $VERILATOR_MIN and source builds disabled"; return 1; }
-  run bash "$DOTFILES/install.d/verilator.sh"
+  if verilator_ok; then ok "verilator $(verilator_version)"; return 0; fi
+  if conda_tool verilator && verilator_ok; then ok "verilator $(verilator_version) (conda-forge)"; return 0; fi
+  wants hdl-src cli || { warn "no working verilator ≥ $VERILATOR_MIN and source builds disabled"; return 1; }
+  run bash "$DOTFILES/install.d/verilator.sh" && hash -r && verilator_ok
 }
 
 ensure_iverilog() {
-  if has iverilog; then ok "iverilog $(iverilog -V 2>&1 | head -n1 | awk '{print $4}')"; return 0; fi
-  wants hdl-src cli || { warn "iverilog missing and source builds disabled"; return 1; }
+  if iverilog_ok; then ok "iverilog $(iverilog_version)"; return 0; fi
+  if conda_tool iverilog && iverilog_ok; then ok "iverilog $(iverilog_version) (conda-forge)"; return 0; fi
+  wants hdl-src cli || { warn "no working iverilog and source builds disabled"; return 1; }
   local src="$HOME/.local/src/iverilog" tool
   for tool in g++ make autoconf gperf flex bison; do has "$tool" || { warn "can't build iverilog: missing $tool"; return 1; }; done
   info "building Icarus Verilog → $LOCAL_PREFIX"
   run rm -rf "$src"
   run git clone --depth 1 --quiet https://github.com/steveicarus/iverilog.git "$src"
   (cd "$src" && run sh autoconf.sh && run ./configure --prefix="$LOCAL_PREFIX" && run make -j4 && run make install)
+  hash -r && iverilog_ok
 }
 
 ensure_surfer() {

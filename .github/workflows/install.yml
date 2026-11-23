@@ -66,8 +66,8 @@ jobs:
       - name: Minimal base for the no-root user (git, curl, zsh, compiler — no Python, no sudo)
         if: matrix.mode == 'user'
         run: |
-          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils unzip make gcc util-linux >/dev/null
-          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz unzip make gcc util-linux findutils
+          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils unzip make gcc g++ util-linux >/dev/null
+          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz unzip make gcc gcc-c++ util-linux findutils
           elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl zsh tar xz unzip make gcc util-linux
           fi
           useradd -m -s /bin/bash tester
@@ -79,12 +79,12 @@ jobs:
         # takes the source-build path a real install would (~15 min).
         run: ./install.sh --profile dev --no-log
 
-      - name: Install as a user without sudo (profile cli)
+      - name: Install as a user without sudo (profile cli + hdl)
         if: matrix.mode == 'user'
         run: |
           cp -r "$GITHUB_WORKSPACE" /home/tester/dotfiles && chown -R tester: /home/tester/dotfiles
           runuser -u tester -- env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
-            bash -c 'cd ~/dotfiles && ./install.sh --no-sudo --profile cli --no-log'
+            bash -c 'cd ~/dotfiles && ./install.sh --no-sudo --profile cli --with hdl --no-log'
 
       - name: Verify
         run: |
@@ -104,6 +104,11 @@ jobs:
           echo "$out" | grep -q ZSH_OK || { echo "zsh failed: $out"; exit 1; }
           if echo "$out" | grep -E -i 'not found|error|no such file'; then echo "zsh startup printed errors"; exit 1; fi
           nvim --headless "+Lazy! restore" +qa
+          cd "$(mktemp -d)" # both simulators, end to end
+          printf 'module t; initial begin $display("sim ok"); $finish; end endmodule\n' >t.sv
+          { iverilog -g2012 -o t.vvp t.sv && vvp t.vvp | grep -q 'sim ok'; } || { echo "iverilog failed"; exit 1; }
+          { verilator --binary -Wno-fatal t.sv >/dev/null && ./obj_dir/Vt | grep -q 'sim ok'; } || { echo "verilator failed"; exit 1; }
+          echo "simulators: verilator $(verilator --version | cut -d' ' -f2), iverilog $(iverilog -V 2>&1 | head -n1 | cut -d' ' -f4)"
           echo "verify: all good"
           EOF
           if [ "${{ matrix.mode }}" = user ]; then runuser -u tester -- env HOME=/home/tester sh /tmp/verify.sh; else sh /tmp/verify.sh; fi

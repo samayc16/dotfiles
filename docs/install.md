@@ -11,7 +11,7 @@
 ./install.sh --only nvim,smoke       # re-run some steps
 ./install.sh --skip games,learn      # everything except
 ./install.sh --with haskell          # add a step beyond the profile
-./install.sh --without hdl-src       # never build Verilator/Icarus from source
+./install.sh --without hdl-src       # never build Verilator/Icarus from source (last resort)
 ./install.sh --link-only             # just (re)create symlinks; existing files move to <file>.bak
 ./install.sh --dry-run -v            # print every command instead of running it
 ```
@@ -29,7 +29,8 @@
 | macOS | Homebrew for everything |
 | Linux with root/sudo | distro packages for the basics (compilers, zsh, tmux, Python, Verilator, Icarus, z3) |
 | Linux, always | [mise](https://mise.jdx.dev) installs fast-moving tools user-locally: Neovim ≥ 0.12, tree-sitter, ripgrep, fd, fzf, bat, eza, delta, lazygit, zoxide, jq, gh, tmux, Node, uv (`mise/global.toml`) |
-| Linux without root | zsh plugins cloned to `~/.local/share/zsh-plugins`; zsh, Verilator and Icarus built from source if missing (Verilator ~10–20 min); Swift via swiftly; Haskell via ghcup |
+| Linux without root | zsh plugins cloned to `~/.local/share/zsh-plugins`; zsh built from source if missing; Swift via swiftly; Haskell via ghcup |
+| Linux simulators | Verilator and Icarus Verilog from the distro if they work, else prebuilt conda-forge builds via mise (user-local, any glibc ≥ 2.17, recorded in `~/.config/mise/conf.d/hdl.toml`), else a source build. Each must simulate a test design to count. |
 | no Python 3.8+ (RHEL 8, minimal containers) | the shim installs one, or fetches a standalone build with uv |
 
 Fonts: Meslo Nerd Font (Homebrew cask on macOS, Nerd Fonts release + `fc-cache` on Linux; skipped on headless boxes, since the font matters where the terminal runs).
@@ -46,4 +47,4 @@ On corporate networks set `GITHUB_TOKEN` to avoid API rate limits; `HTTPS_PROXY`
 
 ## CI
 
-`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9 and Arch, both as root (`--profile dev`) and as a user without sudo (`--profile cli`), plus a macOS link-only run. It checks tool versions, symlinks, a clean zsh start and `Lazy! restore`.
+`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9 and Arch, both as root (`--profile dev`, then the per-language smoke test) and as a user without sudo (`--profile cli --with hdl`), plus a macOS link-only run. Every job checks tool versions, symlinks, a clean zsh start, `Lazy! restore`, and a simulation in both Verilator and Icarus. Failed jobs upload Neovim's logs as an artifact.
