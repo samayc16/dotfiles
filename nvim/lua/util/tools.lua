@@ -78,15 +78,15 @@ local run_cache = {}
 
 --- Whether `compiler` builds a trivial `lang` program with `flags` that actually runs. For
 --- sanitizers the runtime can be missing (a separate distro package) or broken: older ASan
---- crashes at random on kernels with high mmap ASLR entropy, hence the repeated runs.
+--- crashes or hangs at random on kernels with high mmap ASLR entropy, hence the repeated runs.
 function M.builds_and_runs(compiler, lang, flags)
   local key = table.concat({ compiler, lang, unpack(flags) }, '\0')
   if run_cache[key] == nil then
     local out = vim.fn.tempname()
     local cmd = vim.list_extend({ compiler, unpack(flags) }, { '-x', lang, '-', '-o', out })
-    local ok = vim.system(cmd, { stdin = 'int main(void) { return 0; }\n' }):wait().code == 0
-    for _ = 1, 20 do
-      ok = ok and vim.system({ out }):wait().code == 0
+    local ok = vim.system(cmd, { stdin = 'int main(void) { return 0; }\n', timeout = 60000 }):wait().code == 0
+    for _ = 1, 20 do -- a broken runtime may also hang (endless DEADLYSIGNAL): timeout = failure
+      ok = ok and vim.system({ out }, { timeout = 5000 }):wait().code == 0
     end
     vim.fn.delete(out)
     run_cache[key] = ok
