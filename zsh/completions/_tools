@@ -1,0 +1,5 @@
+#compdef tools
+
+local -a items=(${(f)"$(tools --complete 2>/dev/null)"})
+_arguments '--list[plain list of installed tools]' '--help[usage]' '1:tool:->tool'
+[[ $state == tool ]] && _describe -t tools 'tool' items

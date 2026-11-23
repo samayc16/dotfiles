@@ -13,7 +13,26 @@ sync_plugins() {
   git_sync https://github.com/romkatv/powerlevel10k.git "$PLUGIN_DIR/powerlevel10k"
   git_sync https://github.com/zsh-users/zsh-autosuggestions.git "$PLUGIN_DIR/zsh-autosuggestions"
   git_sync https://github.com/zsh-users/zsh-syntax-highlighting.git "$PLUGIN_DIR/zsh-syntax-highlighting"
+  git_sync https://github.com/Aloxaf/fzf-tab.git "$PLUGIN_DIR/fzf-tab"
   ok "zsh plugins in $PLUGIN_DIR"
+}
+
+# Linux: tools from mise don't install zsh completions, so generate them (Homebrew
+# ships its own on macOS).
+generate_completions() {
+  [[ "$OS" == macos ]] && return 0
+  local dir="$HOME/.local/share/zsh/site-functions" spec name
+  run mkdir -p "$dir"
+  for spec in "rg --generate complete-zsh" "fd --gen-completions zsh" "bat --completion zsh" \
+    "delta --generate-completion zsh" "gh completion -s zsh" "mise completion zsh" \
+    "uv generate-shell-completion zsh" "tree-sitter complete --shell zsh"; do
+    name="${spec%% *}"
+    has "$name" || continue
+    if [[ "$DRY_RUN" == 1 ]]; then info "would generate _$name"; continue; fi
+    # shellcheck disable=SC2086 # spec is a command line
+    $spec >"$dir/_$name" 2>/dev/null || rm -f "$dir/_$name"
+  done
+  ok "zsh completions in $dir"
 }
 
 # No zsh and no root: build it into ~/.local (needs a C compiler + ncurses headers).
@@ -74,6 +93,7 @@ main() {
     exit 1
   fi
   sync_plugins
+  generate_completions
   make_login_shell
 }
 

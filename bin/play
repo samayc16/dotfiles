@@ -17,11 +17,12 @@ export GAMES_DIR PATH="$GAMES_DIR/bin:$PATH"
 GREEN=$'\033[38;2;169;220;118m' CYAN=$'\033[38;2;120;220;232m' PINK=$'\033[38;2;255;97;136m'
 GRAY=$'\033[38;2;114;112;114m' RESET=$'\033[0m'
 
-ENTRIES=() NAMES=() COMMANDS=()
+ENTRIES=() NAMES=() COMMANDS=() COMPLETIONS=()
 # add <group> <name> <description> <command>
 add() {
   NAMES+=("$2")
   COMMANDS+=("$4")
+  COMPLETIONS+=("$2:$3")
   local color
   case "$1" in
     'Train: nvim') color=$GREEN ;;
@@ -119,6 +120,10 @@ build_menu() {
 
 main() {
   build_menu
+  if [[ "${1:-}" == "--complete" ]]; then # name:description lines for zsh completion
+    printf '%s\n' "${COMPLETIONS[@]}"
+    return
+  fi
   if [[ "${1:-}" == "--list" ]]; then
     printf '%s\n' "${ENTRIES[@]}" | cut -f1
     return

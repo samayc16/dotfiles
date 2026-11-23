@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# tools: what's installed on the command line, with tldr examples.
+#   tools            fuzzy menu (preview = tldr page); Enter shows the page
+#   tools <name>     show the tldr page (falls back to man)
+#   tools --list     plain list of installed tools
+set -euo pipefail
+
+# category|command|what it's for
+CATALOG='search|rg|search file contents (fast grep; respects .gitignore)
+search|fd|find files by name
+search|fzf|fuzzy-pick anything: Ctrl-T files, Ctrl-R history, Alt-C cd
+search|grep|classic text search
+view|bat|cat with syntax highlighting (cat is aliased to it)
+view|eza|ls with icons and git status (ls, ll, lt, lrt)
+view|less|page through long output
+text|sed|stream edit: substitute, delete, print lines
+text|awk|columns, filters and reports
+text|jq|query and reshape JSON
+text|cut|pick fields or characters from each line
+text|sort|sort lines (-n numbers, -k field, -u unique)
+text|uniq|collapse repeats (-c to count)
+text|tr|translate or delete characters
+text|wc|count lines, words, bytes
+text|head|first lines of a file
+text|tail|last lines (-f to follow a log)
+text|column|align text into columns
+text|xargs|turn input lines into arguments
+text|diff|compare files (git diff uses delta)
+navigate|zoxide|jump to frequent dirs: z <part>, zi to pick
+git|git|version control
+git|lazygit|git UI in the terminal (lg)
+git|gh|GitHub from the terminal: PRs, issues, repos
+git|delta|readable diffs (used by git automatically)
+dev|nvim|editor (vim is aliased to it)
+dev|tmux|terminal multiplexer (mux attaches to "main")
+dev|claude|Claude Code
+dev|mise|install and switch tool versions
+dev|uv|fast Python packaging and venvs
+dev|python3|Python
+dev|clang|C compiler (clang++ for C++)
+dev|swift|Swift toolchain
+dev|ghc|Haskell compiler (runghc to run, ghci REPL)
+dev|make|run Makefile targets
+dev|cmake|C/C++ build generator
+hdl|verilator|SystemVerilog lint + fast simulation
+hdl|iverilog|Icarus Verilog simulator
+hdl|surfer|waveform viewer for .vcd files
+learn|learn|exercises with tests, stars and XP
+learn|play|games and trainers menu
+learn|tldr|example-first help for any command
+learn|man|full manual pages
+system|htop|processes and resource use
+system|trash|safe delete (rm is aliased to it)
+system|copy|pipe output to the clipboard, even over SSH'
+
+installed() {
+  local category cmd desc
+  while IFS='|' read -r category cmd desc; do
+    command -v "$cmd" >/dev/null 2>&1 && printf '%-9s %-10s %s\n' "$category" "$cmd" "$desc"
+  done <<<"$CATALOG"
+}
+
+page() { tldr -C "$1" 2>/dev/null || man "$1" 2>/dev/null || echo "no help page for $1"; }
+
+case "${1:-}" in
+  --list) installed ;;
+  --complete) installed | awk '{ name = $2; $1 = $2 = ""; sub(/^ +/, ""); print name ":" $0 }' ;;
+  -h | --help) sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//' ;;
+  "")
+    command -v fzf >/dev/null || { installed; exit 0; }
+    choice=$(installed | fzf --ansi --prompt 'tools > ' --header 'Enter: show examples · Esc: quit' \
+      --preview 'tldr -C {2} 2>/dev/null || man {2} 2>/dev/null | col -bx' --preview-window 'right,60%,wrap') || exit 0
+    page "$(awk '{print $2}' <<<"$choice")" | less -R
+    ;;
+  *) page "$1" | less -R ;;
+esac

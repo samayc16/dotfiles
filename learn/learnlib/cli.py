@@ -402,6 +402,17 @@ def cmd_docs(lang: str | None, as_json: bool) -> int:
     return 0
 
 
+def cmd_complete(all_tracks, what: str) -> int:
+    if what == "tracks":
+        lines = [f"{t.slug}:{t.name}" for t in all_tracks]
+    elif what == "exercises":
+        lines = [f"{t.slug}/{ex.slug}:{ex.title}" for t in all_tracks for ex in t.exercises]
+    else:
+        lines = ["c", "cpp", "python", "haskell", "swift", "sv", "shell"]
+    print("\n".join(lines))  # "value:description", as zsh _describe expects
+    return 0
+
+
 # ── argument parsing ─────────────────────────────────────────────────────────
 
 
@@ -437,6 +448,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("key")
     p.add_argument("--yes", action="store_true")
     sub.add_parser("status", help="machine-readable status (JSON)")
+    p = sub.add_parser("_complete")  # for shell completion: plain lines, no colour
+    p.add_argument("what", choices=("tracks", "exercises", "docs"))
     p = sub.add_parser("docs", help="offline reference docs: c, cpp, python, haskell, swift, sv, shell")
     p.add_argument("lang", nargs="?")
     p.add_argument("--json", dest="as_json", action="store_true", help="list entries as JSON (used by nvim)")
@@ -452,27 +465,18 @@ def main(argv: list[str] | None = None) -> int:
     if not all_tracks:
         ui.error("no tracks found. Run ~/dotfiles/learn/fetch.sh (Exercism) or check learn/tracks/.")
         return 2
-    match args.cmd:
-        case None:
-            return cmd_dashboard(all_tracks, data)
-        case "tracks":
-            return cmd_tracks(all_tracks, data)
-        case "list":
-            return cmd_list(all_tracks, data, args.track, args.all)
-        case "start":
-            return cmd_start(all_tracks, data, args.key, args.as_json, args.force)
-        case "next":
-            return cmd_next(all_tracks, data, args.track, args.as_json)
-        case "check":
-            return cmd_check(all_tracks, data, args.key)
-        case "hint":
-            return cmd_hint(all_tracks, data, args.key)
-        case "solution":
-            return cmd_solution(all_tracks, data, args.key, args.paths)
-        case "giveup":
-            return cmd_giveup(all_tracks, data, args.key)
-        case "reset":
-            return cmd_reset(all_tracks, data, args.key, args.yes)
-        case "status":
-            return cmd_status_json(all_tracks, data)
-    return 2
+    commands = {
+        None: lambda: cmd_dashboard(all_tracks, data),
+        "tracks": lambda: cmd_tracks(all_tracks, data),
+        "list": lambda: cmd_list(all_tracks, data, args.track, args.all),
+        "start": lambda: cmd_start(all_tracks, data, args.key, args.as_json, args.force),
+        "next": lambda: cmd_next(all_tracks, data, args.track, args.as_json),
+        "check": lambda: cmd_check(all_tracks, data, args.key),
+        "hint": lambda: cmd_hint(all_tracks, data, args.key),
+        "solution": lambda: cmd_solution(all_tracks, data, args.key, args.paths),
+        "giveup": lambda: cmd_giveup(all_tracks, data, args.key),
+        "reset": lambda: cmd_reset(all_tracks, data, args.key, args.yes),
+        "status": lambda: cmd_status_json(all_tracks, data),
+        "_complete": lambda: cmd_complete(all_tracks, args.what),
+    }
+    return commands[args.cmd]() if args.cmd in commands else 2
