@@ -17,6 +17,11 @@ Every key is in [CHEATSHEET.md](../CHEATSHEET.md#neovim-leader--space); this gui
 | `Space db` then `Space dc` | set a breakpoint and start the debugger |
 | `:Dojo` | practise all of the above as a game |
 
+<p>
+  <img src="img/nvim-which-key.png" width="49%" alt="which-key after pressing Space: every leader group and key">
+  <img src="img/nvim-search.png" width="49%" alt="Space sf: fuzzy file finder with a preview">
+</p>
+
 ## Languages
 
 Everything below is installed and smoke-tested by the installer.
@@ -29,6 +34,11 @@ Everything below is installed and smoke-tested by the installer.
 | SystemVerilog / Verilog | slang-server | Verilator or Icarus (`Space rc`), top = module named after the file | waves: `Space ro` → surfer |
 | Haskell | haskell-language-server | `runghc` | `Space ro` → ghci |
 | Lua · shell | lua_ls · bashls + ShellCheck | `nvim -l` · bash | |
+
+<p>
+  <img src="img/nvim-run.png" width="49%" alt="Space rr compiles and runs a C++ file; the output docks below">
+  <img src="img/nvim-toolchain.png" width="49%" alt="Space rc picks the C++ compiler: clang++, g++ or Homebrew's g++-16">
+</p>
 
 Format with `Space f`. Python, Lua and Haskell also format on save; C-family and Swift only when the project has a style file (`.clang-format`, `.swift-format`); shell and Verilog never automatically. `Space tf` toggles format-on-save.
 
@@ -48,6 +58,8 @@ Run `:XcodebuildSetup` once in the project root (pick scheme and simulator). Aft
 ### SystemVerilog projects
 slang-server reads `.slang/server.json` in the project root for include dirs, file lists and UVM paths ([docs](https://hudson-trading.github.io/slang-server/start/config/)). `Space vh` shows the elaborated hierarchy. Snippets cover RTL (`aff`, `fsm`, `intf`, `tb`, `assertp`) and UVM (`uvm_drv`, `uvm_env`, `uvm_test`…); type the prefix and accept.
 
+![Space rr on a testbench: Verilator builds and simulates it](img/nvim-systemverilog.png)
+
 ## Everyday workflows
 
 | task | keys |
@@ -63,6 +75,11 @@ slang-server reads `.slang/server.json` in the project root for include dirs, fi
 | ask Claude about code | select it, `Space as` |
 
 Completion accepts with `Ctrl-y`, `Tab` or `Enter`; `Ctrl-e` closes the menu.
+
+<p>
+  <img src="img/nvim-diagnostics.png" width="49%" alt="A clangd error with its suggested fix; ]d jumps to it and shows the details">
+  <img src="img/nvim-debug.png" width="49%" alt="Debugging Python: variables, inline values, call stack, a watch and the REPL">
+</p>
 
 ## Keeping it healthy
 

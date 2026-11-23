@@ -3,6 +3,8 @@
 `play` opens a menu of everything installed, grouped by what it trains. `:Games` does the same inside nvim.
 Install or refresh with `games/install.sh` (also part of `./install.sh`); data lives in `~/games`.
 
+![The play menu: trainers and games, fuzzy-searchable](img/play.png)
+
 ## Train: Neovim
 
 | launch | what it trains |

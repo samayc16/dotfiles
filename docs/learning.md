@@ -8,6 +8,8 @@ Three trainers, all offline, all with scores so progress is visible.
 | `:Dojo` | nvim | vim motions and *this* config's keys: golf challenges with par, belts and streaks |
 | `play` | terminal (`:Games` in nvim) | everything else: vim-be-good, typing, GameShell, a grep murder mystery, games |
 
+![A C koan in Neovim: the code, its README beside it, and the checks from Space lc below](img/learn-koan.png)
+
 ## Your first session
 
 1. `learn`: see the dashboard. `learn <Tab>` lists every course.
@@ -17,6 +19,11 @@ Three trainers, all offline, all with scores so progress is visible.
 5. Warm up or cool down with `:Dojo next`.
 
 Stars: ★ pass · ★★ no hints · ★★★ also under par (shortest solution) or first try.
+
+<p>
+  <img src="img/learn-dashboard.png" width="49%" alt="Space ld: level, XP, streak and progress per course">
+  <img src="img/dojo.png" width="49%" alt=":Dojo: a vim-golf challenge with keystrokes against par">
+</p>
 
 ## Where to start
 

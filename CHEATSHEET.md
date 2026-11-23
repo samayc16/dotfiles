@@ -16,6 +16,8 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 
 ## shell (zsh)
 
+![tools: every installed CLI tool, grouped, with a tldr preview](docs/img/tools.png)
+
 ### navigation
 | keys | does |
 |---|---|

@@ -2,6 +2,10 @@
 
 `./install.sh` is a small POSIX shim: it finds Python 3.8+ (or fetches one) and runs `install.py`, which runs the steps in `install.d/` and prints a summary. Every step is idempotent and fail-soft; a log lands in `~/.cache/dotfiles/`.
 
+The last step opens a sample file per language (and per installed compiler or simulator) in headless Neovim and checks highlighting, the language server, diagnostics, completion and `Space rr`:
+
+![./install.sh --only smoke -v: every language passes](img/install-smoke.png)
+
 ## Flags
 
 ```sh

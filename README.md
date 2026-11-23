@@ -2,6 +2,8 @@
 
 A portable terminal development environment for macOS and Linux: a Neovim IDE for Python, C/C++, Swift, SystemVerilog and Haskell, tmux, zsh, kitty and Claude Code, plus offline trainers for getting better at all of it. Monokai Pro everywhere.
 
+![Neovim in tmux: C++ with clangd completion and documentation](docs/img/nvim-completion.png)
+
 ## Install
 
 ```sh
@@ -30,6 +32,23 @@ One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SS
 | **Claude Code** | Remote Control in every session, Claude inside Neovim (`Space ac`), a Tutor style for learning, `quiz` and `learn-coach` skills | [below](#claude-code) |
 
 Every keybinding is in [CHEATSHEET.md](CHEATSHEET.md). In tmux press `prefix ?`; in Neovim press `Space` and wait.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/img/nvim-debug.png" alt="Debugging Python in Neovim: variables, inline values, call stack and a REPL"><br>Debug any language: <code>Space db</code> sets a breakpoint, <code>Space dc</code> starts</td>
+    <td width="50%"><img src="docs/img/nvim-systemverilog.png" alt="Space rr on a SystemVerilog testbench: Verilator builds and simulates it"><br><code>Space rr</code> runs the file: here Verilator simulates a testbench</td>
+  </tr>
+  <tr>
+    <td><img src="docs/img/learn-koan.png" alt="A C koan in Neovim with its README beside it and the failing checks below"><br><code>learn</code>: fix the koan until <code>Space lc</code> passes</td>
+    <td><img src="docs/img/dojo.png" alt="A Dojo challenge: the task, keystroke count against par, and the target"><br><code>:Dojo</code>: vim golf with par, stars and belts</td>
+  </tr>
+  <tr>
+    <td><img src="docs/img/shell.png" alt="zsh with Powerlevel10k, an eza tree and fuzzy Tab completion listing learn courses"><br>zsh: fuzzy <code>Tab</code> completion for every command</td>
+    <td><img src="docs/img/install-smoke.png" alt="The installer's smoke test: every language and compiler passes in headless Neovim"><br>The installer ends by proving every language works</td>
+  </tr>
+</table>
+
+More screenshots in each guide: [Neovim](docs/neovim.md), [learning](docs/learning.md), [games](docs/games.md), [install](docs/install.md).
 
 ## First steps
 
