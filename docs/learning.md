@@ -10,8 +10,8 @@ Three trainers, all offline, all with scores so progress is visible.
 
 ## Your first session
 
-1. `learn`: see the dashboard and pick a track.
-2. `learn next shell`: an exercise opens in nvim with the task on the right.
+1. `learn`: see the dashboard. `learn <Tab>` lists every course.
+2. `learn shell` (any course name): its next exercise opens in nvim with the task on the right.
 3. Edit, then `Space lc` to check. Stuck? `Space lh` gives a hint (costs a star).
 4. Pass it and `Space ln` opens the next one in the same nvim.
 5. Warm up or cool down with `:Dojo next`.
