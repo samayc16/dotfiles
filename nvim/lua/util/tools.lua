@@ -4,6 +4,8 @@
 local M = {}
 
 M.is_mac = vim.uv.os_uname().sysname == 'Darwin'
+-- Headless runs (installer, CI, scripts) install synchronously; see scripts/bootstrap.lua.
+M.headless = vim.list_contains(vim.v.argv, '--headless')
 
 -- Newest first; the first one the compiler accepts wins.
 M.cxx_stds = { 'c++26', 'c++2c', 'c++23', 'c++2b', 'c++20' }

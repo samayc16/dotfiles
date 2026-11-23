@@ -1,5 +1,7 @@
 -- nvim-treesitter `main` branch: needs the `tree-sitter` CLI and a C compiler to build
 -- parsers. Language files extend `opts.ensure_installed`.
+local headless = require('util.tools').headless
+
 local function can_build()
   local cc = vim.fn.executable 'cc' == 1 or vim.fn.executable 'clang' == 1 or vim.fn.executable 'gcc' == 1
   return cc and vim.fn.executable 'tree-sitter' == 1
@@ -10,7 +12,12 @@ return {
     'nvim-treesitter/nvim-treesitter',
     branch = 'main',
     lazy = false, -- this branch does not support lazy-loading
-    build = ':TSUpdate',
+    -- Blocks when headless: `nvim --headless +Lazy! restore +qa` would otherwise exit
+    -- mid-build and leave stale tree-sitter lock files behind.
+    build = function()
+      local task = require('nvim-treesitter').update()
+      if headless then task:wait(600000) end
+    end,
     opts_extend = { 'ensure_installed' },
     opts = {
       ensure_installed = {
@@ -23,7 +30,7 @@ return {
       local ts = require 'nvim-treesitter'
       local installed = ts.get_installed()
       local missing = vim.tbl_filter(function(lang) return not vim.list_contains(installed, lang) end, opts.ensure_installed)
-      if #missing > 0 and can_build() then ts.install(missing) end
+      if #missing > 0 and can_build() and not headless then ts.install(missing) end
 
       vim.api.nvim_create_autocmd('FileType', {
         group = vim.api.nvim_create_augroup('user-treesitter-start', { clear = true }),

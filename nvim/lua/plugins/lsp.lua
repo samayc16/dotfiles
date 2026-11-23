@@ -66,9 +66,11 @@ return {
       end
 
       -- run_on_start only fires on VimEnter, which has passed by the time this loads.
+      -- Headless, bootstrap.lua runs the sync install; a concurrent async one would
+      -- claim the packages and leave the sync wait hanging forever.
       local installer = require 'mason-tool-installer'
       installer.setup { ensure_installed = require('util.mason').packages(opts.servers, opts.tools), run_on_start = false }
-      installer.check_install(false)
+      if not require('util.tools').headless then installer.check_install(false) end
     end,
   },
 }
