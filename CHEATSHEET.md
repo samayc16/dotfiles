@@ -338,6 +338,20 @@ Par = keystrokes: ★★★ ≤ par, ★★ ≤ 1.5× par. The black belt drills
 
 ---
 
+## music (tamp)
+
+[tamp](https://github.com/samayc16/tamp) plays your Plex library, or controls and follows Plexamp on your phone, Mac or headless box (`o`). The first run signs you in with a link (`c` copy, `o` open, or scan the QR code). `tamp --demo` needs no server; `?` inside lists every key.
+
+| keys | does |
+|---|---|
+| `enter` / double-click · `m` / right-click | play from here or open · everything you can do with this row |
+| `space` · `n` `p` · `[` `]` · `-` `+` | pause · next / previous · seek 10 s · volume (click the progress bar to seek) |
+| `/` · `1`–`8` · `esc` | search as you type · home, artists, albums, playlists, stations, recent, liked, queue · back |
+| `a` · `N` · `r` · `s` | add to queue · play next · radio from this · shuffle-play |
+| `F` · `L` · `i` · `o` | full-screen player · lyrics · track info · play on another device |
+| `f` / `*` · `P` · `w` · `z` | like · add to playlist · save the queue as a playlist · sleep timer |
+| `tamp status` · `tamp toggle` `next` `prev` | what's playing (shown in the tmux bar) · control from scripts and keys |
+
 ## kitty
 
 Monokai Pro palette, `MesloLGM Nerd Font`, OSC52 clipboard (so `copy` and nvim yank work over SSH). Shared settings in `kitty/kitty.conf`; OS-specific ones in `kitty/macos.conf` (Option sends Alt) and `kitty/linux.conf`.

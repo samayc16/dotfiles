@@ -63,6 +63,7 @@ STEPS: Tuple[Step, ...] = (
     Step("swift", "Swift toolchain via swiftly", "swift.sh", profile="full", platforms=LINUX),
     Step("haskell", "GHC, cabal, haskell-language-server", "haskell.sh", profile="full"),
     Step("games", "offline games + trainers", "games.sh", profile="full"),
+    Step("music", "tamp: Plex music player (+ mpv)", "music.sh", profile="full"),
     Step("learn", "learning tracks + example projects (~/learn)", "learn.sh", profile="full"),
     Step("smoke", "per-language smoke test in headless Neovim", "smoke.sh", profile="dev"),
 )
