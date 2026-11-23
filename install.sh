@@ -33,7 +33,7 @@ as_root() { if [ "$(id -u)" = 0 ]; then "$@"; else sudo -n "$@"; fi; }
 system_python() {
   if command -v apt-get >/dev/null 2>&1; then as_root apt-get update -qq && as_root apt-get install -y -qq python3
   elif command -v dnf >/dev/null 2>&1; then as_root dnf install -y -q python3
-  elif command -v pacman >/dev/null 2>&1; then as_root pacman -Sy --needed --noconfirm python
+  elif command -v pacman >/dev/null 2>&1; then as_root pacman -Syu --needed --noconfirm python # Arch never supports partial upgrades
   elif command -v zypper >/dev/null 2>&1; then as_root zypper --non-interactive install python3
   else return 1
   fi
