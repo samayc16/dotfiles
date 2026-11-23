@@ -46,8 +46,11 @@ main() {
   fi
   if wants bootstrap dev && [[ -f "$BOOTSTRAP_SCRIPT" || "$DRY_RUN" == 1 ]]; then
     ensure_modern_python
+    # tree-sitter compiles parsers with $CC; GCC 12 (Debian 12) spends 30+ min on Swift's.
+    local cc="${CC:-cc}"
+    [[ -z "${CC:-}" ]] && has clang && cc=clang
     info "language servers + treesitter parsers (several minutes on first run)…"
-    run nvim --headless -c "luafile $BOOTSTRAP_SCRIPT" || { warn "bootstrap reported errors"; failed=1; }
+    run env CC="$cc" nvim --headless -c "luafile $BOOTSTRAP_SCRIPT" || { warn "bootstrap reported errors"; failed=1; }
   fi
   [[ "$failed" == 0 ]] && ok "nvim ready"
   return "$failed"

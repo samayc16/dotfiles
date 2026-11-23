@@ -150,7 +150,22 @@ local function completion_count(buf)
     if count > 0 then break end
     vim.wait(1000)
   end
+  if client:is_stopped() then note = 'server exited' end
   return count, note
+end
+
+--- The servers' recent LSP log lines (stderr, crashes), printed under a failure.
+local function server_log(servers)
+  local needles = vim.list_extend({}, servers)
+  for _, name in ipairs(servers) do
+    local cmd = vim.lsp.config[name] and vim.lsp.config[name].cmd
+    if type(cmd) == 'table' then table.insert(needles, vim.fs.basename(cmd[1])) end
+  end
+  local ok, lines = pcall(vim.fn.readfile, vim.lsp.log.get_filename())
+  local hits = vim.tbl_filter(function(line)
+    return vim.iter(needles):any(function(n) return line:find(n, 1, true) ~= nil end)
+  end, ok and lines or {})
+  return vim.list_slice(hits, math.max(1, #hits - 7))
 end
 
 --- Run the current buffer through <leader>rr's code path; returns ok, note.
@@ -217,6 +232,9 @@ for _, sample in ipairs(samples) do
       if not res.ok then failed = failed + 1 end
       log('%-14s %s  ts=%s lsp=%s diags=%s completion=%s run=%s %s', sample.lang, res.ok and 'PASS' or 'FAIL', tostring(res.treesitter),
         tostring(res.lsp), tostring(res.diagnostics), tostring(res.completion), tostring(res.run), res.note or '')
+      if not res.ok then
+        for _, line in ipairs(server_log(sample.servers)) do log('    %s', line:sub(1, 400)) end
+      end
     end
     vim.cmd 'silent! %bwipeout!'
   end
