@@ -22,6 +22,9 @@ local BUF_DEFAULTS = {
 function M.prepare(ch)
   local dir = vim.fn.tempname() .. '-dojo-' .. ch.id
   vim.fn.mkdir(dir, 'p')
+  -- Resolve symlinks (macOS: /var -> /private/var) so the buffer name matches the tab's cwd
+  -- and the statusline shows `dojo.py`, not the whole temp path.
+  dir = vim.uv.fs_realpath(dir) or dir
   local file = dir .. '/' .. ch.filename
   vim.fn.mkdir(vim.fs.dirname(file), 'p')
   local ctx = { dir = dir, file = file, state = {}, challenge = ch }

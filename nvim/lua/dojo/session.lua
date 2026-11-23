@@ -220,8 +220,8 @@ function M.start(ch)
   local ctx = loader.prepare(ch)
   vim.cmd.tabnew()
   local tab, win = vim.api.nvim_get_current_tabpage(), vim.api.nvim_get_current_win()
-  vim.cmd.tcd(vim.fn.fnameescape(ctx.dir))
   loader.open(ch, ctx, win)
+  vim.cmd.tcd(vim.fn.fnameescape(ctx.dir)) -- after opening: :tcd shortens buffer names to `dojo.py`
 
   local target_buf = vim.api.nvim_create_buf(false, true)
   local info_buf = vim.api.nvim_create_buf(false, true)
