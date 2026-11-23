@@ -418,7 +418,9 @@ def cmd_complete(all_tracks, what: str) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="learn", description="Gamified offline trainer. Run with no arguments for the dashboard."
+        prog="learn",
+        description="Gamified offline trainer. Run with no arguments for the dashboard; "
+        "`learn <track>` opens that track's next exercise.",
     )
     sub = parser.add_subparsers(dest="cmd")
     sub.add_parser("tracks", help="list tracks")
@@ -457,10 +459,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else list(argv)
+    all_tracks = tracks_mod.load_all()
+    if argv and argv[0] in {t.slug for t in all_tracks}:
+        argv = ["next", *argv]  # `learn <track>` is shorthand for `learn next <track>`
     args = build_parser().parse_args(argv)
     if args.cmd == "docs":
         return cmd_docs(args.lang, args.as_json)
-    all_tracks = tracks_mod.load_all()
     data = progress.load()
     if not all_tracks:
         ui.error("no tracks found. Run ~/dotfiles/learn/fetch.sh (Exercism) or check learn/tracks/.")

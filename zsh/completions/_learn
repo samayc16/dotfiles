@@ -14,13 +14,19 @@ local -a commands=(
   'docs:offline reference docs'
 )
 
+local -a tracks=(${(f)"$(learn _complete tracks 2>/dev/null)"})
+
 if (( CURRENT == 2 )); then
-  _describe -t commands 'learn command' commands
+  _describe -t tracks 'course (opens its next exercise)' tracks
+  _describe -t commands 'command' commands
   return
 fi
 
+# Complete the subcommand's arguments as if it were the command itself.
+shift words
+(( CURRENT-- ))
 local -a items
-case $words[2] in
+case $words[1] in
   list) _arguments '1:track:->track' '--all[include locked exercises]' ;;
   next) _arguments '1:track:->track' ;;
   start) _arguments '1:exercise:->exercise' '--force[open even if locked]' ;;
@@ -30,6 +36,6 @@ case $words[2] in
 esac
 
 case $state in
-  track) items=(${(f)"$(learn _complete tracks 2>/dev/null)"}); _describe -t tracks 'track' items ;;
+  track) _describe -t tracks 'track' tracks ;;
   exercise) items=(${(f)"$(learn _complete exercises 2>/dev/null)"}); _describe -t exercises 'exercise' items ;;
 esac
