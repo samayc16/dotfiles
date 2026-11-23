@@ -345,12 +345,14 @@ Par = keystrokes: ★★★ ≤ par, ★★ ≤ 1.5× par. The black belt drills
 | keys | does |
 |---|---|
 | `enter` / double-click · `m` / right-click | play from here or open · everything you can do with this row |
-| `space` · `n` `p` · `[` `]` · `-` `+` | pause · next / previous · seek 10 s · volume (click the progress bar to seek) |
+| `space` · `n` `p` · `[` `]` · `-` `+` | pause · next / previous · seek 10 s · volume (click or drag the progress bar to seek; click a lyric line to jump there) |
 | `/` · `1`–`8` · `esc` | search as you type · home, artists, albums, playlists, stations, recent, liked, queue · back |
-| `a` · `N` · `r` · `s` | add to queue · play next · radio from this · shuffle-play |
+| `a` · `N` · `r` · `s` | add to Up Next · play next · radio from this · shuffle-play |
+| `J` `K` (shift+↓↑) · `d` · drag | in the queue: move a track · remove · reorder with the mouse |
 | `F` · `L` · `i` · `o` | full-screen player · lyrics · track info · play on another device |
-| `f` / `*` · `P` · `w` · `z` | like · add to playlist · save the queue as a playlist · sleep timer |
+| `f` / `*` · `P` · `w` · `z` · `T` | like · add to playlist · save the queue as a playlist · sleep timer · theme (auto: from the album art) |
 | `tamp status` · `tamp toggle` `next` `prev` | what's playing (shown in the tmux bar) · control from scripts and keys |
+| `Alt+p` · `Alt+n` · `Alt+b` (tmux, anywhere) | play / pause · next · back, whatever tamp is playing on |
 
 ## kitty
 
