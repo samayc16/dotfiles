@@ -24,6 +24,18 @@ check_prereqs() {
   has tree-sitter || warn "no tree-sitter CLI: parsers can't be built"
 }
 
+# mason's PyPI packages (basedpyright, debugpy) need Python ≥ 3.10; RHEL 8/9 and SUSE
+# Leap ship older. uv puts python3.13 in ~/.local/bin, where mason looks for it.
+ensure_modern_python() {
+  local py
+  for py in python3 python3.14 python3.13 python3.12 python3.11 python3.10; do
+    has "$py" && "$py" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null && return 0
+  done
+  has uv || { warn "no Python ≥ 3.10 and no uv: basedpyright/debugpy won't install"; return 0; }
+  info "Python ≥ 3.10 for mason (uv python install 3.13)…"
+  run uv python install 3.13 || warn "uv python install failed"
+}
+
 main() {
   section "Neovim plugins, parsers, language servers"
   check_prereqs
@@ -33,6 +45,7 @@ main() {
     run nvim --headless "+Lazy! restore" +qa || { warn "Lazy restore reported errors"; failed=1; }
   fi
   if wants bootstrap dev && [[ -f "$BOOTSTRAP_SCRIPT" || "$DRY_RUN" == 1 ]]; then
+    ensure_modern_python
     info "language servers + treesitter parsers (several minutes on first run)…"
     run nvim --headless -c "luafile $BOOTSTRAP_SCRIPT" || { warn "bootstrap reported errors"; failed=1; }
   fi

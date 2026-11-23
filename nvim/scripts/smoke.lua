@@ -46,18 +46,18 @@ local samples = {
     lang = 'cpp',
     file = 'main.cpp',
     requires = { { 'clang++', 'g++' } },
-    needs = function() -- the sample uses C++26 features
+    needs = function() -- the sample uses C++26 placeholder variables (`_` twice)
       return tools.newest_std(tools.first { 'clang++', 'g++' }, 'c++', tools.cxx_stds) == 'c++26', 'compiler lacks C++26'
     end,
     servers = { 'clangd' },
-    text = { '#include <print>', 'int main() { int broken = "nope"; std::println("{}", broken); }' },
+    text = { '#include <iostream>', 'int main() { int broken = "nope"; std::cout << broken; }' },
     run_text = {
-      '#include <print>',
+      '#include <iostream>',
       '#include <ranges>',
       '#include <vector>',
       'int main() {',
       '  std::vector v{3, 1, 2};',
-      '  for (int x : v | std::views::reverse) std::println("{}", x);',
+      '  for (int x : v | std::views::reverse) std::cout << x << \'\\n\';',
       '  auto [a, _] = std::pair{1, 2};',
       '  auto [b, _] = std::pair{3, 4};',
       '  return a + b - 4;',
@@ -131,17 +131,26 @@ local function attached(buf, servers)
   return vim.iter(servers):all(function(s) return vim.list_contains(names, s) end)
 end
 
+--- Completion items at the start of line 2; retried because some servers answer
+--- empty until their first parse finishes. Returns count, note.
 local function completion_count(buf)
   local client = vim.lsp.get_clients({ bufnr = buf, method = 'textDocument/completion' })[1]
-  if not client then return 0 end
+  if not client then return 0, 'no completion server' end
   local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
   params.position = { line = 1, character = 0 }
-  local count = 0
-  for _, reply in pairs(vim.lsp.buf_request_sync(buf, 'textDocument/completion', params, 15000) or {}) do
-    local result = reply.result or {}
-    count = count + #(result.items or result)
+  local count, note = 0, 'empty completion list'
+  for _ = 1, 5 do
+    local replies, err = vim.lsp.buf_request_sync(buf, 'textDocument/completion', params, 5000)
+    if not replies then note = 'completion: ' .. tostring(err) end
+    for _, reply in pairs(replies or {}) do
+      if reply.err then note = 'completion: ' .. vim.inspect(reply.err) end
+      local result = reply.result or {}
+      count = count + #(result.items or result)
+    end
+    if count > 0 then break end
+    vim.wait(1000)
   end
-  return count
+  return count, note
 end
 
 --- Run the current buffer through <leader>rr's code path; returns ok, note.
@@ -177,9 +186,11 @@ local function check(sample)
   vim.api.nvim_buf_set_lines(buf, -1, -1, false, { '' }) -- some servers only lint on change
   vim.wait(20000, function() return #vim.diagnostic.get(buf) > 0 end, 200)
   res.diagnostics = #vim.diagnostic.get(buf)
-  res.completion = completion_count(buf)
+  local completion_note
+  res.completion, completion_note = completion_count(buf)
   res.extra, res.note = true, ''
   if sample.extra then res.extra, res.note = sample.extra(buf) end
+  if res.completion == 0 then res.note = res.note .. ' ' .. completion_note end
 
   vim.fn.writefile(sample.run_text or sample.text, path)
   vim.cmd 'edit!'

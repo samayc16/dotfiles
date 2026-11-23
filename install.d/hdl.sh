@@ -12,12 +12,14 @@ VERILATOR_MIN=5.0
 
 verilator_ok() {
   has verilator || return 1
-  version_ge "$(verilator --version | awk '{print $2}')" "$VERILATOR_MIN"
+  version_ge "$(verilator --version | awk '{print $2}')" "$VERILATOR_MIN" || return 1
+  # Every build needs verilated_std.sv; some packages (EPEL 9's 5.022) leave it out.
+  [[ -f "$(verilator --getenv VERILATOR_ROOT)/include/verilated_std.sv" ]]
 }
 
 ensure_verilator() {
   if verilator_ok; then ok "verilator $(verilator --version | awk '{print $2}')"; return 0; fi
-  wants hdl-src cli || { warn "verilator ≥ $VERILATOR_MIN missing and source builds disabled"; return 1; }
+  wants hdl-src cli || { warn "no usable verilator ≥ $VERILATOR_MIN and source builds disabled"; return 1; }
   run bash "$DOTFILES/install.d/verilator.sh"
 }
 

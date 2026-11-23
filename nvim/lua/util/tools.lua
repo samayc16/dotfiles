@@ -74,4 +74,19 @@ function M.newest_std(compiler, lang, candidates)
   return std_cache[key] or nil
 end
 
+local link_cache = {}
+
+--- Whether `compiler` can build and link a trivial `lang` program with `flags`
+--- (sanitizer runtimes, for one, are a separate package on some distros).
+function M.can_link(compiler, lang, flags)
+  local key = table.concat({ compiler, lang, unpack(flags) }, '\0')
+  if link_cache[key] == nil then
+    local out = vim.fn.tempname()
+    local cmd = vim.list_extend({ compiler, unpack(flags) }, { '-x', lang, '-', '-o', out })
+    link_cache[key] = vim.system(cmd, { stdin = 'int main(void) { return 0; }\n' }):wait().code == 0
+    vim.fn.delete(out)
+  end
+  return link_cache[key]
+end
+
 return M
