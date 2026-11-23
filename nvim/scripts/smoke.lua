@@ -138,6 +138,9 @@ local function completion_count(buf)
   if not client then return 0, 'no completion server' end
   local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
   params.position = { line = 1, character = 0 }
+  -- As editors send it: slang-server 0.3.1 hangs on Linux without a context (it
+  -- dereferences the optional field).
+  params.context = { triggerKind = vim.lsp.protocol.CompletionTriggerKind.Invoked }
   local count, note = 0, 'empty completion list'
   for _ = 1, 5 do
     local replies, err = vim.lsp.buf_request_sync(buf, 'textDocument/completion', params, 5000)
