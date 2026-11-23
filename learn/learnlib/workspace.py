@@ -98,7 +98,7 @@ def _prepare_exercism(exercise: Exercise, ws: Path, fresh: bool) -> None:
         if src.is_dir() or rel.parts[0] in IGNORE_DIRS:
             continue
         _copy_new(src, ws / rel)
-    _write_if_missing(ws / "README.md", exercism.readme_text(exercise))
+    (ws / "README.md").write_text(exercism.readme_text(exercise))  # instructions, not learner code: keep current
     if fresh:
         _patch_exercism_tests(exercise, ws)
 
@@ -113,7 +113,7 @@ def _prepare_format(exercise: Exercise, ws: Path) -> None:
             (ws / rel).touch(exist_ok=True)
     readme = exercise.source_dir / "README.md"
     if readme.is_file():
-        _copy_new(readme, ws / "README.md")
+        shutil.copyfile(readme, ws / "README.md")  # instructions, not learner code: keep current
 
 
 def prepare(exercise: Exercise) -> Path:

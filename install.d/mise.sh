@@ -22,17 +22,30 @@ ensure_mise() {
   rm -f "$script"
 }
 
+check_node() {
+  has node && node --version >/dev/null 2>&1 && { ok "node $(node --version)"; return 0; }
+  if ! ldconfig -p 2>/dev/null | grep -q libatomic.so.1; then
+    warn "node needs libatomic.so.1 (dnf install libatomic / zypper install libatomic1);" \
+      "npm-based language servers (bash-language-server) are skipped until then"
+  else
+    warn "node unavailable; npm-based language servers are skipped"
+  fi
+}
+
 main() {
   section "mise tools (user-local)"
   ensure_mise
   # Use the repo manifest directly so this works even before links.sh has run.
-  run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes
+  # Keep going if a single tool fails; only the core tools below are required.
+  run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
   [[ "$DRY_RUN" == 1 ]] && return 0
   run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise reshim
-  local tool
-  for tool in nvim rg fd fzf bat eza delta lazygit zoxide tree-sitter tmux; do
-    if has "$tool"; then ok "$tool"; else warn "$tool not on PATH after mise install"; fi
+  local tool missing=0
+  for tool in nvim rg fd fzf bat eza delta lazygit zoxide tree-sitter tmux jq; do
+    if has "$tool"; then ok "$tool"; else err "$tool missing after mise install"; missing=1; fi
   done
+  check_node
+  return "$missing"
 }
 
 main "$@"

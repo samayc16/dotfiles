@@ -13,6 +13,7 @@ PROFILE="${PROFILE:-full}"
 WITH="${WITH:-}"
 WITHOUT="${WITHOUT:-}"
 LOCAL_PREFIX="${LOCAL_PREFIX:-$HOME/.local}"
+export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH" # tools from earlier steps
 export DOTFILES DRY_RUN NO_SUDO PROFILE WITH WITHOUT LOCAL_PREFIX
 
 # Exit code a step uses to say "nothing to do here" (shown as skipped, not failed)
