@@ -1,34 +1,45 @@
 -- C, C++, Objective-C: clangd (Xcode's on macOS), clang-format, codelldb.
 -- Projects should provide compile_commands.json (CMake: -DCMAKE_EXPORT_COMPILE_COMMANDS=ON,
 -- Make: `bear -- make`); standalone files use the newest standard the compiler accepts.
+-- The compiler for <leader>rr and debugging is chosen per language: <leader>rc (util.toolchain).
 local tools = require 'util.tools'
+local toolchain = require 'util.toolchain'
 local q = vim.fn.shellescape
 
 local clangd = tools.xcode 'clangd' or tools.find 'clangd'
-local cc = tools.first { 'clang', 'gcc' }
-local cxx = tools.first { 'clang++', 'g++' }
 local sanitizers = '-fsanitize=address,undefined'
 
-local function std_for(ft)
-  if ft == 'c' then return tools.newest_std(cc, 'c', tools.c_stds) or 'c17' end
-  return tools.newest_std(cxx, 'c++', tools.cxx_stds) or 'c++20'
+local function std_for(ft, compiler)
+  compiler = compiler or toolchain.get(ft == 'c' and 'c' or 'cpp') -- objc/cuda probe the C++ one
+  if ft == 'c' then return compiler and tools.newest_std(compiler, 'c', tools.c_stds) or 'c17' end
+  return compiler and tools.newest_std(compiler, 'c++', tools.cxx_stds) or 'c++20'
 end
 
-local function compile_and_run(compiler, ft)
+local function compiler_for(ft)
+  local compiler = toolchain.get(ft)
+  if not compiler then vim.notify('No ' .. (ft == 'c' and 'C' or 'C++') .. ' compiler found.', vim.log.levels.ERROR) end
+  return compiler
+end
+
+local function compile_and_run(ft)
   return function(ctx)
+    local compiler = compiler_for(ft)
+    if not compiler then return nil end
     local lang = ft == 'c' and 'c' or 'c++'
-    local flags = '-g -O0 -Wall -Wextra' .. (tools.can_link(compiler, lang, { sanitizers }) and ' ' .. sanitizers or '')
-    local build = ('%s -std=%s %s %s -o %s'):format(q(compiler), std_for(ft), flags, q(ctx.file), q(ctx.out))
+    local flags = '-g -O0 -Wall -Wextra' .. (tools.builds_and_runs(compiler, lang, { sanitizers }) and ' ' .. sanitizers or '')
+    local build = ('%s -std=%s %s %s -o %s'):format(q(compiler), std_for(ft, compiler), flags, q(ctx.file), q(ctx.out))
     return { cmd = build .. ' && ' .. q(ctx.out), cwd = ctx.dir }
   end
 end
 
-local function build_for_debug(compiler, ft)
+local function build_for_debug(ft)
   return function()
+    local compiler = compiler_for(ft)
+    if not compiler then return require('dap').ABORT end
     local file = vim.api.nvim_buf_get_name(0)
     local out = vim.fn.stdpath 'cache' .. '/run/' .. vim.fn.fnamemodify(file, ':t:r') .. '-dbg'
     vim.fn.mkdir(vim.fs.dirname(out), 'p')
-    local result = vim.system({ compiler, '-std=' .. std_for(ft), '-g', '-O0', file, '-o', out }, { text = true }):wait()
+    local result = vim.system({ compiler, '-std=' .. std_for(ft, compiler), '-g', '-O0', file, '-o', out }, { text = true }):wait()
     if result.code ~= 0 then
       vim.notify('Build failed:\n' .. result.stderr, vim.log.levels.ERROR)
       return require('dap').ABORT
@@ -37,9 +48,9 @@ local function build_for_debug(compiler, ft)
   end
 end
 
-local function debug_configs(compiler, ft)
+local function debug_configs(ft)
   return {
-    { name = 'Debug current file', type = 'codelldb', request = 'launch', program = build_for_debug(compiler, ft), cwd = '${fileDirname}' },
+    { name = 'Debug current file', type = 'codelldb', request = 'launch', program = build_for_debug(ft), cwd = '${fileDirname}' },
     {
       name = 'Debug an executable…',
       type = 'codelldb',
@@ -102,10 +113,10 @@ return {
     },
   },
 
-  { 'stevearc/overseer.nvim', opts = { run = { c = compile_and_run(cc, 'c'), cpp = compile_and_run(cxx, 'cpp') } } },
+  { 'stevearc/overseer.nvim', opts = { run = { c = compile_and_run 'c', cpp = compile_and_run 'cpp' } } },
 
   {
     'mfussenegger/nvim-dap',
-    opts = { configurations = { c = debug_configs(cc, 'c'), cpp = debug_configs(cxx, 'cpp') } },
+    opts = { configurations = { c = debug_configs 'c', cpp = debug_configs 'cpp' } },
   },
 }

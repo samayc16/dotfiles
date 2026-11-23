@@ -74,19 +74,24 @@ function M.newest_std(compiler, lang, candidates)
   return std_cache[key] or nil
 end
 
-local link_cache = {}
+local run_cache = {}
 
---- Whether `compiler` can build and link a trivial `lang` program with `flags`
---- (sanitizer runtimes, for one, are a separate package on some distros).
-function M.can_link(compiler, lang, flags)
+--- Whether `compiler` builds a trivial `lang` program with `flags` that actually runs. For
+--- sanitizers the runtime can be missing (a separate distro package) or broken: older ASan
+--- crashes at random on kernels with high mmap ASLR entropy, hence the repeated runs.
+function M.builds_and_runs(compiler, lang, flags)
   local key = table.concat({ compiler, lang, unpack(flags) }, '\0')
-  if link_cache[key] == nil then
+  if run_cache[key] == nil then
     local out = vim.fn.tempname()
     local cmd = vim.list_extend({ compiler, unpack(flags) }, { '-x', lang, '-', '-o', out })
-    link_cache[key] = vim.system(cmd, { stdin = 'int main(void) { return 0; }\n' }):wait().code == 0
+    local ok = vim.system(cmd, { stdin = 'int main(void) { return 0; }\n' }):wait().code == 0
+    for _ = 1, 20 do
+      ok = ok and vim.system({ out }):wait().code == 0
+    end
     vim.fn.delete(out)
+    run_cache[key] = ok
   end
-  return link_cache[key]
+  return run_cache[key]
 end
 
 return M

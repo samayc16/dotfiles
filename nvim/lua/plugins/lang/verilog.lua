@@ -1,5 +1,6 @@
--- Verilog / SystemVerilog: slang-server (LSP), Verible (format, manual), Verilator and
--- Icarus (simulate), Surfer (waves), slang-server.nvim (<leader>v hierarchy views).
+-- Verilog / SystemVerilog: slang-server (LSP), Verible (format, manual), Verilator or
+-- Icarus for <leader>rr (choose with <leader>rc), Surfer (waves), slang-server.nvim
+-- (<leader>v hierarchy views).
 -- Per-project include dirs, file lists and UVM paths: .slang/server.json
 -- (https://hudson-trading.github.io/slang-server/start/config/).
 local q = vim.fn.shellescape
@@ -16,16 +17,32 @@ local function top_module(buf, stem)
   return last
 end
 
-local function verilator_run(ctx)
+local simulators = {
+  verilator = function(ctx, top)
+    local mdir = ctx.outdir .. '/verilator-' .. top
+    -- VCD, not FST: Homebrew's Verilator can't build FST support (missing lz4.h).
+    local build = ('verilator --binary --timing --assert -j 0 -Wno-fatal --trace --top-module %s -Mdir %s %s'):format(top, q(mdir), q(ctx.file))
+    return build .. ' && ' .. q(mdir .. '/V' .. top)
+  end,
+  iverilog = function(ctx, top)
+    local out = ctx.outdir .. '/' .. top .. '.vvp'
+    -- -n: $stop ends the run instead of opening vvp's interactive prompt.
+    return ('iverilog -g2012 -Wall -s %s -o %s %s && vvp -n %s'):format(top, q(out), q(ctx.file), q(out))
+  end,
+}
+
+local function simulate(ctx)
   local top = top_module(ctx.buf, ctx.stem)
   if not top then
     vim.notify('No `module` found in this file.', vim.log.levels.WARN)
     return nil
   end
-  local mdir = ctx.outdir .. '/verilator-' .. top
-  -- VCD, not FST: Homebrew's Verilator can't build FST support (missing lz4.h).
-  local build = ('verilator --binary --timing --assert -j 0 -Wno-fatal --trace --top-module %s -Mdir %s %s'):format(top, q(mdir), q(ctx.file))
-  return { cmd = build .. ' && ' .. q(mdir .. '/V' .. top), cwd = ctx.dir }
+  local simulator = require('util.toolchain').get(vim.bo[ctx.buf].filetype)
+  if not simulators[simulator] then
+    vim.notify('No simulator found: install Verilator or Icarus Verilog.', vim.log.levels.ERROR)
+    return nil
+  end
+  return { cmd = simulators[simulator](ctx, top), cwd = ctx.dir }
 end
 
 local function current_file() return vim.api.nvim_buf_get_name(0) end
@@ -71,7 +88,7 @@ return {
 
   { 'stevearc/conform.nvim', opts = { formatters_by_ft = { verilog = { 'verible' }, systemverilog = { 'verible' } } } },
 
-  { 'stevearc/overseer.nvim', opts = { run = { verilog = verilator_run, systemverilog = verilator_run }, templates = templates } },
+  { 'stevearc/overseer.nvim', opts = { run = { verilog = simulate, systemverilog = simulate }, templates = templates } },
 
   {
     'hudson-trading/slang-server.nvim',

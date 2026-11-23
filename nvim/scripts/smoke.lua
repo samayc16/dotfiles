@@ -1,9 +1,11 @@
 -- End-to-end check of every language with the real config:
 --   nvim --headless -c 'luafile ~/.config/nvim/scripts/smoke.lua'      (SMOKE_ONLY=<lang> for one)
 -- Per language: treesitter, LSP attach, a deliberate diagnostic, completion, and
--- <leader>rr (util.runner -> overseer) producing the expected output. Languages whose
--- toolchain is missing are skipped. Exit code 0 only if something ran and all passed.
+-- <leader>rr (util.runner -> overseer) producing the expected output, once per installed
+-- compiler / simulator (<leader>rc). Languages whose toolchain is missing are skipped.
+-- Exit code 0 only if something ran and all passed.
 local tools = require 'util.tools'
+local toolchain = require 'util.toolchain'
 
 local samples = {
   {
@@ -47,7 +49,7 @@ local samples = {
     file = 'main.cpp',
     requires = { { 'clang++', 'g++' } },
     needs = function() -- the sample uses C++26 placeholder variables (`_` twice)
-      return tools.newest_std(tools.first { 'clang++', 'g++' }, 'c++', tools.cxx_stds) == 'c++26', 'compiler lacks C++26'
+      return tools.newest_std(toolchain.get 'cpp', 'c++', tools.cxx_stds) == 'c++26', 'compiler lacks C++26'
     end,
     servers = { 'clangd' },
     text = { '#include <iostream>', 'int main() { int broken = "nope"; std::cout << broken; }' },
@@ -78,7 +80,7 @@ local samples = {
   {
     lang = 'systemverilog',
     file = 'counter.sv',
-    requires = { { 'verilator' } },
+    requires = { { 'verilator', 'iverilog' } },
     servers = { 'slang_server' },
     text = { 'module counter (output logic [3:0] q);', '  assign q = undeclared_signal;', 'endmodule' },
     run_text = { 'module counter;', '  logic [3:0] q = 0;', '  initial begin', '    repeat (5) q++;', '    $display("q=%0d", q);', '    $finish;', '  end', 'endmodule' },
@@ -113,6 +115,21 @@ local samples = {
     expect = 'hello world',
   },
 }
+
+-- One run per installed compiler / simulator: the sample pinned to each choice.
+local GROUP = { c = 'c', cpp = 'cpp', systemverilog = 'hdl' }
+samples = vim.iter(samples)
+  :map(function(sample)
+    local group = GROUP[sample.lang]
+    local choices = group and toolchain.candidates(group) or {}
+    if #choices == 0 then return { sample } end
+    return vim.tbl_map(function(tool)
+      local label = tool == choices[1] and sample.lang or sample.lang .. '+' .. tool
+      return vim.tbl_extend('force', sample, { label = label, toolchain = { [group] = tool } })
+    end, choices)
+  end)
+  :flatten()
+  :totable()
 
 local function log(fmt, ...) io.stdout:write(fmt:format(...) .. '\n') end
 
@@ -224,21 +241,24 @@ local only = vim.env.SMOKE_ONLY
 local ran, failed, skipped = 0, 0, 0
 for _, sample in ipairs(samples) do
   if not only or only == sample.lang then
+    vim.g.toolchain = sample.toolchain
+    local name = sample.label or sample.lang
     local why = skip_reason(sample)
     if why then
       skipped = skipped + 1
-      log('%-14s SKIP  %s', sample.lang, why)
+      log('%-22s SKIP  %s', name, why)
     else
       ran = ran + 1
       local ok, res = pcall(check, sample)
       if not ok then res = { ok = false, note = tostring(res) } end
       if not res.ok then failed = failed + 1 end
-      log('%-14s %s  ts=%s lsp=%s diags=%s completion=%s run=%s %s', sample.lang, res.ok and 'PASS' or 'FAIL', tostring(res.treesitter),
+      log('%-22s %s  ts=%s lsp=%s diags=%s completion=%s run=%s %s', name, res.ok and 'PASS' or 'FAIL', tostring(res.treesitter),
         tostring(res.lsp), tostring(res.diagnostics), tostring(res.completion), tostring(res.run), res.note or '')
       if not res.ok then
         for _, line in ipairs(server_log(sample.servers)) do log('    %s', line:sub(1, 400)) end
       end
     end
+    vim.g.toolchain = nil
     vim.cmd 'silent! %bwipeout!'
   end
 end

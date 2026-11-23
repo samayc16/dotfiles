@@ -13,6 +13,7 @@ Every key is in [CHEATSHEET.md](../CHEATSHEET.md#neovim-leader--space); this gui
 | open a `.py` file, put the cursor on a name, `K` | hover docs from the language server |
 | `grd` then `Ctrl-o` | jump to a definition and back |
 | `Space rr` | run the file; output docks at the bottom |
+| `Space rc` | choose the compiler or simulator `Space rr` uses (clang or gcc, Verilator or Icarus) |
 | `Space db` then `Space dc` | set a breakpoint and start the debugger |
 | `:Dojo` | practise all of the above as a game |
 
@@ -23,9 +24,9 @@ Everything below is installed and smoke-tested by the installer.
 | language | language server | runs with `Space rr` | notes |
 |---|---|---|---|
 | Python | basedpyright + ruff | project `.venv` python, else `python3` | `.venv` is picked up automatically; `Space ro` → pytest |
-| C / C++ | clangd | clang (or gcc) with ASan/UBSan, newest standard the compiler accepts (C23 / C++26) | projects: generate `compile_commands.json` |
+| C / C++ | clangd | clang, gcc or Homebrew's gcc-NN (`Space rc`), with ASan/UBSan where they work, newest standard the compiler accepts (C23 / C++26) | projects: generate `compile_commands.json` |
 | Swift | sourcekit-lsp | `swift run` in packages, `swift file.swift` otherwise | Xcode apps: see below |
-| SystemVerilog / Verilog | slang-server | Verilator, top = module named after the file | waves: `Space ro` → surfer |
+| SystemVerilog / Verilog | slang-server | Verilator or Icarus (`Space rc`), top = module named after the file | waves: `Space ro` → surfer |
 | Haskell | haskell-language-server | `runghc` | `Space ro` → ghci |
 | Lua · shell | lua_ls · bashls + ShellCheck | `nvim -l` · bash | |
 

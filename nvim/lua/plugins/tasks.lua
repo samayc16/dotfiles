@@ -1,5 +1,6 @@
 -- overseer.nvim: <leader>rr runs the current file (util/runner.lua); <leader>ro picks
--- a project task. Language files add `opts.run[filetype]` builders and `opts.templates`.
+-- a project task; <leader>rc / :Toolchain choose the compiler or simulator it uses.
+-- Language files add `opts.run[filetype]` builders and `opts.templates`.
 return {
   {
     'stevearc/overseer.nvim',
@@ -12,7 +13,15 @@ return {
       { '<leader>rt', '<cmd>OverseerToggle! bottom<cr>', desc = '[R]un: toggle [t]ask list' },
       { '<leader>rs', '<cmd>OverseerShell<cr>', desc = '[R]un [s]hell command' },
       { '<leader>ra', '<cmd>OverseerTaskAction<cr>', desc = '[R]un: task [a]ction' },
+      { '<leader>rc', function() require('util.toolchain').pick() end, desc = '[R]un: choose [c]ompiler / simulator' },
     },
+    init = function()
+      vim.api.nvim_create_user_command('Toolchain', function(cmd) require('util.toolchain').pick(cmd.args ~= '' and cmd.args or nil) end, {
+        nargs = '?',
+        complete = function() return require('util.toolchain').groups end,
+        desc = 'Choose the compiler / simulator for <leader>rr: c, cpp or hdl (default: this buffer)',
+      })
+    end,
     opts_extend = { 'templates' },
     opts = {
       run = {},

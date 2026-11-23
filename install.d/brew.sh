@@ -11,7 +11,7 @@ CLI_FORMULAE=(
   tree-sitter-cli
 )
 DEV_FORMULAE=(
-  uv node cmake
+  uv node cmake gcc                       # gcc: GNU GCC as gcc-NN/g++-NN (plain gcc is Apple clang)
   verilator icarus-verilog surfer z3      # HDL: simulate, waveforms, z3 = Verilator constrained-random
   xcode-build-server xcbeautify           # Swift/Xcode from nvim (xcodebuild.nvim)
 )

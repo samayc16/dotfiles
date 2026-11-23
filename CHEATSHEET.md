@@ -156,9 +156,9 @@ Layout: `nvim/lua/config/` (options, keymaps) · `nvim/lua/plugins/` (one file p
 | language | LSP | format | run `<leader>rr` | debug |
 |---|---|---|---|---|
 | Python | basedpyright + ruff | ruff (on save) | `.venv` python, else python3 | debugpy (`<leader>dm` test method) |
-| C / C++ | clangd (Xcode's on macOS) | clang-format (on save if `.clang-format`) | clang -std=c23 / c++26 + ASan/UBSan | codelldb ("Debug current file") |
+| C / C++ | clangd (Xcode's on macOS) | clang-format (on save if `.clang-format`) | clang or gcc (`<leader>rc`), -std=c23 / c++26 + ASan/UBSan where they work | codelldb ("Debug current file") |
 | Swift | sourcekit-lsp | swift-format / SwiftFormat | `swift run` (packages) or `swift file` | lldb-dap · Xcode apps: `<leader>X…` |
-| SystemVerilog / Verilog | slang-server | Verible (`<leader>f`) | Verilator `--binary` (top = module named after file) | waves: `<leader>ro` → surfer |
+| SystemVerilog / Verilog | slang-server | Verible (`<leader>f`) | Verilator `--binary` or Icarus (`<leader>rc`); top = module named after file | waves: `<leader>ro` → surfer |
 | Haskell | haskell-language-server | fourmolu (on save) | runghc | |
 | Lua / shell | lua_ls + lazydev / bashls + ShellCheck | stylua / shfmt (`<leader>f`) | `nvim -l` / bash | |
 
@@ -198,6 +198,7 @@ SystemVerilog snippets: `mod` `modp` `aff` `affs` `acomb` `fsm` `intf` `pkg` `st
 | `<leader>rr` / `<leader>rR` | run current file / with arguments |
 | `<leader>ro` | pick a project task (make, cmake, swift build/test, pytest, verilator lint, iverilog, surfer…) |
 | `<leader>rl` | re-run last task |
+| `<leader>rc` · `:Toolchain [c\|cpp\|hdl]` | choose what `<leader>rr` uses: clang / gcc / gcc-NN, clang++ / g++, Verilator / Icarus (saved) |
 | `<leader>rt` | toggle task list (`o` open output, `dd` dispose) |
 | `<leader>rs` | run a shell command as a task |
 
