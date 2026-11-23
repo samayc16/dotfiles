@@ -15,8 +15,9 @@
   "open": "WordCount.hs",
   "check": "check.sh",
   "hints": [
-    "Replace non-letters with spaces, lowercase, then `words`.",
-    "Map.fromListWith (+) [(w, 1) | w <- ws] counts things.",
-    "Sort with a key of (Down count, word): Down reverses an ordering."
+    "README 'New syntax': all Map functions are prefixed `Map.`; fromListWith/insertWith combine duplicates; sortBy + comparing + Down handle the ordering.",
+    "wordFreq: turn every non-letter into a space and lowercase the rest, split into words, then count with fromListWith (+) over (word, 1) pairs. topN: toList, sort by (count descending, word ascending), take n. inventory: fromListWith (+). restock: insertWith (+). countOf: findWithDefault 0.",
+    "Other data: `[if c == '-' then ' ' else c | c <- \\\"a-b\\\"]` → \\\"a b\\\" · `Map.fromListWith (+) [(c, 1) | c <- \\\"abca\\\"]` → fromList [('a',2),('b',1),('c',1)] · `sortBy (comparing (\\s -> (length s, s)))` sorts by length, then alphabetically.",
+    "`wordFreq text = Map.fromListWith (+) [(w, 1) | w <- words cleaned]` where cleaned maps letters to lowercase and the rest to ' ' · `topN n freq = take n (sortBy (comparing (\\(w, c) -> (Down c, w))) (Map.toList freq))`."
   ]
 }

@@ -15,8 +15,9 @@
   "open": "Functors.hs",
   "check": "check.sh",
   "hints": [
-    "fmap f (Box a) = Box (f a)",
-    "For Tree, fmap recursively into both subtrees.",
-    "<$> is just infix fmap."
+    "README 'New syntax': a Functor instance is one `fmap` equation per constructor: rebuild the same constructor with f applied to every value of type `a`.",
+    "Box: apply f to the one value. Pair: to both. Tree: Leaf stays Leaf; Node applies f to its middle value and fmaps into both subtrees. incAll: fmap (+ 1). lengths: length <$> m.",
+    "Other data: `fmap f (Tagged label x) = Tagged label (f x)` · `fmap f (Link x xs) = Link (f x) (fmap f xs)` · `negate <$> Just 4` → Just (-4).",
+    "`fmap f (Pair a b) = Pair (f a) (f b)` · `fmap f (Node l x r) = Node (fmap f l) (f x) (fmap f r)` · `incAll = fmap (+ 1)`."
   ]
 }

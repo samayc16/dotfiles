@@ -2,7 +2,18 @@
 
 > Post-mortem time. Which endpoints failed, how often, and how slowly?
 
-**Task:** From `app.log`, for each `path` with **at least 3** responses with status ≥ 500, print `PATH COUNT AVG_MS`. `AVG_MS` is the mean `ms` of those 5xx responses, with 1 decimal. Sort by count (highest first), then by path.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| several rules | `{...}` with no condition runs on every line; later `COND {...}` rules see the same line | |
+| `if (c) stmt` | an `if` inside an action | `echo '3 9' \| awk '{if ($1 > 2) print "big"}'` → `big` |
+| `/` | awk arithmetic is floating point | `awk 'BEGIN {print 7 / 2}'` → `3.5` |
+| `sort -k2,2nr -k1,1` | sort by field 2 (numeric, descending), break ties by field 1 | `printf 'b 2\na 2\nc 5\n' \| sort -k2,2nr -k1,1` → `c 5`, `a 2`, `b 2` |
+
+## Your task
+
+From `app.log`, for each `path` with **at least 3** responses with status ≥ 500, print `PATH COUNT AVG_MS`. `AVG_MS` is the mean `ms` of those 5xx responses, with 1 decimal. Sort by count (highest first), then by path.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

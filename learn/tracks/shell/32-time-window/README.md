@@ -2,7 +2,18 @@
 
 > The dashboard shows the spike between 10:15 and 10:30. Zoom in.
 
-**Task:** For `ERROR` lines in `app.log` with a time from `10:15:00` up to (not including) `10:30:00`, print `HH:MM:SS PATH STATUS` (values only, e.g. `10:16:03 /api/checkout 503`).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `substr(s, i, n)` | n characters of s, starting at position i (counting from 1) | `awk 'BEGIN {print substr("2026-01-31", 6, 2)}'` → `01` |
+| `"10:05" < "10:30"` | comparing strings is alphabetical, which works for zero-padded times (`"9:00" < "10:00"` is false!) | |
+| `split(s, a, "=")` | split s on `=` into `a[1]`, `a[2]`, ... | `echo 'k=v' \| awk '{split($1, p, "="); print p[2]}'` → `v` |
+| multi-line program | a program inside `'...'` may span several lines | |
+
+## Your task
+
+For `ERROR` lines in `app.log` with a time from `10:15:00` up to (not including) `10:30:00`, print `HH:MM:SS PATH STATUS` (values only, e.g. `10:16:03 /api/checkout 503`).
 
 **Input** `$DATA/app.log` (first lines):
 ```text

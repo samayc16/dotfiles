@@ -12,7 +12,9 @@
   "check": "check.sh",
   "par": 118,
   "hints": [
-    "You could pipe into `wc -l`... or grep can count by itself.",
-    "`-c` counts matching lines."
+    "`man grep`, search `/count`: grep can count matching lines by itself.",
+    "Keep the level-01 command and add one flag; it prints a number instead of lines.",
+    "`printf 'a\\nb\\na\\n' | grep -c a` prints `2`.",
+    "`grep -c PATTERN \"$DATA/app.log\"`."
   ]
 }

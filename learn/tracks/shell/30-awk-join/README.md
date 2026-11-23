@@ -2,7 +2,25 @@
 
 > Orders know user IDs; users know teams. Join them.
 
-**Task:** Join `users.csv` and `orders.csv` and print `TEAM TOTAL` (2 decimals) of `paid` **USD** orders per team, biggest total first.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `awk '...' f1 f2` | one program reads f1, then f2 | |
+| `FNR` | the line number within the current file (`NR` keeps counting across files) | |
+| `NR == FNR` | true only while reading the first file | |
+| `next` | stop working on this line and move on to the next one | |
+
+```sh
+# colors.txt: "1 red"  "2 blue"      items.txt: "pen 1"  "cup 2"
+awk 'NR == FNR {c[$1] = $2; next} {print $1, c[$2]}' colors.txt items.txt
+# pen red
+# cup blue
+```
+
+## Your task
+
+Join `users.csv` and `orders.csv` and print `TEAM TOTAL` (2 decimals) of `paid` **USD** orders per team, biggest total first.
 
 **Input** `$DATA/users.csv` (first lines):
 ```text

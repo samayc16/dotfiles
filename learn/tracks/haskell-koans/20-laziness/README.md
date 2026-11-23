@@ -4,6 +4,18 @@
 
 **Why it matters:** Haskell only computes what's needed. Infinite lists become ordinary values, and you separate *generating* data from *consuming* it.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `Integer` | whole numbers with no size limit (`Int` is 64-bit) | `(2 ^ 100 :: Integer)` |
+| infinite lists | fine to define; only the part you consume is ever computed | `evens = [0, 2 ..]` |
+| `takeWhile p xs` | take elements while `p` holds, stop at the first failure | `takeWhile (< 4) [1 ..]` → `[1,2,3]` |
+| `iterate f x` | `[x, f x, f (f x), …]` forever | `take 4 (iterate (* 3) 1)` → `[1,3,9,27]` |
+| `tail xs` | everything after the first element | `tail "abc"` → `"bc"` |
+| `cycle xs` | repeat a list forever | `take 5 (cycle [1, 2])` → `[1,2,1,2,1]` |
+| self-reference | a list may be defined from itself if each element only needs earlier ones | `powers = 1 : map (* 2) powers` |
+
 ## Your task
 
 Edit `Lazy.hs` and replace every `undefined`.

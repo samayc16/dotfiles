@@ -20,4 +20,17 @@ with a model.
 
 Width tip: the counter needs `$clog2(N+1)` bits; compare it with a sized constant (`CW'(N - 1)`).
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `$clog2(n)` | ceiling of log2: bits needed for `n` different values; computed at compile time | `$clog2(10)` → `4` |
+| `localparam int CW = $clog2(N + 1);` | a width that can hold 0..N | |
+| one driver per signal | a signal is set by **either** an `assign` **or** one `always` block. Moving `clean` into `always_ff` means deleting its `assign` | |
+| `x_q <= x;` | the `_q` suffix means "x delayed by one clock" (a flop copy) | `btn_q <= btn;` |
+| an output inside `always_ff` | assigning an output port with `<=` makes it a registered output | |
+
+**Your task:** replace the placeholders in `debounce.sv` with the counter, the `clean` register, `clean_q`,
+and real `rise`/`fall` logic.
+
 **Waveforms:** `WAVES=1 learn check` → `surfer wave.vcd`, then compare `noisy`, `clean`, `rise`.

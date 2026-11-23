@@ -15,8 +15,9 @@
   "open": "Maybes.hs",
   "check": "check.sh",
   "hints": [
-    "Pattern-match the zero case first: safeDiv _ 0 = Nothing",
-    "lookup :: Eq a => a -> [(a, b)] -> Maybe b",
-    "For totalPrice, recurse and `case` on both Maybes. (Later: `mapM priceOf items` does it in one go!)"
+    "README 'New syntax': match on `0`, `[]` and `Just`/`Nothing`; `lookup` (koan 08) already returns a Maybe.",
+    "safeDiv: a zero divisor → Nothing, else Just the `div`. safeHead: [] → Nothing, (x : _) → Just x. priceOf: lookup in menu. priceOrZero: fromMaybe 0. totalPrice: [] costs Just 0; otherwise combine the head's price with the rest's total, Nothing if either is Nothing.",
+    "Other data: `isZero 0 = True` / `isZero _ = False` · `fromMaybe \"?\" (lookup 3 [(1, \"a\")])` → \"?\" · `bothTimes` in the README matches two Maybes at once.",
+    "`safeDiv _ 0 = Nothing` then `safeDiv a b = Just (div a b)` · `totalPrice (item : rest) = case (priceOf item, totalPrice rest) of (Just p, Just t) -> Just (p + t); _ -> Nothing`."
   ]
 }

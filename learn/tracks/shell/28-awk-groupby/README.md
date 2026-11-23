@@ -2,7 +2,24 @@
 
 > Same question, broken down by currency.
 
-**Task:** For `paid` orders, print `CURRENCY TOTAL` (2 decimals) per currency, sorted by currency.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `a[key]` | an associative array (a dict): any string key, created on first use | `n[$1]` |
+| `x++` | add 1 | `n[$1]++` counts each first field |
+| `for (k in a)` | loop over the keys, in **no particular order**, so pipe the output into `sort` | |
+| `printf "%s %d\n", a, b` | `%s` string, `%d` whole number, `%.2f` two decimals | |
+
+```sh
+printf 'x\ny\nx\n' | awk '{n[$1]++} END {for (k in n) print k, n[k]}' | sort
+# x 2
+# y 1
+```
+
+## Your task
+
+For `paid` orders, print `CURRENCY TOTAL` (2 decimals) per currency, sorted by currency.
 
 **Input** `$DATA/orders.csv` (first lines):
 ```text

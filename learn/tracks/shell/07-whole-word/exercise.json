@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 118,
   "hints": [
-    "Search is case-sensitive by default, so `ERROR` is already excluded.",
-    "A flag matches whole words only. Underscore counts as a word character, so `error_code` is out."
+    "`man grep`, search `/word-regexp`.",
+    "Case-sensitivity already rules out `ERROR`; one flag also rules out longer words like `errors` and `error_code` (`_` counts as a word character).",
+    "`printf 'cat\\ncats\\ncat_food\\n' | grep -w cat` prints only `cat`.",
+    "`grep -w error` on app.log."
   ]
 }

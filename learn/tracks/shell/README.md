@@ -7,6 +7,8 @@ par (characters of code) for the third star.
 - Play: `learn` (this repo's CLI) · requirements: bash, perl, ripgrep, POSIX grep/sed/awk.
 - Data: `data/` (synthetic: fictional people, example.com/.org/.net emails, RFC 5737 TEST-NET IPs).
 - Rebuild data, levels and expected outputs: `python3 -I _gen/build.py`
+  (levels, stories and hints live in `_gen/build.py`; the level-01 primer and every level's
+  "New syntax" table live in `_gen/level_docs.py`)
 - Verify every level (starter fails, reference passes, reference within par): `./_verify.sh`
   and `./_verify.sh --gnu` to repeat it with GNU grep/sed/awk/coreutils (Homebrew gnubin), as on Linux.
 - Shared checker: `_lib/check.sh` (modes: exact, ws, sorted; REQUIRE/FORBID tools; file-editing levels).

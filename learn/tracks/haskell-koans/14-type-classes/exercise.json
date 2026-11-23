@@ -15,8 +15,9 @@
   "open": "Classes.hs",
   "check": "check.sh",
   "hints": [
-    "show coin = show (value coin) ++ \"¢\"",
-    "compare = comparing value",
-    "intercalate \", \" (map describe xs)"
+    "README 'New syntax': each `instance` block defines the class's method(s) for one type, by pattern matching like any function.",
+    "value: one equation per coin. show: the value as text plus \"¢\". compare: compare coins by their value. describe for Bool: two equations; for Coin: build the sentence with show (value c); for lists: describe each element and join with \", \".",
+    "Other data: `show (Temp d) = show d ++ \"°\"` · `comparing length \"ab\" \"c\"` → GT · `intercalate \" / \" (map show [1, 2])` → \"1 / 2\".",
+    "`show coin = show (value coin) ++ \"¢\"` · `compare = comparing value` · `describe xs = intercalate \", \" (map describe xs)`."
   ]
 }

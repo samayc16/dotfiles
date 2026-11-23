@@ -14,7 +14,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "Pack indexing: template <class... Ts> constexpr auto first(Ts... ts) { return ts...[0]; }  last: ts...[sizeof...(ts) - 1].",
-    "void process(double) = delete(\"use process(int)\");   mdspan: std::mdspan grid(data, rows, cols); grid[r, c] (multidimensional subscript)."
+    "New syntax table: `pack...[i]`, `sizeof...`, `= delete(\"why\")`, `std::mdspan` with `m[i, j]`, and `_` in structured bindings.",
+    "first is index 0 of the pack; last is index `sizeof...(values) - 1`. Declare a `process(double)` overload that is deleted with a message. trace: view the data as an n×n mdspan and add `matrix[i, i]`. sum_firsts: unpack each pair as `[a, _]`.",
+    "On other data: `xs...[1]` (second element) · `void send(const char*) = delete(\"pass a std::string\");` · `std::mdspan img(px.data(), 2, 3); img[1, 2]` · `for (const auto& [_, age] : ages)`.",
+    "Near-answer: `return values...[sizeof...(values) - 1];` · `int process(double) = delete(\"...\");` · `std::mdspan matrix(data.data(), n, n);` then `sum += matrix[i, i];` in a loop."
   ]
 }

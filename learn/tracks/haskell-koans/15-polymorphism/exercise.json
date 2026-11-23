@@ -14,8 +14,9 @@
   "open": "Polymorphism.hs",
   "check": "check.sh",
   "hints": [
-    "filter (== x) xs keeps the matching elements.",
-    "clamp lo hi x = max lo (min hi x)",
-    "dedupe: walk the list carrying the elements you've already seen."
+    "README 'New syntax': the constraint (`Ord a =>`, `Eq a =>` …) tells you which operations you may use; the Prelude has maximum, product, min, max and elem.",
+    "largest: Nothing for [], else Just the maximum. countOf: keep the elements equal to x, count them. joinShown: show each, join with \", \". sumAndProduct: a pair of sum and product. clamp: not below lo, not above hi. dedupe: walk the list remembering what you've seen; skip the seen ones.",
+    "Other data: `length (filter (> 2) [1, 5, 3])` → 2 · `intercalate \"|\" (map show [True, False])` · `runningMax` in the README shows a `go` helper carrying state.",
+    "`clamp lo hi x = max lo (min hi x)` · `dedupe = go [] where go _ [] = []; go seen (x : rest) | elem x seen = go seen rest | otherwise = x : go (x : seen) rest`."
   ]
 }

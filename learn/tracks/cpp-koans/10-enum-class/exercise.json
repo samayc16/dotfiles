@@ -14,7 +14,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "enum class Level : std::uint8_t { Debug, Info, Warn, Error };  scoped: no implicit int conversion.",
-    "std::to_underlying(level) gives the integer. Inside a switch: using enum Level; case Debug: ... (C++20)."
+    "New syntax table: `enum class ... : std::uint8_t`, `std::to_underlying`, `using enum`. The static_assert messages in test.cpp say what's wrong with the starter's enum.",
+    "Make Level scoped with a 1-byte underlying type. severity converts to that integer. label: a switch with `using enum Level;` inside, so cases can say `Debug` instead of `Level::Debug`.",
+    "On other data: `enum class Dir : std::uint8_t { N, E, S, W };` · `std::to_underlying(Dir::S) == 2` · `switch (d) { using enum Dir; case N: return \"^\"; ... }`.",
+    "Near-answer: `enum class Level : std::uint8_t { Debug, Info, Warn, Error };` and `return std::to_underlying(level);`"
   ]
 }

@@ -18,6 +18,19 @@ t.randomize();                              // obey every constraint
 t.randomize() with { kind == WRITE; };      // ...plus an inline one, for a directed test
 ```
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `rand bit [7:0] x;` | `randomize()` chooses a value for this field | `rand bit [7:0] size;` |
+| `constraint name { e1; e2; }` | rules every `randomize()` result must obey | `constraint c_even { size[0] == 0; }` |
+| `x inside {[lo:hi]}` | x lies in the range (or a set: `{1, 3, 5}`) | `size inside {[4:12]}` |
+| `(c) -> e` | implication: whenever `c` is true, `e` must be too | `(mode == FAST) -> size inside {[4:12]};` |
+| `x dist { A := 3, B := 1 }` | weighted choice: A is 3x as likely as B | `mode dist { SLOW := 1, FAST := 3 };` |
+| `t.randomize()` | solve the constraints; returns 1 on success, 0 if they contradict | `t.randomize() == 1` |
+| `t.randomize() with { ... }` | add extra constraints for this one call | `j.randomize() with { mode == SLOW; }` |
+| `typedef enum bit [1:0]` | an enum stored in 2-state bits | |
+
 **Your task:** add constraints to `BusTxn` so every result obeys the four rules in `txn_pkg.sv`, while still
 spreading over many addresses (don't over-constrain!).
 

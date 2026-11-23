@@ -15,7 +15,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "class Stack[T]: def __init__(self) -> None: self._items: list[T] = [] ... def __len__(self) -> int, def __bool__(self) -> bool.",
-    "@runtime_checkable class HasArea(Protocol): def area(self) -> float: ...  — any class with an area() method matches, no inheritance needed."
+    "Look at the README's 'New syntax' block: it covers all four parts, and the imports are already in place.",
+    "Stack wraps a `list[T]`: push appends; pop / peek raise IndexError when empty; `__len__` / `__bool__` delegate to the list. first: a conditional expression. HasArea: a Protocol with one `...` method plus the decorator. Movie: two annotated keys. make_movie: a dict literal.",
+    "Other data: `class Queue[T]: def __init__(self) -> None: self._q: list[T] = []`; `def last[T](xs: Sequence[T]) -> T | None: return xs[-1] if xs else None`; `sum(s.perimeter() for s in shapes)`.",
+    "Near-answer: `@runtime_checkable class HasArea(Protocol): def area(self) -> float: ...`; `def pop(self) -> T: if not self._items: raise IndexError(\"empty\"); return self._items.pop()`."
   ]
 }

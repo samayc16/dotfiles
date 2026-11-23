@@ -15,7 +15,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "C23 makes bool/true/false keywords (no <stdbool.h>) and adds nullptr. constexpr unsigned MASK = 0b1111'0000;",
-    "first_positive: loop with a pointer, return &xs[i] when xs[i] > 0, else nullptr."
+    "Look at the README's 'New syntax' table: MASK needs `constexpr` plus a binary literal; the two functions are plain `for` loops over `n` elements.",
+    "count_true: a size_t counter that grows by 1 per true flag (a bool is 0 or 1, so you can add it directly). first_positive: return the ADDRESS of the first element > 0; after the loop, return nullptr.",
+    "Same shapes on other data: `constexpr unsigned LOW_NIBBLE = 0b0000'1111;` · `for (size_t i = 0; i < n; i++) if (xs[i] == 0) return &xs[i];`",
+    "Near-answer: `constexpr unsigned MASK = 0b1111'0000;` (delete the #define), and inside the loop `if (xs[i] > 0) return &xs[i];`. Remove the `(void)x;` lines once you use the parameters."
   ]
 }

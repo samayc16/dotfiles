@@ -24,6 +24,20 @@ that were present **at** the edge: exactly what the FIFO acted on.
 Verilator note: declare mailboxes of your own classes as `std::mailbox #(Observation)`, as in the
 starter. The plain `mailbox` spelling trips a Verilator parser quirk in this file.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `virtual fifo_if vif;` | a handle to a real interface instance, so a class can drive and watch pins | |
+| `vif.push = 1;` · `x = vif.dout;` | drive / read a pin through the handle | |
+| `forever begin ... end` | loop until the simulation ends (start it with `fork ... join_none`) | |
+| `@(posedge vif.clk);` | inside a task: wait for the next rising edge | |
+| `bit [7:0] q[$];` | a queue: `q.push_back(x)`, `q.pop_front()`, `q.size()` | `int q[$]; q.push_back(5);` |
+| `std::mailbox #(T)` | the same `mailbox`, spelled with its package name (Verilator quirk) | |
+| `T o; o = new();` in the loop | a **fresh** object per item: a mailbox stores handles, not copies | |
+| `$display("fmt", args)` | print a line; `%02h` = 2 hex digits | `$display("got %02h", v);` |
+| `void'(f())` | call a function and ignore its return value (the Driver does this) | `void'(t.randomize());` |
+
 **Your task:** write `Monitor.run()` and `Scoreboard.run()` in `fifo_tb_pkg.sv`. The check runs twice:
 `good` (a correct FIFO: zero mismatches allowed) and `buggy` (`fifo.sv` corrupts one slot: your scoreboard
 has to notice). A scoreboard that never complains fails the second run.

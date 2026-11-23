@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "A tagged union = an enum tag + a union of payloads. Anonymous union/struct members let you write s.circle.r directly.",
-    "area: switch (s.kind) { case SHAPE_CIRCLE: return 3.141592653589793 * s.circle.r * s.circle.r; case SHAPE_RECT: return s.rect.w * s.rect.h; }"
+    "See 'New syntax': the tag (`kind`) says which union member is live, so `area` must look at it first.",
+    "make_circle / make_rect fill in the tag AND the matching payload. area switches on s.kind and applies that shape's formula (π r² or w × h).",
+    "Other data: `return (struct Value){.tag = V_TEXT, .text = \"hi\"};` · `switch (v.tag) { case V_INT: ...; case V_TEXT: ...; }`",
+    "Near-answer: `return (struct Shape){.kind = SHAPE_CIRCLE, .circle = {.r = r}};` and in area `case SHAPE_CIRCLE: return 3.141592653589793 * s.circle.r * s.circle.r;`"
   ]
 }

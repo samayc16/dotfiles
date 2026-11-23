@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "[x * x for x in nums if x % 2 == 0] — the filter goes at the end.",
-    "Dict: {w: len(w) for w in words}. Set: {w[0].lower() for w in words if w}. Nested: [x for row in m for x in row]. Transpose: [list(col) for col in zip(*m)]."
+    "Look at the README's 'New syntax' table: each body is one `return` of a `[...]`, `{k: v ...}` or `{...}` comprehension.",
+    "Pick the bracket from the return type (list / dict / set). Filters go after the `for`. Two `for`s = nested loops, outer first. Transpose = `zip` over the unpacked rows.",
+    "Other data: `[w.upper() for w in ws if len(w) > 2]`, `{w: w[::-1] for w in ws}`, `{len(w) for w in ws}`, `[ch for word in ws for ch in word]`.",
+    "Near-answer for transpose: `zip(*matrix)` yields tuples like `(1, 4)`; wrap each one in `list(...)` inside a list comprehension."
   ]
 }

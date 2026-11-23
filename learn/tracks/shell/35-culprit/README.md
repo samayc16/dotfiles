@@ -2,7 +2,17 @@
 
 > One account triggered more errors than anyone else. Is it a bot? Find out who it is.
 
-**Task:** Find the user with the most `ERROR` lines in `app.log`, then print their `NAME,EMAIL` from `users.csv`.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `x=$(cmd)` | run cmd and store its output in x (no spaces around `=`) | `x=$(echo hi \| tr a-z A-Z)` |
+| `"$x"` | use the value; inside double quotes it can be part of a pattern | `grep "^$x,"` = lines starting with the value and a comma |
+| `cut -d= -f2` | any single character can be cut's separator | `echo k=v \| cut -d= -f2` → `v` |
+
+## Your task
+
+Find the user with the most `ERROR` lines in `app.log`, then print their `NAME,EMAIL` from `users.csv`.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 134,
   "hints": [
-    "`-c` prints a count per file.",
-    "`-g GLOB` includes paths; `-g '!GLOB'` excludes them.",
-    "Quote the glob so your shell doesn't expand it."
+    "README → New syntax: rg's `-c` and `-g` flags. Run it from inside `$DATA/src`.",
+    "Count FIXME per file, and exclude every path whose name contains `_test.` with a `!` glob.",
+    "`rg -c TODO -g '!*.md'` counts TODOs per file, skipping Markdown files.",
+    "`cd \"$DATA/src\" && rg -c FIXME -g '!...'`: write a glob for names containing `_test.` (quote it!)."
   ]
 }

@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 186,
   "hints": [
-    "Variables start at 0 (or empty), so `s += $3` just works.",
-    "`END { ... }` runs after the last line.",
-    "`printf \"%.2f\\n\", s`."
+    "README → New syntax: add up into a variable, print it in `END` with `printf`.",
+    "Condition: status is `paid` AND currency is `USD`. Action: add the amount to a total. At the end, print it with 2 decimals.",
+    "`printf '1.2\\n2.3\\n' | awk '{t += $1} END {printf \"%.2f\\n\", t}'` prints `3.50`.",
+    "`awk -F, '$5 == \"paid\" && $4 == \"USD\" {s += $3} END {...}' \"$DATA/orders.csv\"`."
   ]
 }

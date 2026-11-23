@@ -14,8 +14,9 @@
   "open": "Comprehensions.hs",
   "check": "check.sh",
   "hints": [
-    "[x | x <- [1 .. n], even x]",
-    "Use three generators for c, b and a, plus a guard for a*a + b*b == c*c.",
-    "A comprehension can contain another comprehension for the nested list."
+    "README 'New syntax': comprehensions `[result | generator, guard]` and ranges `[a .. b]`. Each answer is a one-liner.",
+    "evensUpTo: draw from 1..n, keep the even ones. pythagorean: three generators arranged so a ≤ b ≤ c (later ranges stop at earlier variables), plus a guard a²+b² == c². grid: two generators. lettersFrom: a Char range ending at 'z'. multiplicationTable: a comprehension (one row) inside a comprehension (all rows).",
+    "Other data: `[x | x <- [1 .. 20], mod x 7 == 0]` → [7,14] · `[(x, y) | x <- [1 .. 3], y <- [x .. 3]]` gives x ≤ y · `[[r + c | c <- [0, 1]] | r <- [10, 20]]` → [[10,11],[20,21]].",
+    "`pythagorean n = [(a, b, c) | c <- [1 .. n], b <- [1 .. c], a <- [1 .. b], a * a + b * b == c * c]` · `multiplicationTable n = [[r * c | c <- [1 .. n]] | r <- [1 .. n]]`."
   ]
 }

@@ -16,7 +16,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "Structs are copied on assignment; classes are shared. Change `class Counter` to `struct Counter` and mark increment() as `mutating`.",
-    "For the class, identity is checked with === (same instance)."
+    "Look at the README rows for `struct`, `mutating` and `===`. Only `Counter` needs to change; `Account` is already right.",
+    "Idea: struct copies are independent, class copies share one object. The check copies a Counter and expects two different counts, so Counter must be a value type.",
+    "Example on other data: `struct Tally { var hits = 0; mutating func hit() { hits += 1 } }`. A struct method that changes the struct itself needs `mutating`.",
+    "Near-answer: replace `final class Counter` with `struct Counter` and declare `mutating func increment()`."
   ]
 }

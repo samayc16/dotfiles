@@ -14,7 +14,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "protocol Describable { var summary: String { get } }  extension Describable { func shout() -> String { summary.uppercased() + \"!\" } }",
-    "Conform: struct Book: Describable { ... var summary: String { \"\\(title) by \\(author)\" } }.  extension Int { var isEven: Bool { self % 2 == 0 } }"
+    "Look at the README's 'New syntax' (protocol, `: P` conformance, extension). The three TODO comments mark the three spots.",
+    "Idea: Book declares `: Describable` and supplies `summary` as a computed property; `shout()` goes in an `extension Describable` so every conformer gets it; `isEven` is a computed property in `extension Int` that uses `self`.",
+    "Example on other data: `extension Priced { func priceTag() -> String { \"$\\(cents / 100)\" } }` and `extension Int { var squared: Int { self * self } }`.",
+    "Near-answer: inside Book, `var summary: String { \"\\(title) by \\(author)\" }`; in the extension, `func shout() -> String { summary.uppercased() + \"!\" }`."
   ]
 }

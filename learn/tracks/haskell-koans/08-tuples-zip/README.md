@@ -4,6 +4,19 @@
 
 **Why it matters:** Tuples group a fixed number of values of different types. `zip` and friends are the bread and butter of pairing data up.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `zip xs ys` | pair elements up; stops at the shorter list | `zip "xy" [True, False, True]` → `[('x',True),('y',False)]` |
+| `zipWith f xs ys` | combine pairwise with `f` | `zipWith max [1, 9] [5, 2]` → `[5,9]` |
+| `unzip` | list of pairs → pair of lists | `unzip [('x', True)]` → `("x",[True])` |
+| `fst`, `snd` | first / second part of a pair | `snd (1, "one")` → `"one"` |
+| `[1 ..]`, `take n` | an infinite range is fine if something stops reading it / the first `n` elements | `take 3 [10 ..]` → `[10,11,12]` |
+| `[(String, Int)]` | "association list": key/value pairs | `[("pi", 3)]` |
+| `lookup k pairs` | the value for key `k`, as a `Maybe` | `lookup 'b' [('a', 1), ('b', 2)]` → `Just 2` |
+| `([a], [b])` | a tuple whose parts are lists | `("ab", [1, 2])` |
+
 ## Your task
 
 Edit `Tuples.hs` and replace every `undefined`.

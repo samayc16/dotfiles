@@ -2,7 +2,25 @@
 
 > The metrics pipeline choked on some rows. Find the broken ones.
 
-**Task:** Print `LINE: ROW` for every line of `metrics.tsv` that does not have exactly 4 tab-separated fields (`LINE` is the line number in the file).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `NF` | number of fields on this line | |
+| `$NF` | the last field | |
+| `NR` | the line (record) number, from 1 | |
+| `$0` | the whole line | `printf 'a b\nc\n' \| awk 'NF != 2 {print NR, $0}'` → `2 c` |
+| `-F'\t'` | split on tabs | |
+
+```sh
+printf 'a b c\nd e\n' | awk '{print NR ": " NF " fields, last " $NF}'
+# 1: 3 fields, last c
+# 2: 2 fields, last e
+```
+
+## Your task
+
+Print `LINE: ROW` for every line of `metrics.tsv` that does not have exactly 4 tab-separated fields (`LINE` is the line number in the file).
 
 **Input** `$DATA/metrics.tsv` (first lines):
 ```text

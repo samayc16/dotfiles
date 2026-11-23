@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 166,
   "hints": [
-    "The IP is the first whitespace-separated field.",
-    "sort, `uniq -c`, `sort -rn`, `head`."
+    "Reuse the frequency recipe from level 16. The IP is the first space-separated field.",
+    "Extract the IP (`awk '{print $1}'`), then sort, count, rank, keep 3.",
+    "`printf 'b x\\na y\\nb z\\n' | awk '{print $1}' | sort | uniq -c | sort -rn | head -1` prints `2 b`.",
+    "`awk '{print $1}' \"$DATA/access.log\" | sort | uniq -c | ...`."
   ]
 }

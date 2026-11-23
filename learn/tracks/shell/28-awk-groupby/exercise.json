@@ -13,7 +13,9 @@
   "check": "check.sh",
   "par": 205,
   "hints": [
-    "Use the currency as an array key: `s[$4] += $3`.",
-    "`for (k in arr)` order is unspecified (and differs between awks): pipe into `sort`."
+    "README → New syntax: an array keyed by currency, then `for (k in arr)` in `END`.",
+    "For paid orders, add the amount to `s[currency]`. In END, loop over the keys and printf each, then pipe into sort.",
+    "`printf 'x 1\\ny 5\\nx 2\\n' | awk '{t[$1] += $2} END {for (k in t) print k, t[k]}' | sort` prints `x 3` and `y 5`.",
+    "`awk -F, '$5 == \"paid\" {s[$4] += $3} END {for (c in s) printf ...}' \"$DATA/orders.csv\" | sort`."
   ]
 }

@@ -2,7 +2,19 @@
 
 > You need to paste the user list into the incident channel, but not the email addresses.
 
-**Task:** Print `users.csv` with the part of each email **before** the `@` replaced by `***` (`***@example.com`). The header line stays unchanged.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `sed 's/OLD/NEW/' FILE` | on every line, replace the first match of regex OLD with NEW; print every line | `echo a-b-c \| sed 's/-/+/'` → `a+b-c` |
+| `s/OLD/NEW/g` | replace every match on the line | `echo a-b-c \| sed 's/-/+/g'` → `a+b+c` |
+| `[^,]` | any one character **except** the listed ones | `echo 'tel: 555-1234' \| sed 's/[^ ]*$/<hidden>/'` → `tel: <hidden>` |
+| NEW | plain text, except `&` (the whole match) and `\1` (level 23) | `echo cat \| sed 's/a/[&]/'` → `c[a]t` |
+| `s#a#b#` | any delimiter works; handy when the text contains `/` | `echo /usr/local/bin \| sed 's#/usr/local#/opt#'` → `/opt/bin` |
+
+## Your task
+
+Print `users.csv` with the part of each email **before** the `@` replaced by `***` (`***@example.com`). The header line stays unchanged.
 
 **Input** `$DATA/users.csv` (first lines):
 ```text

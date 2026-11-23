@@ -13,7 +13,9 @@
   "open": "gates.sv",
   "check": "check.sh",
   "hints": [
-    "`assign y_and = a & b;`, and the others follow the same shape.",
-    "NAND is NOT of AND: `~(a & b)`."
+    "Each TODO comment names a gate; the README's New syntax table has the operator for each one.",
+    "AND, OR and XOR sit between `a` and `b`. NOT is `~` in front of one signal. NAND is NOT applied to a whole AND, so group the AND in parentheses first.",
+    "Same shapes on other names: `assign led = btn & en;` · `assign z = ~x;` · NOR: `assign n = ~(x | y);`",
+    "Near-answer for the trickiest one: `assign y_nand = ~(a & b);`. The other four are one operator each."
   ]
 }

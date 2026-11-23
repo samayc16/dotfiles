@@ -13,8 +13,9 @@
   "open": "prio_enc.sv",
   "check": "check.sh",
   "hints": [
-    "Assign defaults first (`idx = '0; valid = 0;`), then let later loop iterations override earlier ones.",
-    "Loop from bit 0 upward and overwrite, so the highest set bit wins.",
-    "Or use `casez` with `?` wildcards."
+    "The README's code block is the pattern: defaults (already in the starter), then a `for` loop with an `if`.",
+    "Loop i from 0 to 7. Whenever `req[i]` is 1, set `idx` to i and `valid` to 1. Later (higher) i overwrite earlier ones, so the highest set bit wins.",
+    "Lowest-wins on a 4-bit `flags`, loop downwards: `for (int i = 3; i >= 0; i--) if (flags[i]) begin first = 2'(i); found = 1'b1; end`",
+    "Near-answer: `for (int i = 0; i < 8; i++) if (req[i]) begin idx = 3'(i); valid = 1'b1; end`"
   ]
 }

@@ -14,8 +14,9 @@
   "open": "Monoids.hs",
   "check": "check.sh",
   "hints": [
-    "Score a <> Score b = Score (a + b)",
-    "mconcat folds a list with <> starting from mempty.",
-    "foldr1 (<>) needs a non-empty list, so handle [] first."
+    "README 'New syntax': each instance body is one equation; `mconcat`, `foldr1`, `dropWhile`/`dropWhileEnd` do the heavy lifting.",
+    "Score: unwrap both, add, wrap again; mempty is Score 0. MaxScore: wrap the larger. totalScore: mconcat (no argument needed). best: Nothing for [], else combine everything with <> (foldr1). mkName: strip spaces from both ends; empty → Nothing, else Just (Name …).",
+    "Other data: `Longest a <> Longest b = if length b > length a then Longest b else Longest a` · `foldr1 (<>) [\"a\", \"b\"]` → \"ab\" · `dropWhileEnd (== '!') \"hi!!\"` → \"hi\".",
+    "`Score a <> Score b = Score (a + b)` · `mempty = Score 0` · `best scores = Just (foldr1 (<>) scores)` after `best [] = Nothing` · trimmed = `dropWhileEnd isSpace (dropWhile isSpace raw)`."
   ]
 }

@@ -2,7 +2,17 @@
 
 > Finance in Berlin wants the orders export with dates as `DD.MM.YYYY`.
 
-**Task:** Print `orders.csv` with every `YYYY-MM-DD` date rewritten as `DD.MM.YYYY`.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `sed -E` | extended regex in sed: `( )`, `{4}`, `+` without backslashes (same on macOS and Linux) | |
+| `\1`, `\2` in NEW | insert what group 1, 2 captured | `echo 'Doe, Jane' \| sed -E 's/([A-Za-z]+), ([A-Za-z]+)/\2 \1/'` → `Jane Doe` |
+| `\1` in a pattern | a backreference: the same text again | `printf 'book\nbok\n' \| grep -E '(o)\1'` → `book` |
+
+## Your task
+
+Print `orders.csv` with every `YYYY-MM-DD` date rewritten as `DD.MM.YYYY`.
 
 **Input** `$DATA/orders.csv` (first lines):
 ```text

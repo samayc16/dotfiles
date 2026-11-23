@@ -13,7 +13,9 @@
   "open": "mux.sv",
   "check": "check.sh",
   "hints": [
-    "`assign y2 = sel2 ? d1 : d0;`",
-    "In always_comb: `unique case (sel4) 2'd0: y4 = d0; ... endcase`."
+    "The README's code block is a mux written both ways; the starter comments say which one each output uses.",
+    "`y2`: one ternary that picks `d1` when `sel2` is 1. `y4`: inside `always_comb`, a `unique case (sel4)` with one arm per value 0..3, each assigning `y4`.",
+    "Other data: `assign speed = turbo ? 8'd200 : 8'd50;` · `unique case (mode) 2'd0: speed = 8'd0; 2'd1: speed = 8'd10; ... endcase`",
+    "Near-answer: `assign y2 = sel2 ? d1 : d0;` and arms `2'd0: y4 = d0;` through `2'd3: y4 = d3;`."
   ]
 }

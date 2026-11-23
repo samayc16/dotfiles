@@ -2,7 +2,58 @@
 
 > 03:12. Your phone buzzes: *Nimbus API error rate > 5%*. You're on call. Time to read the logs.
 
-**Task:** Print every line of `app.log` whose level is `ERROR`.
+## Shell text tools in 2 minutes
+
+Each level is a tiny bash script, `solution.sh`. Write your command(s) under `# your command(s) here:`.
+Whatever they print is your answer.
+
+```sh
+grep port "$DATA/services.conf" | sort
+# cmd  arg  quoted path          pipe: the left side's output becomes the right side's input
+```
+
+| You type | It means |
+|---|---|
+| `cmd -a -b` = `cmd -ab` | short flags; most tools let you glue them together |
+| `a \| b \| c` | a pipeline: read it left to right, each tool reworks the previous one's output |
+| `'...'` | single quotes: the text reaches the tool exactly as typed. Use them for regexes, sed and awk programs |
+| `"..."` | double quotes: `$VARS` expand, spaces don't split. Use them for paths: `"$DATA/app.log"` |
+| `$DATA` | set at the top of `solution.sh`: the folder that holds every data file |
+| `# ...` | a comment |
+| `man grep` | the manual: `/word` searches, `n` jumps to the next hit, `q` quits |
+
+**Run and check.** `bash solution.sh` prints your output. `learn check` (`<leader>lc`) runs it with `LC_ALL=C`
+(plain byte order for sorting) and compares it with the expected result below. Trailing spaces don't matter.
+
+```text
+✓ Correct! (92 lines match)
+✓ Golf: 111 chars (par 115) - under par!
+```
+
+```text
+✗ Output does not match yet.
+  expected 92 lines, got 0
+  first difference at line 1:
+    expected: 2026-03-14T09:10:18Z ERROR auth    request_id=4dd75f ...
+    got:
+```
+
+The golf count covers every line of code in `solution.sh`, including the two preset lines (comments don't count).
+
+**macOS vs Linux.** macOS ships BSD `grep`/`sed`/`awk`, Linux ships the GNU versions. Nearly everything in this
+track behaves the same on both; the one real trap (`sed -i`) gets its own level.
+
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `grep PATTERN FILE` | print every line of FILE that contains PATTERN | `grep tea menu.txt` |
+| `cmd \| grep PATTERN` | with no FILE, grep reads the piped-in text | `printf 'tea\ncoffee\ngreen tea\n' \| grep tea` → `tea`, `green tea` |
+| `printf 'a\nb\n'` | print text; `\n` is a newline. Handy for trying a command on fake input | `printf 'x\ny\n'` → two lines |
+
+## Your task
+
+Print every line of `app.log` whose level is `ERROR`.
 
 **Input** `$DATA/app.log` (first lines):
 ```text

@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "#define SWAP(a, b) do { typeof(a) tmp_ = (a); (a) = (b); (b) = tmp_; } while (0)",
-    "#define TYPE_NAME(x) _Generic((x), int: \"int\", double: \"double\", char *: \"char *\", default: \"other\")"
+    "See 'New syntax': SWAP needs `typeof` and `do { } while (0)`; TYPE_NAME and ABS are one `_Generic` each.",
+    "SWAP: declare a temporary with the same type as `a`, then the usual three-step swap. TYPE_NAME: one association per type the test uses, plus `default:`. ABS: let _Generic pick the FUNCTION (abs / labs / fabs), then call it with (x).",
+    "Other data: `#define DOUBLE_IT(v) do { typeof(v) t_ = (v); (v) = t_ + t_; } while (0)` · `#define FMT(x) _Generic((x), int: \"%d\", double: \"%f\", default: \"?\")` · `_Generic((x), float: sqrtf, double: sqrt)(x)`",
+    "Near-answer: `do { typeof(a) tmp_ = (a); (a) = (b); (b) = tmp_; } while (0)` · `_Generic((x), int: \"int\", double: \"double\", char *: \"char *\", default: \"other\")` · `_Generic((x), int: abs, long: labs, double: fabs)(x)`"
   ]
 }

@@ -2,7 +2,15 @@
 
 > Someone in chat says a Go service *panicked*. You want line numbers to jump straight there in nvim.
 
-**Task:** Print every line of `app.log` containing `panic`, prefixed with its line number (`123:...`).
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-n` | prefix each matching line with its line number and `:` | `printf 'tea\ncoffee\ngreen tea\n' \| grep -n tea` → `1:tea`, `3:green tea` |
+
+## Your task
+
+Print every line of `app.log` containing `panic`, prefixed with its line number (`123:...`).
 
 **Input** `$DATA/app.log` (first lines):
 ```text

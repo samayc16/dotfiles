@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "Swift 6 refuses to compile the class version: a mutable class shared between tasks is a data race. Change `final class BankAccount` to `actor BankAccount`.",
-    "Outside the actor, calls need await: await account.deposit(1). Inside withTaskGroup, each addTask can safely call the actor. Transaction is a struct of Sendable fields, so mark it `: Sendable`."
+    "Look at the README's 'New syntax' (actor, Sendable), then read the compiler error: it names the type that isn't safe to share.",
+    "Idea: a class shared by 1,000 concurrent tasks is a data race, so Swift 6 refuses it. An actor lets only one task at a time touch its state. Transaction crosses task boundaries, so it must be marked Sendable.",
+    "Example on other data: `actor Scoreboard { private(set) var points = 0; func add(_ n: Int) { points += n } }` · `struct Move: Sendable { let x: Int }`.",
+    "Near-answer: change `final class BankAccount` to `actor BankAccount` and `struct Transaction` to `struct Transaction: Sendable`. Nothing else changes."
   ]
 }

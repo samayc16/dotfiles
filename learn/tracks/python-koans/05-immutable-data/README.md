@@ -3,6 +3,15 @@
 ## Why it matters
 Immutable values can't be changed behind your back, can be dict keys/set members, and are safe to share. Producing a new copy instead of mutating is a habit that removes whole classes of bugs.
 
+## New syntax
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `@dataclass(frozen=True)` | assigning a field raises `FrozenInstanceError`; instances become hashable (set members, dict keys) | `len({Temp(1), Temp(1)})` → `1` |
+| `slots=True` | fields live in `__slots__`: no per-instance `__dict__`, less memory, no stray attributes | `hasattr(t, "__dict__")` → `False` |
+| `replace(obj, f=v)` | copy with some fields changed; the original is untouched (`dataclasses`) | `replace(Temp(1, "a"), label="b")` |
+| `tuple[str, ...]` | a tuple of any length, all `str` (the `...` is literal syntax) | `flags: tuple[str, ...] = ()` |
+| `(*t, x)` | a NEW tuple: everything in `t`, then `x` | `(*(1, 2), 3)` → `(1, 2, 3)` |
+
 ## Your task
 - `Point` is frozen, slotted, and `moved()` returns a NEW point
 - `Inventory.added()` returns a new inventory, leaving the original untouched

@@ -4,6 +4,23 @@
 
 **Why it matters:** Records give fields names, generate accessor functions, and offer *update syntax* (`m { xp = 10 }`) that returns a new value. Nothing is mutated, like a frozen dataclass.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `data Cat = Cat { catName :: String, lives :: Int }` | record: a constructor with named fields | |
+| `lives c` | every field name is also a getter function | `lives tom` → `9` |
+| `Cat { catName = "Tom", lives = 9 }` | build a record by field name | |
+| `c { lives = 8 }` | update syntax: a **copy** with some fields changed; the original is untouched | `tom { lives = lives tom - 1 }` |
+| `deriving Ord` | constructors compare in the order they are declared | `Small < Large` → `True` |
+| `succ x` | the next value of an `Enum` type | `succ Small` → `Medium` |
+| `maxBound` | the last value of a `Bounded` type (type comes from context) | `(maxBound :: Size)` → `Large` |
+
+```haskell
+data Size = Small | Medium | Large
+  deriving (Show, Eq, Ord, Enum, Bounded)
+```
+
 ## Your task
 
 Edit `Records.hs` and replace every `undefined`.

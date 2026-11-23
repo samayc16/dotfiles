@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 135,
   "hints": [
-    "`-v` inverts the match: print lines that do NOT match.",
-    "`^` anchors to the start of a line, `$` to the end. `^$` is an empty line.",
-    "Give grep several patterns with repeated `-e`."
+    "README → New syntax: `-v`, the anchors `^` and `$`, and repeated `-e`.",
+    "Describe the lines to DROP (start with `#`, or empty), then let `-v` print everything else.",
+    "`printf '// note\\ncode\\n\\nmore\\n' | grep -v -e '^//' -e '^$'` prints `code` and `more`.",
+    "Two patterns, `'^#'` and `'^$'`, each after `-e`, plus `-v`, on `\"$DATA/services.conf\"`."
   ]
 }

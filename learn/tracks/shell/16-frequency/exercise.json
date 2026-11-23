@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 162,
   "hints": [
-    "`uniq -c` counts *adjacent* duplicates, so sort first.",
-    "`sort -rn` sorts numerically, highest first.",
-    "Padding before the count doesn't matter on this level."
+    "README → New syntax: `uniq -c` counts, `sort -rn` ranks.",
+    "Pipeline: the country column → sort (so equal values sit together) → count → sort the counts high to low.",
+    "`printf 'b\\na\\nb\\n' | sort | uniq -c` prints `1 a` and `2 b`.",
+    "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f5 | sort | uniq -c | ...`: finish with a numeric reverse sort."
   ]
 }

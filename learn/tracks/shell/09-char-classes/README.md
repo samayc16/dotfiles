@@ -2,7 +2,19 @@
 
 > Support says users with non-`.com` emails can't log in. Find their addresses.
 
-**Task:** Print every email address in `users.csv` at `example.org` or `example.net` (just the address), in file order.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-oE` | short flags combine: same as `-o -E` | |
+| `[[:alnum:]]` | named class: a letter or digit. Also `[[:digit:]]`, `[[:alpha:]]`, `[[:space:]]`, `[[:upper:]]`, `[[:lower:]]` | `echo 'id 42x' \| grep -oE '[[:digit:]]+'` → `42` |
+| `[[:alnum:]_-]` | add characters to a class; inside `[...]` a `.` is literal | |
+| `.` vs `\.` | any one character / a literal dot | `a.c` matches `abc`; `a\.c` matches only `a.c` |
+| `(x\|y)` | alternation (needs `-E`): `x` or `y` | `echo 'a.txt b.csv c.md' \| grep -oE '[[:alnum:]]+\.(txt\|md)'` → `a.txt`, `c.md` |
+
+## Your task
+
+Print every email address in `users.csv` at `example.org` or `example.net` (just the address), in file order.
 
 **Input** `$DATA/users.csv` (first lines):
 ```text

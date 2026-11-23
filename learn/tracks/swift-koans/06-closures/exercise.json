@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "names.sorted { ($0.count, $0) < ($1.count, $1) } — tuples compare element by element.",
-    "makeIncrementer: var total = 0; return { total += step; return total }.  Storing a closure for later needs @escaping: func on(_ handler: @escaping (String) -> Void) { handlers.append(handler) }"
+    "Look at the README's 'New syntax' (trailing closures, `$0`/`$1`, tuple comparison, capturing, `@escaping`).",
+    "Idea: sort by a (length, word) pair so equal lengths fall back to alphabetical; the incrementer keeps a `var total` OUTSIDE the closure it returns; EventBus appends each handler to its array and loops over them in emit.",
+    "Example on other data: `people.sorted { ($0.age, $0.name) < ($1.age, $1.name) }` · `func add(_ a: @escaping () -> Void) { actions.append(a) }` · the README's makeLogger.",
+    "Near-answer: `names.sorted { ($0.count, $0) < ($1.count, $1) }`; `var total = 0` then `return { total += step; return total }`; emit: `for handler in handlers { handler(event) }`."
   ]
 }

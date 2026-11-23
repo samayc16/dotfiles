@@ -16,7 +16,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "parse_int: use std::from_chars(s.data(), s.data() + s.size(), value); success when ec == std::errc{} and ptr == end.",
-    "Overloaded visitor: template <class... Fs> struct overloaded : Fs... { using Fs::operator()...; };  std::visit(overloaded{[](int i) {...}, [](const std::string& s) {...}}, v).  Errors: return std::unexpected{\"divide by zero\"};"
+    "New syntax table: `std::optional`/`std::nullopt`, `std::from_chars`, `std::variant` + `std::visit` + `overloaded`, `std::expected`/`std::unexpected`.",
+    "parse_int: from_chars succeeds only if `ec == std::errc{}` AND it consumed the whole text (`ptr == end`); empty text fails too. kind_of: std::visit with an overloaded set of three lambdas. safe_div: return std::unexpected when b == 0. half_of_parsed: parse, turn a missing value into an error, then hand over to safe_div.",
+    "On other data: `auto [p, ec] = std::from_chars(s.data(), s.data() + s.size(), n);` · the `show` visitor in the README · `if (x < 0) return std::unexpected{\"negative\"};`.",
+    "Near-answer: `if (b == 0) return std::unexpected{\"divide by zero\"}; return a / b;` · `auto p = parse_int(text); if (!p) return std::unexpected{\"not a number\"}; return safe_div(*p, 2);`"
   ]
 }

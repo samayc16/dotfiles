@@ -12,7 +12,9 @@
   "check": "check.sh",
   "par": 143,
   "hints": [
-    "Extract the column like the last level, then sort.",
-    "`sort -u` = `sort | uniq`."
+    "Same pipeline as level 14 with a different column, then a deduplicating sort (level 12).",
+    "team is field 4. `sort -u` sorts and removes repeats in one go.",
+    "`printf 'x,b\\nx,a\\nx,b\\n' | cut -d, -f2 | sort -u` prints `a` and `b`.",
+    "`tail -n +2 \"$DATA/users.csv\" | cut -d, -f4 | ...`."
   ]
 }

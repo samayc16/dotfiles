@@ -15,7 +15,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "Run two at once: async let a = fetch(...); async let b = fetch(...); return await (a, b)",
-    "Many at once, order preserved: await withTaskGroup(of: (Int, String).self) { group in for (i, n) in names.enumerated() { group.addTask { (i, await fetch(n, delay: delay)) } } ... collect, sort by index }"
+    "Look at the README's 'New syntax' (`async let`, `withTaskGroup`, `for await`). The starter awaits one fetch after another, which is why the timing checks fail.",
+    "Idea: fetchBoth starts both fetches with `async let` and awaits the pair; fetchAll adds one child task per name that returns (index, result), collects them, then sorts by index to restore input order.",
+    "Example on other data: `async let a = slowSquare(3); async let b = slowSquare(4); let sum = await a + b`, and the README's task-group block.",
+    "Near-answer: inside `for (index, name) in names.enumerated()`, `group.addTask { (index, await fetch(name, delay: delay)) }`; afterwards `results.sorted { $0.0 < $1.0 }.map(\\.1)`."
   ]
 }

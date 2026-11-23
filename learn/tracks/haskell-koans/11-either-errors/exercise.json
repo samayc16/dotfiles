@@ -14,8 +14,9 @@
   "open": "Errors.hs",
   "check": "check.sh",
   "hints": [
-    "case readMaybe s of Nothing -> ...; Just n -> ...  (guards work inside case alternatives)",
-    "Either is a Monad: in a do-block, `age <- parseAge s` stops at the first Left.",
-    "mapM parseAge xs"
+    "README 'New syntax': `case readMaybe s of` with guards for parseAge, a `do` block for canEnter, `mapM` for parseAll.",
+    "parseAge: no number → Left (NotANumber s); otherwise check < 0, then > 150, else Right n. canEnter: get the age with `<-`, then `pure` one of the two messages. parseAll: run parseAge over the whole list; the first error wins.",
+    "Other data: `parseNum` and `doubled` in the README · `mapM parseNum [\"1\", \"x\"]` → Left \"not a number: x\".",
+    "`canEnter s = do { age <- parseAge s; pure (if age >= 18 then \"welcome\" else \"too young\") }` · `parseAll xs = mapM parseAge xs`."
   ]
 }

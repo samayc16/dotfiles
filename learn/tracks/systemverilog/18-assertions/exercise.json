@@ -16,8 +16,9 @@
   "open": "hs_checker.sv",
   "check": "check.sh",
   "hints": [
-    "Immediate: `always_comb a_gnt_onehot: assert ($onehot0(gnt));`",
-    "Concurrent: `a_ack_in_time: assert property (@(posedge clk) disable iff (!rst_n) req |-> ##[1:3] ack);`",
-    "`|=>` means \"from the next cycle\": `req && !ack |=> req`. `$past(req)` is req one cycle ago."
+    "The TODO in `hs_checker.sv` names all four labels and the system function each one needs, and gives a concurrent template.",
+    "gnt: an immediate `assert` inside `always_comb`. The others are concurrent on `posedge clk`, disabled in reset: req rising leads to ack in 1..3 cycles; ack means req was high last cycle; req && !ack means req next cycle.",
+    "Other protocol: `a_done_soon: assert property (@(posedge clk) disable iff (!rst_n) $rose(go) |-> ##[2:4] done);` and `a_busy: assert property (@(posedge clk) start |=> busy);`",
+    "Near-answer: `always_comb a_gnt_onehot: assert ($onehot0(gnt));` and `a_no_spurious_ack: assert property (@(posedge clk) disable iff (!rst_n) ack |-> $past(req));`"
   ]
 }

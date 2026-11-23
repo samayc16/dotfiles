@@ -4,6 +4,32 @@
 
 **Why it matters:** `where` and `let` give names to sub-expressions. That keeps formulas readable and avoids computing the same thing twice.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `let x = e in body` | local names inside one expression | `let r = 3 in r * r` → `9` |
+| several bindings | line them up under each other in `let` or `where` | see below |
+| `where` + guards | names defined in `where` are visible in every guard above it | see below |
+| `pi` | π as a `Double` | `pi * 2` → `6.283…` |
+| `-x` | negate a name; write `(-x)` when passing it as an argument | `abs (-x)` |
+| `Maybe (Double, Double)` | a `Maybe` holding a pair: `Just (a, b)` or `Nothing` | `Just (1.0, 2.0)` |
+
+```haskell
+speedLabel :: Double -> Double -> String
+speedLabel km hours
+  | kmh > 100 = "fast"
+  | otherwise = "slow"
+  where
+    kmh = km / hours
+
+boxVolume :: Double -> Double -> Double -> Double
+boxVolume w h d =
+  let base = w * d
+      vol = base * h
+   in vol
+```
+
 ## Your task
 
 Edit `LocalDefs.hs` and replace every `undefined`.

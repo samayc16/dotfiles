@@ -4,6 +4,27 @@
 
 **Why it matters:** `data` lets you model a domain precisely: a Shape is *exactly* a circle, a rectangle or a triangle. Pattern matching then handles each case, and GHC warns if you miss one.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `data Dir = North \| South` | a type with a fixed set of values (an enum) | `data Coin = Heads \| Tails` |
+| `Circle Double` | a constructor carrying data; `Circle 2.0` builds a `Shape` | `data Money = Coins Int \| Note Int Int` |
+| `deriving (Enum, Bounded)` | adds `succ`, ranges `[North ..]`, `minBound`, `maxBound` | `[North ..]` → `[North,South]` |
+| one equation per constructor | pattern-match the constructor and name its fields | see below |
+| `maximumBy (comparing f) xs` | the element with the largest `f` (Python `max(xs, key=f)`); needs two imports | `maximumBy (comparing length) ["ab", "abcd", "a"]` → `"abcd"` |
+
+```haskell
+import Data.List (maximumBy)   -- add imports right under the `module … where` line
+import Data.Ord (comparing)
+
+data Money = Coins Int | Note Int Int   -- Note value count
+
+worth :: Money -> Int
+worth (Coins n)  = n
+worth (Note v c) = v * c
+```
+
 ## Your task
 
 Edit `Shapes.hs` and replace every `undefined`.

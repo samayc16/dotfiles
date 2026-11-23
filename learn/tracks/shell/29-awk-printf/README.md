@@ -2,7 +2,19 @@
 
 > Your manager wants a tidy table, not raw counts.
 
-**Task:** Print this table from `users.csv`: a header row, one row per team (sorted by team name), and a `TOTAL` row. Team left-aligned in 10 columns, then a space, then the count right-aligned in 5.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `%-10s`, `%5d` | left-align in 10 columns / right-align in 5 | `awk 'BEGIN {printf "[%-6s][%4d]\n", "ab", 42}'` → `[ab    ][  42]` |
+| `print ... \| "sort"` | inside awk: send these lines through a shell command | |
+| `close("sort")` | finish that command (flush its output) before printing more | |
+| `a; b` | several awk statements on one line | `{n++; t += $1}` |
+| `{ a; b; }` | shell: group commands so their outputs form one stream | `{ echo top; ls; } \| head -3` |
+
+## Your task
+
+Print this table from `users.csv`: a header row, one row per team (sorted by team name), and a `TOTAL` row. Team left-aligned in 10 columns, then a space, then the count right-aligned in 5.
 
 ```text
 TEAM       USERS

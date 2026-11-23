@@ -12,7 +12,9 @@
   "check": "check.sh",
   "par": 118,
   "hints": [
-    "One flag adds `LINE:` in front of each match.",
-    "Tip: `nvim +123 file` opens a file at line 123."
+    "`man grep`, search `/line-number`.",
+    "A plain grep for `panic`, plus the flag that puts `LINE:` in front of each match.",
+    "`printf 'a\\nb\\na\\n' | grep -n a` prints `1:a` and `3:a`. Tip: `nvim +3 file` opens at line 3.",
+    "`grep -n panic` on app.log."
   ]
 }

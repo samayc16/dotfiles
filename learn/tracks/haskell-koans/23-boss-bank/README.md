@@ -4,6 +4,29 @@
 
 **Why it matters:** This boss combines everything: types that model the domain, `Either` for rules that can fail, `Map` for state, and `foldM` to run a whole history of transactions purely, with no mutation.
 
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `type Accounts = Map String Int` | type synonym: just another name for an existing type | `type Name = String` |
+| `Map.lookup k m` | `Just v` or `Nothing` | |
+| `Map.insert k v m` | a new map with `k` set to `v` (replacing any old value) | |
+| `Map.member k m` | is `k` a key? | |
+| `Map.empty`, `Map.null`, `Map.toAscList` | the empty map / is it empty? / its pairs sorted by key | |
+| `when cond (Left e)` | inside an `Either` `do` block: stop with `e` if `cond` holds | add `when` to the `import Control.Monad (…)` line |
+| `foldM f start xs` | `foldl` where each step may fail; the first `Left` stops it | see below |
+
+```haskell
+-- one shop step: fetch, check, update. Any Left stops it.
+sell :: Map String Int -> String -> Either String (Map String Int)
+sell stock item = do
+  n <- maybe (Left ("unknown " ++ item)) Right (Map.lookup item stock)
+  when (n < 1) (Left ("sold out: " ++ item))
+  pure (Map.insert item (n - 1) stock)
+
+-- a whole history: foldM sell stock ["tea", "tea", "mochi"]
+```
+
 ## Your task
 
 Edit `Bank.hs` and replace every `undefined`.

@@ -15,8 +15,9 @@
   "check": "check.sh",
   "par": 248,
   "hints": [
-    "`-F' *= *'` makes the separator an `=` with optional spaces around it.",
-    "On a `[section]` line, strip the brackets (`gsub`), remember the name, and `next`.",
-    "On `key = value` lines, drop an inline comment from `$2` with `sub(/ *#.*/, \"\", $2)`."
+    "README → New syntax: a regex `-F`, `/re/` conditions, `sub`/`gsub`, `toupper`, and `next` (level 30).",
+    "Two rules. `[section]` lines: strip the brackets, save the uppercased name, `next`. `key = value` lines: drop an inline comment from `$2`, print SECTION_KEY=VALUE.",
+    "`printf '[a]\\nx = 1\\n' | awk -F' *= *' '/^\\[/ {s = $0; next} {print s, $1, $2}'` prints `[a] x 1`.",
+    "`awk -F' *= *' '/^\\[/ {gsub(/[][]/, \"\"); s = toupper($0); next} /^[a-z]/ {sub(/ *#.*/, \"\", $2); print ...}' \"$DATA/services.conf\"`."
   ]
 }

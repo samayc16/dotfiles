@@ -2,7 +2,23 @@
 
 > Root cause: web is on the wrong port with debug off. Fix the file **in place**, like you would on the box.
 
-**Task:** Edit `./services.conf` in place so that, **in the `[web]` section only**, `port = 8080` and `debug = true`. The `[worker]` section's `debug` must stay `false`. Leave no backup file behind.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `sed -i.bak '...' F` | edit F in place and keep the original as `F.bak`; works on BSD and GNU | |
+| `sed -i '' ...` / `sed -i ...` | in place with no backup: the BSD (macOS) form / the GNU (Linux) form | |
+| `ADDR{s/a/b/;s/c/d/;}` | several commands on one range: `;` between them, and before `}` for BSD sed | |
+
+```sh
+printf 'n = 1\n' > t.conf
+sed -i.bak 's/1/2/' t.conf && rm t.conf.bak
+cat t.conf                      # n = 2
+```
+
+## Your task
+
+Edit `./services.conf` in place so that, **in the `[web]` section only**, `port = 8080` and `debug = true`. The `[worker]` section's `debug` must stay `false`. Leave no backup file behind.
 
 **Input** `$DATA/services.conf` (first lines):
 ```text

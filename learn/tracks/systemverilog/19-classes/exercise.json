@@ -15,8 +15,9 @@
   "open": "packet_pkg.sv",
   "check": "check.sh",
   "hints": [
-    "`function new(bit [7:0] addr, bit [7:0] payload[4]); this.addr = addr; ... count++; endfunction`",
-    "Mark methods `virtual` in the base class so a base-class handle calls the derived version.",
-    "In the subclass constructor call `super.new(addr, payload);` first."
+    "The TODOs in `packet_pkg.sv` list each method; the README's class example and 'Classic gotcha' explain the syntax.",
+    "Constructor: copy both arguments with `this.` and bump `count`. checksum: start from addr and add every payload byte in an 8-bit variable (it wraps mod 256). to_string: one `$sformatf`. CorruptPacket: see its TODO.",
+    "Other data: `int t = 0; foreach (prices[i]) t += prices[i];` · `$sformatf(\"id=0x%02x\", 8'h1f)` gives `\"id=0x1f\"` · `class Dime extends Coin; function new(); super.new(10); endfunction endclass`",
+    "Near-answer: `class CorruptPacket extends Packet; function new(bit [7:0] addr, bit [7:0] payload[4]); super.new(addr, payload); endfunction virtual function bit [7:0] checksum(); return ~super.checksum(); endfunction ... endclass`"
   ]
 }

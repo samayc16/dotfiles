@@ -14,8 +14,9 @@
   "open": "Expressions.hs",
   "check": "check.sh",
   "hints": [
-    "Arithmetic works like you'd expect: 24 * 60 * 60.",
-    "`++` joins lists, and a String is just a list of Char.",
-    "`fromIntegral n` turns an Int into any number type, including Double: fromIntegral n / 2."
+    "Look at the README's 'New syntax' table: every `undefined` is replaced by ONE expression whose type matches the `::` line above it.",
+    "Idea per line: multiply three numbers; add three Doubles then divide with `/`; join two Strings with `++`; call `even` on a number; use `mod` (with backticks) for the remainder; convert the Int with `fromIntegral` before dividing.",
+    "Same shapes on other data: `minutesPerWeek = 7 * 24 * 60` · `(1.0 + 2.0) / 2` · `\"tea\" ++ \"pot\"` · `odd 3` · ``20 `div` 6`` · `third n = fromIntegral n / 3`.",
+    "Near-answer for the tricky one: `halve n = fromIntegral n / 2` (without `fromIntegral`, `/` gets an Int and GHC refuses). average: `(3.0 + 4.0 + 8.0) / 3`."
   ]
 }

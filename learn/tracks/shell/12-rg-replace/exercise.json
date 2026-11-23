@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 155,
   "hints": [
-    "`path=(\\S+) status=503` captures the path. rg supports Perl-style `\\S`, `\\d`, `\\w`.",
-    "`-o -r '$1'` replaces each match with capture group 1.",
-    "`sort -u` sorts and removes duplicates."
+    "README → New syntax: a capture group plus `rg -o -r '$1'` prints just the captured part.",
+    "Match `path=`, capture the non-space run after it, and require ` status=503` right after. Then sort and dedupe.",
+    "`echo 'user=ana id=7' | rg -o -r '$1' 'user=(\\w+)'` prints `ana`.",
+    "`rg -o -r '$1' 'path=(...) status=503' \"$DATA/app.log\" | sort -u`: fill in the group."
   ]
 }

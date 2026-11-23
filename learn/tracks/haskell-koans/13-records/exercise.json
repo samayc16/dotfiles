@@ -15,7 +15,9 @@
   "open": "Records.hs",
   "check": "check.sh",
   "hints": [
-    "Record update: m { xp = xp m + n }",
-    "`succ` gives the next constructor of an Enum; `maxBound` is the last one of a Bounded type."
+    "README 'New syntax': record construction for newMonk, update syntax for train and promote, field getters (`xp m`, `belt m`) everywhere.",
+    "newMonk: build a Monk with all three fields. train: a copy with xp increased. promote: if the belt is already the last (maxBound), return m unchanged, else bump it with succ. ready: compare xp. graduates: the names of the ready ones (comprehension, or filter then map).",
+    "Other data: `tom { lives = lives tom - 1 }` · `succ Small` → Medium · `size == maxBound` checks for the last value · `[catName c | c <- cats, lives c > 0]`.",
+    "`train n m = m { xp = xp m + n }` · `promote m | belt m == maxBound = m | otherwise = m { belt = succ (belt m) }`."
   ]
 }

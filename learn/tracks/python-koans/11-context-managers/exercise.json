@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "Class-based: __enter__ returns self (record start), __exit__(self, *exc) records elapsed and returns None (don't swallow errors).",
-    "@contextmanager def working_dir(path): old = os.getcwd(); os.chdir(path); try: yield path; finally: os.chdir(old)"
+    "Look at the README's 'New syntax' block: Timer is the class form (`__enter__` / `__exit__`), working_dir the generator form (`@contextmanager`).",
+    "Timer: store `perf_counter()` in `__enter__` and return self; compute `self.elapsed` in `__exit__` and return None. working_dir: save the cwd, chdir, `yield` inside `try`, restore in `finally`.",
+    "Other data: `class Quiet: def __enter__(self): self.old = sys.stdout; sys.stdout = io.StringIO(); return self` and `def __exit__(self, *exc): sys.stdout = self.old`.",
+    "Near-answer: `previous = os.getcwd(); os.chdir(path)` then `try: yield path` / `finally: os.chdir(previous)`."
   ]
 }

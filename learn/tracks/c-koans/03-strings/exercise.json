@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "A C string ends at the first '\\0'. my_strlen: count until you hit it. copy_bounded: snprintf(dst, cap, \"%s\", src) never overflows and always terminates.",
-    "snprintf returns the length it WANTED to write; truncated if that is >= cap. count_words: count transitions from space to non-space (isspace from <ctype.h>)."
+    "See 'New syntax': strings end at '\\0', snprintf's return value tells you whether it truncated, and <ctype.h> has isspace/toupper.",
+    "my_strlen: advance a pointer until it reaches '\\0' and return the distance. copy_bounded: ONE snprintf with \"%s\"; it truncated if the length it wanted is >= cap. count_words: count the spots where a non-space char starts a new word. to_upper: overwrite each char.",
+    "Other data, counting digits: `size_t d = 0; for (; *s != '\\0'; s++) if (isdigit((unsigned char)*s)) d++;` · For words, carry a `bool in_word` and update it on every char.",
+    "Near-answer: `int wanted = snprintf(dst, cap, \"%s\", src); return wanted < 0 || (size_t)wanted >= cap;` · count_words: `bool space = isspace((unsigned char)*s); if (!space && !in_word) words++; in_word = !space;`"
   ]
 }

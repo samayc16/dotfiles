@@ -13,8 +13,9 @@
   "open": "traffic.sv",
   "check": "check.sh",
   "hints": [
-    "Keep a timer that counts cycles spent in the current state.",
-    "When the timer reaches DURATION-1, move to the next colour and reset the timer.",
-    "`walk = (light == RED);`"
+    "The README's 'Nice pattern' paragraph and the TODO inside `always_ff` are the plan; the colours live in `traffic_pkg.sv`.",
+    "Every clock: if `timer` equals the current colour's duration - 1, move to the next colour and clear `timer`; otherwise add 1. `walk` is an `assign` comparing `light` with `RED`.",
+    "A helper on other data: `function automatic logic [3:0] blink_len(mode_t m); unique case (m) OFF: return 4'd0; default: return 4'd3; endcase endfunction`",
+    "Near-answer: `end else if (timer == last_cycle(light)) begin light <= after(light); timer <= '0; end else timer <= timer + 1'b1;` with `last_cycle(RED)` returning `8'(RED_T - 1)`."
   ]
 }

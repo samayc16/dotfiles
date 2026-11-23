@@ -15,7 +15,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "class Color(Enum): RED = auto(). Methods work like on any class: def complement(self) -> Color: ...",
-    "StrEnum members ARE strings: Status('done') looks a member up by value; IntEnum members compare with ints."
+    "Look at the README's 'New syntax' table and press `K` on `Enum` / `StrEnum`. Each class needs the right base class and its members.",
+    "Color subclasses `Enum` with three `auto()` members plus a `complement` method (RED↔GREEN, everything else maps to itself). Level subclasses `IntEnum`, Status subclasses `StrEnum`, both with explicit values.",
+    "Other data: `class Dir(Enum): N = auto(); S = auto()` with `def flipped(self) -> Dir: return Dir.S if self is Dir.N else Dir.N`; `class Prio(IntEnum): LOW = 1; HIGH = 3`.",
+    "Near-answer: `pairs = {Color.RED: Color.GREEN, Color.GREEN: Color.RED}; return pairs.get(self, self)`; `class Status(StrEnum): TODO = \"todo\"; DONE = \"done\"`."
   ]
 }

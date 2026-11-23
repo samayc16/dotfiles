@@ -2,7 +2,20 @@
 
 > Maybe it's a config problem. `services.conf` is mostly comments, though.
 
-**Task:** Print `services.conf` **without** comment lines (lines starting with `#`) and without blank lines. Inline comments after a value stay.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `-v` | invert: print the lines that do **not** match | `printf 'a\nb\n' \| grep -v a` → `b` |
+| `^x` | `x` at the start of a line | `grep '^cat'` matches `catnip`, not `bobcat` |
+| `x$` | `x` at the end of a line | `grep 'cat$'` matches `bobcat`, not `catnip` |
+| `^$` | a start immediately followed by an end: an empty line | |
+| `-e P1 -e P2` | several patterns; a line counts if it matches **any** of them | `printf 'cat\ndog\nemu\n' \| grep -e cat -e dog` → `cat`, `dog` |
+| `'^#'` | single-quote every regex so the shell leaves `$`, `*`, `#` alone | |
+
+## Your task
+
+Print `services.conf` **without** comment lines (lines starting with `#`) and without blank lines. Inline comments after a value stay.
 
 **Input** `$DATA/services.conf` (first lines):
 ```text

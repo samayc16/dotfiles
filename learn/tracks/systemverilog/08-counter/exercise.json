@@ -13,8 +13,9 @@
   "open": "counter.sv",
   "check": "check.sh",
   "hints": [
-    "Priority: reset, then load, then count when enabled.",
-    "Wrap: `count <= (count == MAX) ? '0 : count + 1'b1;`",
-    "`tc` is combinational: `en && count == MAX`."
+    "The README's priority table is the order of your `if / else if` chain; reset is already done.",
+    "After reset: `else if (load)` takes `load_val`; `else if (en)` wraps to 0 at MAX or adds 1. `tc` is a plain `assign`. Compare against a sized `localparam` copy of MAX (see the width tip).",
+    "Saturating counter on other names: `localparam logic [3:0] Top = 4'(12);` and `else if (inc) level <= (level == Top) ? level : level + 1'b1;`",
+    "Near-answer: `else if (en) count <= (count == MaxVal) ? '0 : count + 1'b1;` and `assign tc = en && (count == MaxVal);`"
   ]
 }

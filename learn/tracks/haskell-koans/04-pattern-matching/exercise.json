@@ -14,8 +14,9 @@
   "open": "Patterns.hs",
   "check": "check.sh",
   "hints": [
-    "Guards are checked top to bottom; `otherwise` is just True.",
-    "Check 15 before 3 and 5 in fizzbuzz.",
-    "firstOr def [] = def ; firstOr _ (x:_) = x"
+    "README 'New syntax': guards for describe/fizzbuzz, list patterns for firstOr, `case` for isVowel, a tuple pattern for swapPair.",
+    "describe/fizzbuzz: one `| condition = result` line per outcome, most specific first (divisible by 15 before 3 or 5). firstOr: two equations, one for `[]`, one for `(x : _)`. isVowel: a case with a branch per vowel and `_` for the rest. swapPair: match `(a, b)` on the left.",
+    "Other data: `grade s | s >= 90 = \"A\" | otherwise = \"C\"` · `mod n 4 == 0` tests divisibility by 4 · `isEmpty [] = True` then `isEmpty (_ : _) = False` · `addPair (a, b) = a + b`.",
+    "`firstOr def [] = def` and `firstOr _ (x : _) = x` · fizzbuzz's last guard is `| otherwise = show n` · `swapPair (a, b) = (b, a)`."
   ]
 }

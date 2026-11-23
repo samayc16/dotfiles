@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 324,
   "hints": [
-    "Split each `key=value` field, then aggregate count and total ms per path.",
-    "Average = total / count, in the END block.",
-    "`sort -k2,2nr -k1,1`: by count descending, then path ascending."
+    "README → New syntax: several awk rules in one program, `if` inside `END`, and a two-key sort.",
+    "Rule 1: split the `path=`, `status=` and `ms=` fields. Rule 2: if status ≥ 500, count it and add its ms per path. END: print paths with count ≥ 3 and total / count.",
+    "`printf 'a 4\\na 6\\nb 1\\n' | awk '{n[$1]++; t[$1] += $2} END {for (k in n) if (n[k] > 1) print k, t[k] / n[k]}'` prints `a 5`.",
+    "`... END {for (k in n) if (n[k] >= 3) printf \"%s %d %.1f\\n\", k, n[k], t[k] / n[k]}' \"$DATA/app.log\" | sort -k2,2nr -k1,1`."
   ]
 }

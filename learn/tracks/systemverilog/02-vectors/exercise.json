@@ -16,8 +16,9 @@
   "open": "vectors.sv",
   "check": "check.sh",
   "hints": [
-    "Nibble swap: `{a[3:0], a[7:4]}`.",
-    "Reduction operators take one operand: `^a`, `&a`, `|a`.",
-    "Sign extension: `{{8{a[7]}}, a}`. Bit reverse: `{<<{a}}`."
+    "Every TODO comment names the tool (slice, concatenation, reduction, replication, streaming); each has a row in the README's New syntax table.",
+    "`both` is bitwise with two operands. `parity`, `all_ones`, `any_set` are reductions (one operand, 1-bit result). `swapped` glues two slices. `reversed` is the streaming operator.",
+    "On a 16-bit `w`: byte swap `{w[7:0], w[15:8]}` · zero-extend to 24 bits `{{8{1'b0}}, w}` · any bit set `|w`.",
+    "Sign extension = 8 copies of the sign bit, then `a`: `{{8{a[7]}}, a}`. Bit reverse: `{<<{a}}`."
   ]
 }

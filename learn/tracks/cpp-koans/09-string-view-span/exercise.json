@@ -14,7 +14,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "trim: find_first_not_of(\" \\t\\n\") / find_last_not_of(...) then substr. A string_view never copies.",
-    "split: loop with find(sep), push_back(text.substr(0, pos)), text.remove_prefix(pos + 1). span: std::span<const int> s; s.subspan(1, s.size() - 2)."
+    "New syntax table: string_view's `find_first_not_of` / `find_last_not_of` / `substr` / `remove_prefix` / `npos`, and `span::subspan`.",
+    "trim: find the first and last non-whitespace positions; none → empty view; otherwise substr between them. split: loop { find sep; keep the piece before it; remove_prefix past it }, and when find returns npos keep the last piece and stop. sum_middle: fewer than 3 elements → 0, else subspan(1, size - 2) and add.",
+    "On other data: `std::string_view path = \"/usr/bin\"; path.substr(path.find_last_of('/') + 1)` → `bin` · `std::string_view kv = \"key=value\"; kv.remove_prefix(4);` → `value` · `std::span<const int> s = arr; s.subspan(2)` drops two.",
+    "Near-answer (trim): `auto first = text.find_first_not_of(ws); if (first == std::string_view::npos) return {}; auto last = text.find_last_not_of(ws); return text.substr(first, last - first + 1);`"
   ]
 }

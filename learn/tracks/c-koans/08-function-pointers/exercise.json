@@ -14,7 +14,9 @@
   "open": "koan.c",
   "check": "check.sh",
   "hints": [
-    "typedef int (*BinOp)(int, int); a function name decays to a pointer: BinOp f = add; f(2, 3).",
-    "qsort comparator for descending ints: const int x = *(const int *)a, y = *(const int *)b; return (x < y) - (x > y);"
+    "See 'New syntax': calling through a function pointer, returning a function by name, and qsort's comparator contract.",
+    "map_inplace: replace each element with f(element). op_for: a switch on the symbol returning add / sub / mul, or nullptr. cmp_desc: return a NEGATIVE number when *a should come first, i.e. when *a is LARGER.",
+    "Other data: `Pred pick(char c) { switch (c) { case 'e': return is_even; default: return nullptr; } }` · an ascending comparator: `return (x > y) - (x < y);`",
+    "Near-answer: `xs[i] = f(xs[i]);` in a loop · `case '+': return add;` … `default: return nullptr;` · cmp_desc: read both ints with `*(const int *)a`, then `return (x < y) - (x > y);`"
   ]
 }

@@ -14,7 +14,9 @@
   "open": "koan.py",
   "check": "check.sh",
   "hints": [
-    "@dataclass(frozen=True, slots=True). Frozen instances raise FrozenInstanceError on assignment and become hashable.",
-    "Return modified copies: return replace(self, x=self.x + dx, y=self.y + dy). For the tuple field: replace(self, items=(*self.items, item))."
+    "Look at the README's 'New syntax' table: two decorator flags plus `dataclasses.replace` (already imported).",
+    "Freeze both classes (Point also slotted). Never assign to `self.x`; return `replace(self, ...)` with the new values. For the tuple, build a new one with `*`.",
+    "Other data: `replace(user, name=user.name.title())`; `(\"a\",) + (\"b\",)` and `(*(\"a\",), \"b\")` both build `('a', 'b')`.",
+    "Near-answer: `return replace(self, x=self.x + dx, y=self.y + dy)`; Inventory gets `@dataclass(frozen=True)` and `replace(self, items=(*self.items, item))`."
   ]
 }

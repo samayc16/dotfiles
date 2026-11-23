@@ -2,7 +2,19 @@
 
 > The DBA asks: "what does the database section say?"
 
-**Task:** Print the `[database]` section of `services.conf`: its header and its lines, but not the blank line after it.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `sed -n '...p'` | `-n`: print nothing unless told to; `p`: print this line | `printf 'l1\nl2\nl3\n' \| sed -n '2p'` → `l2` |
+| `2,4p`, `/re/p` | address lines by number range / by regex | `sed -n '/tea/p'` acts like `grep tea` |
+| `/A/,/B/` | a range: from a line matching A through the next line matching B | `printf 'a\nSTART\nb\nEND\nc\n' \| sed -n '/START/,/END/p'` → `START`, `b`, `END` |
+| `ADDR{cmd;}` | run commands only on the addressed lines; end each with `;` | `sed -n '/A/,/B/{/x/p;}'` |
+| `\[` | a literal `[` (a bare `[` starts a class) | `sed -n '/^\[a\]/p'` matches the line `[a]` |
+
+## Your task
+
+Print the `[database]` section of `services.conf`: its header and its lines, but not the blank line after it.
 
 **Input** `$DATA/services.conf` (first lines):
 ```text

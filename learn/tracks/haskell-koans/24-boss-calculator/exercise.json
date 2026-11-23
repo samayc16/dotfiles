@@ -14,8 +14,9 @@
   "open": "Calc.hs",
   "check": "check.sh",
   "hints": [
-    "eval (Add a b) = (+) <$> eval a <*> eval b; only Div needs a do-block to check for zero.",
-    "parseSum: parse one product, then loop: while the next token is + or -, parse another product and wrap Add/Sub around what you have.",
-    "parseAtom (TOpen : rest): parse a sum, then expect TClose."
+    "README 'New syntax' and the grammar: one function per rule, each returning `Right (expr, leftoverTokens)`. Do eval and pretty first, then parseAtom, parseProduct, parseSum, calc.",
+    "eval: recurse into both sides; only Div needs a zero check. pretty: \"(\" ++ left ++ \" op \" ++ right ++ \")\". parseAtom: TNum → Num; TOpen → parseSum, then expect TClose. parseProduct/parseSum: parse one operand, then loop: while the next token is your operator, parse another operand and wrap (left-associative). calc: parseExpr, then eval.",
+    "Other data: `sumList`/`go` in the README is exactly the 'operand (op operand)*' loop · `(+) <$> Right 2 <*> Right 3` → Right 5.",
+    "`parseSum tokens = parseProduct tokens >>= uncurry go` where `go lhs (TPlus : rest) = parseProduct rest >>= \\(rhs, rest') -> go (Add lhs rhs) rest'` (same for TMinus/Sub) and `go lhs rest = Right (lhs, rest)` · `calc input = parseExpr input >>= eval`."
   ]
 }

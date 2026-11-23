@@ -14,8 +14,9 @@
   "check": "check.sh",
   "par": 154,
   "hints": [
-    "`awk -F, 'CONDITION {ACTION}'` runs ACTION on lines where CONDITION holds.",
-    "Fields are `$1`, `$2`, ...; compare strings with `==`.",
-    "Juxtaposition concatenates: `print $2 \" <\" $3 \">\"`."
+    "README → New syntax: `awk -F, 'COND {print ...}'` with fields `$2`, `$3`, `$7`.",
+    "Condition: the plan field equals `\"pro\"`. Action: print the name, ` <`, the email and `>` glued together.",
+    "`printf 'ana,admin\\nbo,guest\\n' | awk -F, '$2 == \"admin\" {print \"[\" $1 \"]\"}'` prints `[ana]`.",
+    "`awk -F, '$7 == \"pro\" {print ...}' \"$DATA/users.csv\"`: name is `$2`, email is `$3`."
   ]
 }

@@ -13,7 +13,9 @@
   "open": "LocalDefs.hs",
   "check": "check.sh",
   "hints": [
-    "Guards can use names defined in the `where` below them.",
-    "let disc = b*b - 4*a*c in if disc < 0 then Nothing else Just (...)"
+    "README 'New syntax': `where` (after the guards) for bmiCategory, `let … in` for roots, two `where` names for cylinderArea.",
+    "bmiCategory: name bmi = weight / height² in a where; guards compare bmi with 18.5 and 25. roots: let disc = b² − 4ac; negative → Nothing, else Just (bigger root, smaller root) with (−b ± √disc) / 2a. cylinderArea: name caps and side, return their sum.",
+    "Other data: `speedLabel km h | kmh > 100 = \"fast\" | otherwise = \"slow\" where kmh = km / h` · `let base = w * d in base * h`.",
+    "`roots a b c = let disc = b * b - 4 * a * c in if disc < 0 then Nothing else Just ((-b + sqrt disc) / (2 * a), (-b - sqrt disc) / (2 * a))`."
   ]
 }

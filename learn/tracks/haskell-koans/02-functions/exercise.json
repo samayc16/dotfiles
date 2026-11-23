@@ -14,7 +14,9 @@
   "open": "Functions.hs",
   "check": "check.sh",
   "hints": [
-    "`add3 10 0` is already a function of one more Int.",
-    "applyTwice f x = f (f x)"
+    "README 'New syntax': each body is one expression built from the parameters left of `=`. For `addTen`, read the 'partial application' row.",
+    "square: x times itself. add3: add all three. addTen: give `add3` two numbers that sum to 10 and NO parameter of its own. applyTwice: call f, then call f on that result. hypotenuse: square root of a² + b².",
+    "Other data: `greetDr = greet \"Dr.\"` · `onBoth f x y = f x + f y` · `sqrt (9 + 16)` → 5.0 · `f (g x)` runs g first, then f on its result.",
+    "`addTen = add3 10 0` · `applyTwice f x = f (f x)` · `hypotenuse a b = sqrt (a * a + b * b)`."
   ]
 }

@@ -15,8 +15,9 @@
   "open": "Effects.hs",
   "check": "check.sh",
   "hints": [
-    "forM_ [n, n - 1 .. 1] print, then putStrLn \"liftoff!\"",
-    "The last line of a do-block is its result: pure (length names)",
-    "sequence :: [IO a] -> IO [a]"
+    "README 'New syntax': `do` blocks, `forM_` for loops, `pure` to return a value, `sequence` to run a list of actions, `when` for a conditional action.",
+    "countdown: loop over a descending range printing each number, then print liftoff!. greetAll: loop printing the greeting, then return the count. sumActions: run them all with sequence, then return the sum. whenLoud: `when` the flag is set, print the uppercased message.",
+    "Other data: `forM_ [10, 8 .. 2] print` · `forM_ ws $ \\w -> putStrLn (w ++ \\\"!\\\")` · `do { xs <- sequence [pure 1, pure 2]; pure (sum xs) }`.",
+    "`countdown n = do { forM_ [n, n - 1 .. 1] print; putStrLn \"liftoff!\" }` · greetAll ends with `pure (length names)` · `whenLoud flag msg = when flag (putStrLn (map toUpper msg))`."
   ]
 }

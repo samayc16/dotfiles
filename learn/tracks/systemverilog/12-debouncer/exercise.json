@@ -13,8 +13,9 @@
   "open": "debounce.sv",
   "check": "check.sh",
   "hints": [
-    "Count consecutive cycles where `noisy != clean`; reset the counter whenever they agree.",
-    "When the counter hits N-1 (and they still differ), flip `clean`.",
-    "Edges: keep `clean_q` (clean delayed by one cycle). `rise = clean & ~clean_q`."
+    "Follow the three rules at the top of `debounce.sv`, in order. First delete `assign clean = noisy;`: a signal can't be driven by both an `assign` and an `always_ff`.",
+    "One `always_ff` with reset. Every edge: copy `clean` into `clean_q`; then if `noisy == clean` clear the counter, else if the counter is N-1 set `clean <= noisy` and clear it, else count up. `rise`/`fall` stay `assign`s.",
+    "Sizing on other numbers: for N = 10, `$clog2(10 + 1)` is 4 bits and `localparam logic [3:0] Last = 4'(10 - 1);`",
+    "Near-answer: `clean_q <= clean; if (noisy == clean) cnt <= '0; else if (cnt == Last) begin clean <= noisy; cnt <= '0; end else cnt <= cnt + 1'b1;` with `localparam int CW = $clog2(N + 1);`"
   ]
 }

@@ -14,7 +14,9 @@
   "open": "koan.cpp",
   "check": "check.sh",
   "hints": [
-    "Specs: {:08.3f} zero-pads, {:#x} hex with 0x, {:08b} 8-digit binary, {:*^9} centres with * fill.",
-    "Custom type: template <> struct std::formatter<Point> : std::formatter<std::string> { auto format(const Point& p, auto& ctx) const { return std::formatter<std::string>::format(std::format(\"({}, {})\", p.x, p.y), ctx); } };"
+    "New syntax table: the format-spec mini-language `{:[fill][align][width][.prec][type]}` (same as Python f-strings) and the `std::formatter<T>` pattern.",
+    "hex_and_binary: two `{}` fields for the same value, one hex with `#` (adds 0x), one binary zero-padded to width 8. banner: fill `*`, centre `^`, width 9. Point: specialise `std::formatter<Point>`, build \"(x, y)\" with std::format and pass it to the base string formatter.",
+    "On other data: `std::format(\"{:#o} {:04b}\", 8, 5)` → `010 0101` · `std::format(\"{:-<7}\", \"ab\")` → `ab-----` · the `Temp` formatter in the README.",
+    "Near-answer: `std::format(\"{:#x} {:08b}\", value, value)` · `std::format(\"{:*^9}\", text)` · the Temp formatter with `\"({}, {})\", p.x, p.y` · describe: `std::format(\"point {}\", p)`."
   ]
 }

@@ -14,7 +14,9 @@
   "open": "Koan.swift",
   "check": "check.sh",
   "hints": [
-    "struct Stack<Element> { private var items: [Element] = []; mutating func push(_ x: Element) { items.append(x) }; mutating func pop() -> Element? { items.popLast() } ... }",
-    "func allEqual<C: Collection>(_ c: C) -> Bool where C.Element: Equatable { guard let first = c.first else { return true }; return c.allSatisfy { $0 == first } }"
+    "Look at the README's 'New syntax' (generics, constraints, `where`) and its array-API row. `largest` is a one-liner.",
+    "Idea: Stack wraps a private array: push appends, pop removes the last element (which is already optional), peek reads the last. allEqual: an empty collection is all-equal; otherwise every element must equal the first.",
+    "Example on other data: `struct Queue<Item> { private var items: [Item] = []; mutating func enqueue(_ i: Item) { items.append(i) } }` · `[2, 4].allSatisfy { $0 % 2 == 0 }`.",
+    "Near-answer: `guard let first = collection.first else { return true }` then `return collection.allSatisfy { $0 == first }`. largest: `values.max()`. Stack: `mutating func pop() -> Element? { items.popLast() }`."
   ]
 }

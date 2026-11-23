@@ -2,7 +2,18 @@
 
 > The metrics export is a TSV. When was the CPU hottest?
 
-**Task:** Print the 3 data rows of `metrics.tsv` with the highest `cpu` (3rd column), highest first. Skip the header.
+## New syntax
+
+| Syntax | Meaning | Example (not the answer) |
+|---|---|---|
+| `head -n 3` (or `head -3`) | only the first 3 lines | |
+| `sort -t, -k2,2n` | split on `,`, sort by field 2 only, numerically | `printf 'b,7\na,12\nc,3\n' \| sort -t, -k2,2n` → `c,3`, `b,7`, `a,12` |
+| `-k2,2nr` | letters glued to a key apply to that key: numeric, reversed | |
+| `$'\t'` | bash: a real tab character (`$'\n'` is a newline) | `printf 'x\ty\n' \| cut -d$'\t' -f2` → `y` |
+
+## Your task
+
+Print the 3 data rows of `metrics.tsv` with the highest `cpu` (3rd column), highest first. Skip the header.
 
 **Input** `$DATA/metrics.tsv` (first lines):
 ```text

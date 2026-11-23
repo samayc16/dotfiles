@@ -13,8 +13,9 @@
   "check": "check.sh",
   "par": 129,
   "hints": [
-    "`sed 's/OLD/NEW/' file` replaces the first match on each line.",
-    "Match from a comma up to the `@`: `,[^,]*@`. `[^,]` means \"anything except a comma\".",
-    "Put the comma back in the replacement."
+    "README → New syntax: `sed 's/OLD/NEW/'` plus a negated class `[^,]`.",
+    "The email field starts after a comma and runs up to `@`: match comma + non-commas + `@`, replace with comma + `***@`. The header has no `@`, so it stays.",
+    "`echo 'tel: 555-1234' | sed 's/[^ ]*$/<hidden>/'` prints `tel: <hidden>`.",
+    "`sed 's/,[^,]*@/...' \"$DATA/users.csv\"`: write the replacement (put the comma back)."
   ]
 }
