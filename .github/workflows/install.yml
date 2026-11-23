@@ -58,11 +58,6 @@ jobs:
       matrix:
         image: [ubuntu:24.04, debian:12, fedora:latest, rockylinux:9, archlinux:latest]
         mode: [root, user]
-        include:
-          # EPEL on Rocky 9 has no Verilator ≥ 5; a 20-minute source build isn't worth CI time
-          - image: rockylinux:9
-            mode: root
-            extra: --skip hdl
     container: ${{ matrix.image }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
@@ -80,7 +75,9 @@ jobs:
 
       - name: Install as root (profile dev)
         if: matrix.mode == 'root'
-        run: ./install.sh --profile dev --without hdl-src --no-log ${{ matrix.extra }}
+        # Distro HDL packages are used where they work; Rocky 9's Verilator is broken, so it
+        # takes the source-build path a real install would (~15 min).
+        run: ./install.sh --profile dev --no-log
 
       - name: Install as a user without sudo (profile cli)
         if: matrix.mode == 'user'
