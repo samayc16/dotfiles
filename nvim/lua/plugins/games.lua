@@ -21,7 +21,7 @@ local MENU = {
   { group = 'Train', cmd = 'Hardtime toggle', desc = 'turn the motion coach on / off' },
   { group = 'Play', cmd = 'Doom ' .. vim.fn.fnameescape(DOOM_WAD), label = 'Doom', desc = 'actually DOOM (shareware). arrows move, x fire, space use' },
   { group = 'Play', cmd = 'Tetris', desc = 'Tetris' },
-  { group = 'Play', cmd = 'KillKillKill', desc = 'killersheep: h / l move, space fire' },
+  { group = 'Play', cmd = 'KillKillKill', desc = 'killersheep: h / l move, space fire (needs a 60x35 window)' },
   { group = 'Play', cmd = 'Nvimesweeper', desc = 'Minesweeper' },
   { group = 'Play', cmd = 'Sudoku', desc = 'Sudoku (g? for help)' },
   { group = 'Play', cmd = 'Playtime', desc = 'card games: solitaire, freecell, spider, ...' },
@@ -50,6 +50,31 @@ vim.api.nvim_create_user_command('Games', function()
   end)
 end, { desc = 'Pick a Vim game / trainer' })
 
+-- 2048.nvim draws fixed 5x10 squares and refuses to start below 31x51 cells (any tmux split).
+-- Use the largest squares that fit, and say so plainly when even the smallest don't.
+local SQUARES_2048 = { { 5, 10 }, { 4, 8 }, { 3, 6 }, { 2, 6 } } -- { height, width }
+
+local function setup_2048()
+  local game = require '2048'
+  game.setup()
+  vim.api.nvim_create_user_command('Play2048', function()
+    local g = game.new()
+    local ui = vim.api.nvim_list_uis()[1] or { height = vim.o.lines, width = vim.o.columns }
+    for _, sq in ipairs(SQUARES_2048) do
+      g._square_height, g._square_width = sq[1], sq[2]
+      -- the plugin errors unless there are 5 spare rows (scoreboard) and a spare column
+      if ui.height > g:calculate_window_height() + 5 and ui.width > g:calculate_window_width() then break end
+    end
+    g._left_right_animation_interval = g._up_down_animation_interval * (g._square_height + g._vertical_padding)
+      / (g._square_width + g._horizontal_padding)
+    local ok, err = pcall(g.create_window, g)
+    if not ok then
+      local small = tostring(err):find 'increase the size' ~= nil
+      vim.notify(small and '2048 needs a window of at least 19 rows x 35 columns (tmux: prefix z zooms the pane).' or tostring(err), vim.log.levels.WARN)
+    end
+  end, { nargs = 0, desc = 'Start 2048' })
+end
+
 -- actually-doom compiles a small C binary into stdpath('data') on first :Doom.
 -- Do it at install time instead so it's ready offline. Blocks until done.
 local function build_doom()
@@ -67,7 +92,20 @@ return {
   { 'ThePrimeagen/vim-be-good', cmd = 'VimBeGood' },
   { 'tjdevries/train.nvim', cmd = { 'TrainUpDown', 'TrainWord', 'TrainTextObj' } },
   { 'nvzone/typr', dependencies = 'nvzone/volt', cmd = { 'Typr', 'TyprStats' }, opts = {} },
-  { 'NStefan002/speedtyper.nvim', cmd = { 'Speedtyper', 'SpeedtyperSettings' } },
+  {
+    'NStefan002/speedtyper.nvim',
+    cmd = { 'Speedtyper', 'SpeedtyperSettings' },
+    -- Its default "echo" messages stop at Press ENTER (e.g. "no sound player installed" on
+    -- every launch); use toasts like the rest of the config. "none" is still respected.
+    config = function()
+      local settings = require 'speedtyper.settings'
+      if settings:get_selected 'notify_method' ~= 'echo' then return end
+      for method in pairs(settings.general.notify_method) do
+        settings.general.notify_method[method] = method == 'notify'
+      end
+      settings:save()
+    end,
+  },
   { -- Motion coach: hints when you spam hjkl / use arrows, never blocks.
     'm4xshen/hardtime.nvim',
     event = 'VeryLazy',
@@ -77,6 +115,12 @@ return {
       disable_mouse = false,
       disabled_keys = { ['<Up>'] = false, ['<Down>'] = false, ['<Left>'] = false, ['<Right>'] = false },
     },
+    config = function(_, opts)
+      require('hardtime').setup(opts)
+      -- :Hardtime report errors until the first hint is logged; start from an empty log.
+      local log = vim.fn.stdpath 'log' .. '/hardtime.nvim.log'
+      if not vim.uv.fs_stat(log) then vim.fn.writefile({}, log) end
+    end,
   },
 
   -- ── Play ─────────────────────────────────────────────────────────────
@@ -86,7 +130,7 @@ return {
   { 'seandewar/nvimesweeper', cmd = 'Nvimesweeper' },
   { 'jim-fx/sudoku.nvim', cmd = 'Sudoku', opts = {} },
   { 'rktjmp/playtime.nvim', cmd = 'Playtime' },
-  { 'NStefan002/2048.nvim', cmd = 'Play2048', opts = {} },
+  { 'NStefan002/2048.nvim', cmd = 'Play2048', config = setup_2048 },
   { 'alanfortlink/blackjack.nvim', dependencies = 'nvim-lua/plenary.nvim', cmd = { 'BlackJackNewGame', 'BlackJackQuit', 'BlackJackResetScores' } },
   { 'Eandrju/cellular-automaton.nvim', cmd = 'CellularAutomaton' },
 }
