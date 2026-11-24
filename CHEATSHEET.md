@@ -340,7 +340,7 @@ Par = keystrokes: ★★★ ≤ par, ★★ ≤ 1.5× par. The black belt drills
 
 ## music (tamp)
 
-[tamp](https://github.com/samayc16/tamp) plays your Plex library, or controls and follows Plexamp on your phone, Mac or headless box (`o`). The first run signs you in with a link (`c` copy, `o` open, or scan the QR code). `tamp --demo` needs no server; `?` inside lists every key.
+[plexamp-tui](https://github.com/samayc16/plexamp-tui) (`tamp`) plays your Plex library, or controls and follows Plexamp on your phone, Mac or headless box (`o`). The first run signs you in with a link (`c` copy, `o` open, or scan the QR code). `tamp --demo` needs no server; `?` inside lists every key.
 
 | keys | does |
 |---|---|

@@ -70,7 +70,7 @@ bash_handoff() {
 make_login_shell() {
   local zsh_path current
   zsh_path="$(command -v zsh)"
-  current="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7 || dscl . -read "$HOME" UserShell 2>/dev/null | awk '{print $2}')"
+  current="$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7 || dscl . -read "/Users/$(id -un)" UserShell 2>/dev/null | awk '{print $2}' || true)"
   [[ "$(basename "${current:-$SHELL}")" == zsh ]] && { ok "login shell is zsh"; return 0; }
   if detect_sudo; then
     # shellcheck disable=SC2086

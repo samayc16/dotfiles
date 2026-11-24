@@ -37,6 +37,7 @@ input=$(cat)
   (.cost.total_cost_usd // ""),
   (.cost.total_lines_added // 0),
   (.cost.total_lines_removed // 0)
+  | tostring | gsub("[[:cntrl:]]"; "")  # a folder name can carry terminal escape sequences
 ')
 
 # ── Monokai Pro palette ─────────────────────────────────────────────
@@ -155,4 +156,4 @@ out="${parts[0]}"
 for (( i=1; i<${#parts[@]}; i++ )); do
   out+="${SEP}${parts[$i]}"
 done
-printf '%b' "$out"
+printf '%s' "$out"  # %s: a folder name with backslash escapes must stay text

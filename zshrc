@@ -8,8 +8,8 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# The repo this file lives in (follows the ~/.zshrc symlink)
-export DOTFILES="${DOTFILES:-${${(%):-%N}:A:h}}"
+# The repo this file lives in (follows the ~/.zshrc symlink; an inherited DOTFILES may point elsewhere)
+export DOTFILES="${${(%):-%N}:A:h}"
 
 # ── Platform ──────────────────────────────────────────────────────────
 if [[ "$OSTYPE" == darwin* ]]; then

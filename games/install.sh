@@ -73,7 +73,11 @@ install_packages_macos() {
 }
 
 install_packages_arch() {
-  sudo pacman -S --needed --noconfirm "${PACMAN_PKGS[@]}"
+  if [[ "${NO_SUDO:-0}" == 1 ]]; then
+    note "--no-sudo: skipping pacman packages (${PACMAN_PKGS[*]})"
+    return 0
+  fi
+  sudo -n pacman -S --needed --noconfirm "${PACMAN_PKGS[@]}" || note "pacman needs sudo; skipped (${PACMAN_PKGS[*]})"
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────

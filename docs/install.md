@@ -24,7 +24,7 @@ The last step opens a sample file per language (and per installed compiler or si
 |---|---|
 | `cli` | font, zsh + prompt, tmux, Neovim + plugins, CLI tools, Claude Code |
 | `dev` | language servers, formatters, debuggers, parsers, Rust (rustup), HDL toolchain, smoke test |
-| `full` (default) | Swift (Linux), Haskell, games, learning tracks, tamp (Plex music) + mpv |
+| `full` (default) | Swift (Linux), Haskell, games, learning tracks, plexamp-tui (Plex music) + mpv |
 
 ## Where tools come from
 

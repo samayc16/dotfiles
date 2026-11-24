@@ -27,7 +27,7 @@ One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SS
 |---|---|---|
 | **Neovim** | LSP, completion, snippets, formatting, run (`Space rr`), debug and tests for 9 languages; Xcode build/run; SystemVerilog hierarchy + Verilator; Claude panel | [docs/neovim.md](docs/neovim.md) |
 | **Learning** | `learn`: koans and Exercism exercises with tests, stars and XP · `:Dojo`: vim golf for motions and these keymaps · offline docs | [docs/learning.md](docs/learning.md) |
-| **Music** | [tamp](https://github.com/samayc16/tamp): Plex in the terminal. Play here, or follow and control Plexamp on your phone with synced lyrics; now playing in the tmux bar | [tamp](https://github.com/samayc16/tamp#readme) |
+| **Music** | [plexamp-tui](https://github.com/samayc16/plexamp-tui) (`tamp`): Plex in the terminal. Play here, or follow and control Plexamp on your phone with synced lyrics; now playing in the tmux bar | [plexamp-tui](https://github.com/samayc16/plexamp-tui#readme) |
 | **Games** | `play`: vim trainers, GameShell, a grep murder mystery, DOOM in Neovim, Zork, roguelikes | [docs/games.md](docs/games.md) |
 | **Terminal** | zsh + Powerlevel10k with fuzzy Tab completion for everything, `tools` to see what's installed, tmux with popups, kitty, fzf/zoxide/eza/bat, lazygit + delta | [CHEATSHEET.md](CHEATSHEET.md) |
 | **Claude Code** | Remote Control in every session, Claude inside Neovim (`Space ac`), a Tutor style for learning, `quiz` and `learn-coach` skills | [below](#claude-code) |

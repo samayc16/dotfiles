@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# tamp (https://github.com/samayc16/tamp): a Plex music player for the terminal, installed with
+# plexamp-tui (https://github.com/samayc16/plexamp-tui), command `tamp`: a Plex music player for the terminal, installed with
 # `uv tool`, plus mpv to play music locally. Without mpv tamp still works as a remote and
 # synced-lyrics screen for Plexamp on another device.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-TAMP_SOURCE="git+https://github.com/samayc16/tamp"
+TAMP_SOURCE="git+https://github.com/samayc16/plexamp-tui"
 
 install_mpv() {
   if has mpv; then
@@ -33,6 +33,8 @@ main() {
   section "Music (tamp)"
   has uv || { err "uv is required (installed by the packages / mise steps)"; return 1; }
   install_mpv
+  # it was published as "tamp" before; that tool owns the `tamp` command, so it has to go first
+  if uv tool list 2>/dev/null | grep -q "^tamp v"; then run uv tool uninstall tamp; fi
   run uv tool install --upgrade --quiet "$TAMP_SOURCE"
   [[ "$DRY_RUN" == 1 ]] || ok "$(tamp --version 2>/dev/null || echo "tamp installed")"
 }
