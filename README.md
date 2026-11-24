@@ -68,7 +68,7 @@ More screenshots in each guide: [Neovim](docs/neovim.md), [learning](docs/learni
 - **Skills:** say "quiz me" for keymap / tmux / sed quizzes; ask for help on a `learn` exercise and get hints without spoilers.
 - **Plugins:** language-server plugins for C/C++, Rust, Swift, Python and Lua (`claude/install-plugins.sh`, safe to re-run).
 
-Tracked: `settings.json`, `CLAUDE.md`, `output-styles/`, `skills/`, `rules/`, `agents/`, the status line and hooks. Credentials and `settings.local.json` are never tracked.
+Tracked: `CLAUDE.md`, `output-styles/`, `skills/`, `rules/`, `agents/`, the status line and hooks, plus a starting `settings.json`. That one is *copied* to `~/.claude/settings.json` once, not linked, so whatever Claude saves there stays on your machine. It starts cautious (Claude asks before running commands); loosen your copy as you like. Credentials and `settings.local.json` are never tracked.
 
 ## Layout
 

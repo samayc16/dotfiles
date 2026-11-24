@@ -43,8 +43,9 @@ link_editors() {
 
 link_agents() {
   section "Claude Code, Codex"
-  link "$DOTFILES/codex/config.toml" "$HOME/.codex/config.toml"
-  link "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
+  # Copied, not linked: both apps write their settings back, and this repo is public.
+  seed "$DOTFILES/codex/config.toml" "$HOME/.codex/config.toml"
+  seed "$DOTFILES/claude/settings.json" "$HOME/.claude/settings.json"
   link "$DOTFILES/claude/rules" "$HOME/.claude/rules"
   link "$DOTFILES/claude/agents" "$HOME/.claude/agents"
   link "$DOTFILES/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"

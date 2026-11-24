@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# Pre-accept Claude Code's workspace-trust prompt for the folders these dotfiles manage.
-# Claude Code has no global switch (and never persists trust for $HOME); trust covers
-# subfolders except nested git repos, which get their own entry. Safe to re-run.
+# Pre-accept Claude Code's workspace-trust prompt for your own folders these dotfiles manage.
+# Trust covers subfolders except nested git repos, which get their own entry. The third-party
+# example projects cloned into ~/learn/projects are deliberately not trusted: a hook their
+# owners add later would otherwise run without asking. Claude asks the first time instead.
+# Safe to re-run.
 set -euo pipefail
 
 config="$HOME/.claude.json"
 [[ -f "$config" ]] || { echo "trust: $config not found yet (run claude once), skipping"; exit 0; }
 
 dirs=("$HOME/dotfiles" "$HOME/learn" "$HOME/scratch")
-for repo in "$HOME"/learn/projects/*/*/; do
-  [[ -d "$repo.git" ]] && dirs+=("${repo%/}")
-done
 
 python="${DOTFILES_PYTHON:-$(command -v python3 || true)}"
 [[ -x "$python" ]] || { echo "trust: no python3, skipping"; exit 0; }

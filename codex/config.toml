@@ -1,7 +1,8 @@
-# Codex CLI — autonomous defaults with a metric-rich native status line.
-# WARNING: these permission settings allow commands to run without approval or sandboxing.
-approval_policy = "never"
-sandbox_mode = "danger-full-access"
+# Codex CLI: a starting config with a metric-rich native status line. The installer copies it
+# to ~/.codex/config.toml once; edit that copy (it never comes back to this repo).
+# Cautious by default: Codex asks before leaving the sandbox, and writes only inside the workspace.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
 web_search = "live"
 
 # Match the high-reasoning, agentic Claude setup without pinning a model version.

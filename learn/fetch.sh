@@ -6,7 +6,7 @@
 #   ~/learn/docs/<lang>       offline reference docs (cppreference, Python, GHC base, ...)
 #   ~/learn/.venv             Python with pytest for the Python tracks
 #
-# Idempotent: re-running updates what's there. Offline, network steps are skipped
+# Idempotent: re-running moves each repo to its pinned commit, keeping any you've changed. Offline, network steps are skipped
 # with a message and everything already on disk keeps working.
 # Usage: learn/fetch.sh [--no-docs] [--no-projects]
 set -uo pipefail
@@ -34,19 +34,24 @@ if curl -fsS --max-time 5 -o /dev/null https://github.com 2>/dev/null; then ONLI
 IS_MAC=0
 [[ "$(uname -s)" == "Darwin" ]] && IS_MAC=1
 
-# git clone (shallow) or fast-forward update. Optional sparse paths after the dir.
+# Shallow clone at a pinned commit (sparse when paths follow the pin), or move an existing clone
+# to a new pin. A clone you've changed (edited files, or commits of your own) is left alone.
+# To bump a pin: git ls-remote <url> HEAD
 sync_repo() {
-  local url="$1" dir="$2"
-  shift 2
+  local url="$1" dir="$2" rev="$3" name
+  shift 3
+  name="$(basename "$dir")"
   if [[ -d "$dir/.git" ]]; then
-    if ((ONLINE)); then
-      if git -C "$dir" fetch -q --depth 1 origin && git -C "$dir" reset -q --hard FETCH_HEAD; then
-        ok "updated $(basename "$dir")"
-      else
-        fail "update $url"
-      fi
+    if [[ "$(git -C "$dir" rev-parse -q --verify HEAD)" == "$rev" ]]; then
+      skip "have $name"
+    elif ! pristine "$dir"; then
+      skip "keeping $name: it has your changes"
+    elif ((!ONLINE)); then
+      skip "offline: keeping $name"
+    elif checkout_pin "$dir" "$rev"; then
+      ok "updated $name"
     else
-      skip "offline: keeping $(basename "$dir")"
+      fail "update $url"
     fi
     return
   fi
@@ -59,7 +64,18 @@ sync_repo() {
     git clone -q --depth 1 --filter=blob:none --sparse "$url" "$dir" && git -C "$dir" sparse-checkout set "$@"
   else
     git clone -q --depth 1 "$url" "$dir"
-  fi && ok "cloned $(basename "$dir")" || fail "clone $url"
+  fi && checkout_pin "$dir" "$rev" && ok "cloned $name" || fail "clone $url"
+}
+
+# No edits to tracked files and no commits of yours (in a depth-1 clone, HEAD is a shallow root).
+pristine() {
+  [[ -z "$(git -C "$1" status --porcelain --untracked-files=no)" ]] &&
+    grep -qxF "$(git -C "$1" rev-parse HEAD)" "$(git -C "$1" rev-parse --absolute-git-dir)/shallow" 2>/dev/null
+}
+
+checkout_pin() {
+  [[ "$(git -C "$1" rev-parse HEAD)" == "$2" ]] && return 0
+  git -C "$1" fetch -q --depth 1 origin "$2" && git -C "$1" checkout -q --detach FETCH_HEAD
 }
 
 # Download a URL to a file unless it already exists.
@@ -125,8 +141,10 @@ else
 fi
 
 section "exercism tracks"
-for track in python c cpp swift rust; do
-  sync_repo "https://github.com/exercism/$track" "$LEARN_HOME/vendor/$track"
+for pin in python:479f11b44b02337b0413e805b948491c2179615a c:1675b02c310198e9752e516ee1a2294b76a37f84 \
+  cpp:3ad5d0e99c0972b7e429d30c9539954207238b37 swift:a0e8e9ef7453d4010e123c6af8e1fb296eafad43 \
+  rust:0a9b22d667da5a226bf480b0152ae29dfba99545; do
+  sync_repo "https://github.com/exercism/${pin%%:*}" "$LEARN_HOME/vendor/${pin%%:*}" "${pin#*:}"
 done
 
 write_flags() { [[ -f "$1/compile_flags.txt" ]] || printf '%s\n' "${@:2}" >"$1/compile_flags.txt"; }
@@ -134,14 +152,14 @@ write_flags() { [[ -f "$1/compile_flags.txt" ]] || printf '%s\n' "${@:2}" >"$1/c
 if ((WITH_PROJECTS)); then
   section "example projects"
   P="$LEARN_HOME/projects"
-  sync_repo https://github.com/antirez/kilo "$P/c/kilo"
-  sync_repo https://github.com/rui314/chibicc "$P/c/chibicc"
-  sync_repo https://github.com/p-ranav/argparse "$P/cpp/argparse"
-  sync_repo https://github.com/rigtorp/SPSCQueue "$P/cpp/SPSCQueue"
-  sync_repo https://github.com/karpathy/micrograd "$P/python/micrograd"
-  sync_repo https://github.com/hynek/stamina "$P/python/stamina"
-  sync_repo https://github.com/apple/swift-argument-parser "$P/swift/swift-argument-parser"
-  sync_repo https://github.com/YosysHQ/picorv32 "$P/sv/picorv32"
+  sync_repo https://github.com/antirez/kilo "$P/c/kilo" 323d93b29bd89a2cb446de90c4ed4fea1764176e
+  sync_repo https://github.com/rui314/chibicc "$P/c/chibicc" 90d1f7f199cc55b13c7fdb5839d1409806633fdb
+  sync_repo https://github.com/p-ranav/argparse "$P/cpp/argparse" 7d093f8e1201db2dded2eee94de77665698ee9dc
+  sync_repo https://github.com/rigtorp/SPSCQueue "$P/cpp/SPSCQueue" cd49c7cb430fbb298d981c1793c0d46348c4c9d5
+  sync_repo https://github.com/karpathy/micrograd "$P/python/micrograd" 7bc720e951fe422b8f8814aa5aa1b64121d26b4c
+  sync_repo https://github.com/hynek/stamina "$P/python/stamina" 8f399b7bd620cfa7e0f5928cb243c025a0f10451
+  sync_repo https://github.com/apple/swift-argument-parser "$P/swift/swift-argument-parser" d225b6fe8aed45478d1e36e770bf269c5d48d3a9
+  sync_repo https://github.com/YosysHQ/picorv32 "$P/sv/picorv32" ef203c2b0a3fb793280f5114941416c425c5b461
 
   # Editor support so grd/grr/K work immediately in each project.
   [[ -d "$P/c/kilo" ]] && write_flags "$P/c/kilo" -std=c99 -Wall -Wextra -D_DEFAULT_SOURCE -D_BSD_SOURCE
@@ -214,13 +232,13 @@ if ((WITH_DOCS)); then
   else
     skip "ghc not installed: skipping base haddock"
   fi
-  sync_repo https://github.com/learnyouahaskell/learnyouahaskell.github.io "$D/haskell/lyah" source_md static
+  sync_repo https://github.com/learnyouahaskell/learnyouahaskell.github.io "$D/haskell/lyah" 1e60d107cceadccf2a2d4b6cf67e94fc77c61e19 source_md static
 
   # Swift: The Swift Programming Language (Apache-2.0), Markdown sources: read in nvim
-  sync_repo https://github.com/swiftlang/swift-book "$D/swift/swift-book" TSPL.docc
+  sync_repo https://github.com/swiftlang/swift-book "$D/swift/swift-book" 16a2a4caa408c86fc85bde1e1dfff4745b6e454c TSPL.docc
 
   # SystemVerilog/Verilog: Verilator's user guide (reStructuredText, readable as text)
-  sync_repo https://github.com/verilator/verilator "$D/sv/verilator" docs/guide
+  sync_repo https://github.com/verilator/verilator "$D/sv/verilator" b3a6da96bee52fc7eebc39c9198c326a613bc1bc docs/guide
 
   rm -rf "$DL" # archives are unpacked; the extracted index files above are the idempotency markers
 fi

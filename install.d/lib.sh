@@ -135,6 +135,22 @@ link() {
   ok "linked  $dst → ${src#"$DOTFILES"/}"
 }
 
+# Copy a starting file into place once. Unlike link(), the copy is yours: apps that save their
+# settings (Claude Code, Codex) write to it, and nothing they write comes back to this repo.
+seed() {
+  local src="$1" dst="$2"
+  if [[ -L "$dst" && "$(readlink "$dst")" == "$DOTFILES"/* ]]; then
+    run rm "$dst" # an older install linked it into the repo: swap the link for a copy
+  elif [[ -e "$dst" || -L "$dst" ]]; then
+    info "${C_DIM}kept    $dst${C_RESET}"
+    return 0
+  fi
+  run mkdir -p "$(dirname "$dst")"
+  run cp "$src" "$dst"
+  run chmod 600 "$dst"
+  ok "copied  $dst ← ${src#"$DOTFILES"/}"
+}
+
 # Shallow-clone a repo, or fast-forward it if already present (offline-tolerant).
 git_sync() {
   local url="$1" dir="$2"

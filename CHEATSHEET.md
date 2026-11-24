@@ -352,7 +352,7 @@ Par = keystrokes: ★★★ ≤ par, ★★ ≤ 1.5× par. The black belt drills
 | `F` · `L` · `i` · `o` | full-screen player · lyrics · track info · play on another device |
 | `f` / `*` · `P` · `w` · `z` · `T` | like · add to playlist · save the queue as a playlist · sleep timer · theme (auto: from the album art) |
 | `tamp status` · `tamp toggle` `next` `prev` | what's playing (shown in the tmux bar) · control from scripts and keys |
-| `Alt+p` · `Alt+n` · `Alt+b` (tmux, anywhere) | play / pause · next · back, whatever tamp is playing on |
+| `Alt+p` · `Alt+n` (tmux, anywhere) | play / pause · next, whatever tamp is playing on |
 
 ## kitty
 
@@ -408,4 +408,4 @@ model · effort · directory (bold leaf) · branch · context % (green → yello
 
 ## Codex
 
-`codex/config.toml` → `~/.codex/config.toml`: xhigh reasoning, multi-agent on, native status line with the same segments as Claude's. **Note:** it sets `approval_policy = "never"` and `sandbox_mode = "danger-full-access"` — Codex runs commands without asking.
+`codex/config.toml` is copied once to `~/.codex/config.toml` (yours to edit; it never comes back here): xhigh reasoning, multi-agent on, native status line with the same segments as Claude's. It starts cautious: `approval_policy = "on-request"`, `sandbox_mode = "workspace-write"`.
