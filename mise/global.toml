@@ -18,9 +18,10 @@
 # would take the glibc build. mise checks each download's sha256 (GitHub's asset digest for
 # github:, the registry's checksums for aqua:, SHASUMS256 for node, repodata for conda:).
 # Not static, because upstream publishes no such build (docs/install.md lists the glibc floors):
-#   neovim (glibc ≥ 2.34), tree-sitter (conda-forge, glibc ≥ 2.17), node (glibc ≥ 2.28; the
-#   musl build from unofficial-builds.nodejs.org on Alpine), eza and delta on aarch64.
-# On musl systems (Alpine) the installer disables neovim and tree-sitter (conf.d/musl.toml).
+#   neovim (glibc ≥ 2.34), tree-sitter (conda-forge, glibc ≥ 2.17), node (glibc ≥ 2.28), and
+#   eza and delta on aarch64.
+# On musl systems (Alpine) the installer disables neovim and tree-sitter and takes node's musl
+# build from unofficial-builds.nodejs.org (~/.config/mise/conf.d/musl.toml).
 
 # Editor: the nvim config targets 0.12 (pins.txt: neovim@0.12); move to a new minor deliberately.
 "github:neovim/neovim" = { version = "0.12.6", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "nvim-linux-x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "nvim-linux-arm64.tar.gz" } } }

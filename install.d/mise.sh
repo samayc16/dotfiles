@@ -13,6 +13,7 @@ export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
 # Upstream publishes these for glibc only (mise/global.toml lists why); musl systems skip them.
 GLIBC_ONLY="github:neovim/neovim,conda:tree-sitter-cli"
 MUSL_CONFIG="$HOME/.config/mise/conf.d/musl.toml"
+NODE_MUSL_MIRROR="https://unofficial-builds.nodejs.org/download/release/"
 
 ensure_mise() {
   if has mise; then
@@ -28,19 +29,24 @@ ensure_mise() {
   rm -f "$script"
 }
 
-# On musl, keep mise (and every shell's `mise activate`) away from the glibc-only tools.
+# On musl, keep mise (and every shell's `mise activate`) away from the glibc-only tools, and take
+# Node's musl build from the Node.js project's unofficial-builds (checked against its SHASUMS256).
 musl_setup() {
   if ! is_musl; then
     [[ -f "$MUSL_CONFIG" ]] && run rm -f "$MUSL_CONFIG"
     return 0
   fi
-  export MISE_DISABLE_TOOLS="$GLIBC_ONLY"
+  export MISE_DISABLE_TOOLS="$GLIBC_ONLY" MISE_NODE_FLAVOR=musl MISE_NODE_MIRROR_URL="$NODE_MUSL_MIRROR" MISE_NODE_COMPILE=false
   warn "musl libc: Neovim and tree-sitter publish no musl build, so they're skipped." \
     "Install neovim ≥ 0.12 and tree-sitter yourself (Alpine: apk add neovim tree-sitter-cli)."
   [[ "$DRY_RUN" == 1 ]] && return 0
   mkdir -p "$(dirname "$MUSL_CONFIG")"
-  printf '# Written by the dotfiles installer: no musl builds upstream (mise/global.toml)\n[settings]\ndisable_tools = ["%s"]\n' \
-    "${GLIBC_ONLY//,/\", \"}" >"$MUSL_CONFIG"
+  {
+    echo "# Written by the dotfiles installer for this musl system (see mise/global.toml)"
+    echo "[settings]"
+    printf 'disable_tools = ["%s"]\n' "${GLIBC_ONLY//,/\", \"}"
+    printf 'node.flavor = "musl"\nnode.mirror_url = "%s"\nnode.compile = false\n' "$NODE_MUSL_MIRROR"
+  } >"$MUSL_CONFIG"
 }
 
 check_node() {

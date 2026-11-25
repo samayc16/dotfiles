@@ -114,13 +114,14 @@ latest_version() {
 # Files in a version dir that an install or a program rewrites on its own; anything else that
 # differs from the tarball is an edit of yours.
 manifest() {
+  command -v find >/dev/null || return 0 # minimal images (openSUSE's) lack find: no edit detection
   (cd "$1" && find . -type f ! -name .manifest ! -name .DS_Store ! -name '*.pyc' ! -path '*/__pycache__/*' \
     ! -path ./nvim/lazy-lock.json -exec cksum {} + | LC_ALL=C sort)
 }
 
 # Files you changed, added or deleted in a version dir.
 local_edits() {
-  [[ -f "$1/.manifest" ]] || return 0
+  [[ -s "$1/.manifest" ]] || return 0
   manifest "$1" | LC_ALL=C comm -3 "$1/.manifest" - | sed 's/^[[:space:]]*//' | cut -d' ' -f3- | sed 's|^\./||' | LC_ALL=C sort -u
 }
 
@@ -144,6 +145,7 @@ unpack() {
   read -r version <"$work/dotfiles/VERSION" || true
   valid_version "${version:-}" || die "bad VERSION in $src: ${version:-}"
   if [[ ! -d "$STORE/$version" ]]; then
+    command -v find >/dev/null || warn "find(1) is missing: edits you make inside $version can't be detected"
     manifest "$work/dotfiles" >"$work/dotfiles/.manifest"
     mv "$work/dotfiles" "$STORE/$version"
   fi

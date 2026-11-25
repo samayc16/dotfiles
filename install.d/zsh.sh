@@ -39,13 +39,12 @@ generate_completions() {
 # No zsh and no root: romkatv/zsh-bin, a static zsh that runs on any Linux. Its install script,
 # pinned to a commit in pins.txt, checks the archive's sha256 before unpacking into ~/.local.
 install_zsh_bin() {
-  local url rev script
+  local url rev script status=0
   read -r url rev < <(pin_lookup zsh-bin) || { err "zsh-bin is not in pins.txt"; return 1; }
   if [[ "$DRY_RUN" == 1 ]]; then info "would install zsh-bin (static zsh) into $LOCAL_PREFIX"; return 0; fi
   script="$(mktemp)"
-  fetch "https://raw.githubusercontent.com/${url#https://github.com/}/$rev/install" "$script" &&
-    run sh "$script" -q -d "$LOCAL_PREFIX" -e no -a sha256 </dev/null
-  local status=$?
+  { fetch "https://raw.githubusercontent.com/${url#https://github.com/}/$rev/install" "$script" &&
+    run sh "$script" -q -d "$LOCAL_PREFIX" -e no -a sha256 </dev/null; } || status=$?
   rm -f "$script"
   if [[ "$status" != 0 ]]; then
     warn "zsh-bin install failed — staying on bash (aliases in zshrc won't load)"
@@ -77,8 +76,8 @@ make_login_shell() {
     # shellcheck disable=SC2086
     grep -qx "$zsh_path" /etc/shells || echo "$zsh_path" | run $SUDO tee -a /etc/shells >/dev/null
     # shellcheck disable=SC2086
-    run $SUDO chsh -s "$zsh_path" "$(id -un)" && { ok "login shell → $zsh_path"; return 0; }
-  elif [[ -t 0 ]] && grep -qx "$zsh_path" /etc/shells 2>/dev/null; then
+    has chsh && run $SUDO chsh -s "$zsh_path" "$(id -un)" && { ok "login shell → $zsh_path"; return 0; }
+  elif [[ -t 0 ]] && has chsh && grep -qx "$zsh_path" /etc/shells 2>/dev/null; then
     run chsh -s "$zsh_path" && { ok "login shell → $zsh_path"; return 0; }
   fi
   bash_handoff "$zsh_path"
