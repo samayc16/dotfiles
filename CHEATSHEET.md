@@ -69,7 +69,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 ### history, files, processes (atuin, yazi, btop, direnv)
 | keys / cmd | does |
 |---|---|
-| `Ctrl-R` | atuin: search the history of every shell, fuzzy. `Enter` or `Tab` puts the command on the line, `Ctrl-R` again cycles global → host → session → directory, `Esc` leaves. Local only: no account, no sync |
+| `Ctrl-R` | atuin: search the history of every shell, fuzzy. `Enter` or `Tab` puts the command on the line, `Ctrl-R` again cycles the filter (global, host, session, directory, …), `Esc` leaves. Local only: no account, no sync |
 | `atuin stats` · `atuin search <text>` | your most-used commands · search without the UI |
 | `y [dir]` | yazi file manager; quit with `q` and the shell is in the directory you were in (`Q` quits without moving) |
 | in yazi | `h j k l` move · `Enter` open · `Space` select · `y` `x` `p` copy / cut / paste · `d` trash (`D` delete) · `a` new (`name/` makes a dir) · `r` rename · `.` hidden files · `s` / `S` search names / contents · `z` fzf jump · `Z` zoxide jump · `~` help |
