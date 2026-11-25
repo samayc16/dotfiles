@@ -47,6 +47,8 @@ if [ "$mac" = 0 ]; then
         fi ;;
     esac
     case $t in mise | zsh) bin=$(command -v "$t") ;; *) bin=$(mise which "$t") ;; esac
+    # mise's conda backend runs a tool through a wrapper script in .mise-bins: check what it runs
+    case $bin in */.mise-bins/*) bin="${bin%/.mise-bins/*}/bin/$t" ;; esac
     info=$(file -L "$bin")
     case "$info" in
       *interpreter*) interp=$(echo "$info" | sed 's/.*interpreter \([^,]*\).*/\1/')
