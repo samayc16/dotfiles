@@ -1,9 +1,11 @@
 #!/bin/sh
-# Check a finished install (CI). Run as the user who installed, with:
+# Check a finished install (CI, Linux and macOS). Run as the user who installed, with:
 #   PINS=<the pins.txt it installed with>   LEARN=1 when the learn step ran
 #   RELEASE=1 when it was a release install (bin/dotfiles install --from <tarball>)
+#   SIM=0 when no HDL toolchain was installed
 set -eu
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$HOME/bin:$PATH"
+[ "$(uname -s)" = Darwin ] && mac=1 || mac=0
 fail() { echo "verify: $*" >&2; exit 1; }
 pin_of() { awk -v n="$1" '$1 == n { print $4 }' "$PINS"; }
 
@@ -14,7 +16,9 @@ for t in rg fd fzf bat eza delta lazygit zoxide tree-sitter; do printf '%-12s ' 
 printf '%-12s ' tmux; tmux -V
 
 # Links, and for a release install: through ~/.local/share/dotfiles/current, so a flip moves them all
-for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .config/nvim .config/mise/config.toml .config/clangd/config.yaml bin/dotfiles; do
+clangd=.config/clangd/config.yaml
+[ "$mac" = 1 ] && clangd=Library/Preferences/clangd/config.yaml
+for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .config/nvim .config/mise/config.toml "$clangd" bin/dotfiles; do
   [ -L "$HOME/$l" ] && [ -e "$HOME/$l" ] || fail "missing link: ~/$l"
 done
 if [ "${RELEASE:-0}" = 1 ]; then
@@ -23,7 +27,8 @@ if [ "${RELEASE:-0}" = 1 ]; then
 fi
 [ -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json" ] || fail "Claude settings must be a copy, not a link"
 
-if command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; exit'" /dev/null 2>&1)
+if [ "$mac" = 1 ]; then out=$(script -q /dev/null zsh -ic 'echo ZSH_OK; exit' 2>&1)
+elif command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; exit'" /dev/null 2>&1)
 else out=$(zsh -ic 'echo ZSH_OK' 2>&1 | grep -v "can't change option: zle"); fi
 echo "$out" | grep -q ZSH_OK || fail "zsh failed: $out"
 if echo "$out" | grep -E -i 'not found|error|no such file'; then fail "zsh startup printed errors"; fi
@@ -64,6 +69,7 @@ if [ "${LEARN:-0}" = 1 ]; then
   echo "learn: $n pinned repos + offline docs"
 fi
 
+if [ "${SIM:-1}" = 0 ]; then echo "verify: all good"; exit 0; fi
 cd "$(mktemp -d)" # both simulators, end to end
 # shellcheck disable=SC2016 # $display is SystemVerilog
 printf 'module t; initial begin $display("sim ok"); $finish; end endmodule\n' >t.sv

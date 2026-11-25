@@ -6,32 +6,35 @@
 # Everything installs user-locally under ~/.local/share/mise — no root needed, which
 # is what makes this work on locked-down SSH boxes where distro packages are ancient.
 #
-#   mise ls            what's installed      mise up       upgrade within these pins
-#   mise outdated      what could upgrade    mise doctor   diagnose PATH/activation
+# Exact versions, pinned in pins.txt: CI's scripts/bump-pins.py moves them to the newest
+# release (neovim within 0.12), tests the install, and commits them here.
+#
+#   mise ls            what's installed      mise outdated   what CI's next bump may bring
+#   mise doctor        diagnose PATH/activation
 
 [tools]
-# Editor: the nvim config targets 0.12 — bump deliberately after testing a new minor.
-neovim = { version = "0.12", os = ["linux"] }
+# Editor: the nvim config targets 0.12 (pins.txt: neovim@0.12); move to a new minor deliberately.
+neovim = { version = "0.12.6", os = ["linux"] }
 # nvim-treesitter (main) needs CLI ≥ 0.26.1. The GitHub release binaries need glibc 2.39
 # (no Debian 12 / RHEL 9); the conda-forge build runs on glibc ≥ 2.17.
-"conda:tree-sitter-cli" = { version = "latest", os = ["linux"] }
-tmux = { version = "latest", os = ["linux"] } # official static builds (tmux/tmux-builds)
+"conda:tree-sitter-cli" = { version = "0.27.2", os = ["linux"] }
+tmux = { version = "3.8", os = ["linux"] } # official static builds (tmux/tmux-builds)
 
 # Shell tools used by the aliases, fzf widgets and lazygit config
-ripgrep = { version = "latest", os = ["linux"] }
-fd = { version = "latest", os = ["linux"] }
-fzf = { version = "latest", os = ["linux"] }
-bat = { version = "latest", os = ["linux"] }
-eza = { version = "latest", os = ["linux"] }
-delta = { version = "latest", os = ["linux"] }
-lazygit = { version = "latest", os = ["linux"] }
-zoxide = { version = "latest", os = ["linux"] }
-jq = { version = "latest", os = ["linux"] }
-gh = { version = "latest", os = ["linux"] }
+ripgrep = { version = "16.0.0", os = ["linux"] }
+fd = { version = "10.5.2", os = ["linux"] }
+fzf = { version = "0.75.0", os = ["linux"] }
+bat = { version = "0.26.1", os = ["linux"] }
+eza = { version = "0.23.5", os = ["linux"] }
+delta = { version = "0.22.0", os = ["linux"] }
+lazygit = { version = "0.66.3", os = ["linux"] }
+zoxide = { version = "0.10.0", os = ["linux"] }
+jq = { version = "1.8.2", os = ["linux"] }
+gh = { version = "2.105.0", os = ["linux"] }
 
 # Runtimes for language servers (mason installs npm/pip-based servers with these)
-node = { version = "lts", os = ["linux"] }
-uv = { version = "latest", os = ["linux"] }
+node = { version = "24.22.3", os = ["linux"] }
+uv = { version = "0.13.9", os = ["linux"] }
 
 [settings]
 # Prefer prebuilt release binaries; never prompt (CI / unattended installs).

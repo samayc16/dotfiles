@@ -52,6 +52,9 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub API rate limits
     steps:
       - uses: actions/checkout@v7
+      - name: mise (looks up the Linux CLI tools' newest versions)
+        if: github.event_name == 'push' || inputs.bump
+        run: curl -fsSL https://mise.run | MISE_INSTALL_PATH="$HOME/.local/bin/mise" sh && echo "$HOME/.local/bin" >>"$GITHUB_PATH"
       - name: Bump every pin to the newest version
         if: github.event_name == 'push' || inputs.bump
         run: |
@@ -64,6 +67,7 @@ jobs:
           name: pins
           path: |
             pins.txt
+            mise/global.toml
             dotfiles.tar.gz
           if-no-files-found: error
           retention-days: 7
@@ -120,7 +124,7 @@ jobs:
           name: pins
           path: ci-artifacts
       - name: Use the pins under test
-        run: cp ci-artifacts/pins.txt pins.txt
+        run: cp ci-artifacts/pins.txt pins.txt && cp ci-artifacts/mise/global.toml mise/global.toml
 
       - name: Install as root from the checkout (profile dev + ${{ matrix.extra || 'music' }})
         if: matrix.mode == 'root'
@@ -166,7 +170,7 @@ jobs:
           name: pins
           path: ci-artifacts
       - name: Use the pins under test
-        run: cp ci-artifacts/pins.txt pins.txt
+        run: cp ci-artifacts/pins.txt pins.txt && cp ci-artifacts/mise/global.toml mise/global.toml
       - name: Unit tests (bash 3.2 included)
         run: python3 -m unittest discover -s installer/tests -t .
       - name: Plan + dry run
@@ -196,8 +200,31 @@ jobs:
           [ "$(readlink "$store/current")" = "$v1" ] && grep -q DOTFILES "$HOME/.zshrc"
           "$HOME/bin/dotfiles" list && "$HOME/bin/dotfiles" status
 
+  macos-install:
+    name: macos install (profile cli + music)
+    needs: [lint, pins]
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: pins
+          path: ci-artifacts
+      - name: Install the release tarball into a fresh HOME (Homebrew's current versions)
+        run: |
+          echo "HOME=$RUNNER_TEMP/home" >>"$GITHUB_ENV"
+          mkdir "$RUNNER_TEMP/home"
+          HOME="$RUNNER_TEMP/home" bash bin/dotfiles install --from ci-artifacts/dotfiles.tar.gz --profile cli --with music --no-log
+      - name: Verify
+        run: RELEASE=1 SIM=0 PINS="$HOME/.local/share/dotfiles/current/pins.txt" sh .github/ci/verify.sh
+
   release:
-    needs: [pins, lint, linux, macos]
+    needs: [pins, lint, linux, macos, macos-install]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -228,12 +255,13 @@ jobs:
           fi
           echo "release=true" >>"$GITHUB_OUTPUT"
           cp "$RUNNER_TEMP/tested/pins.txt" pins.txt
-          if git diff --quiet -- pins.txt; then echo "pins unchanged"; exit 0; fi
+          cp "$RUNNER_TEMP/tested/mise/global.toml" mise/global.toml # the mise pins' exact versions
+          if git diff --quiet -- pins.txt mise/global.toml; then echo "pins unchanged"; exit 0; fi
           git show HEAD:pins.txt >"$RUNNER_TEMP/old-pins.txt"
           changes="$(python3 scripts/bump-pins.py diff "$RUNNER_TEMP/old-pins.txt" pins.txt)"
           echo "$changes"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -q -m "chore: bump pins" -m "$changes" -m "Tested in $RUN_URL" -- pins.txt
+            commit -q -m "chore: bump pins" -m "$changes" -m "Tested in $RUN_URL" -- pins.txt mise/global.toml
           # A push with GITHUB_TOKEN starts no workflow, so this can't loop.
           if ! git push -q origin HEAD:main; then
             git fetch -q origin main

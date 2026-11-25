@@ -6,9 +6,11 @@
   scripts/bump-pins.py table [--pins FILE]                   name and version of every pin
   scripts/bump-pins.py asset NAME PATTERN [--pins FILE]      download URL of a pinned release's asset
 
-Newest means `git ls-remote <url> HEAD` for a commit pin, and GitHub's releases/latest for a
-release pin (GITHUB_TOKEN is used when set). Only numbered tags (v1.2.3) count as releases; with
-none yet, or when a lookup fails, the pin stays where it is and a warning says why.
+Newest means `git ls-remote <url> HEAD` for a commit pin, GitHub's releases/latest for a release
+pin (GITHUB_TOKEN is used when set; only numbered tags like v1.2.3 count), and `mise latest
+<spec>` for a mise pin (spec `neovim@0.12` stays on 0.12.x). With no release yet, or when a
+lookup fails, the pin stays where it is and a warning says why. `bump` also writes the mise pins'
+exact versions into mise/global.toml, which the installer installs from.
 Standard library only, Python 3.8+.
 """
 
@@ -25,10 +27,13 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Callable, List, Optional, Sequence, Tuple, Union
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 ROOT = Path(__file__).resolve().parent.parent
-KINDS = ("commit", "release")
+KINDS = ("commit", "release", "mise")
+MISE_CONFIG = ROOT / "mise" / "global.toml"
+# `tool = { version = "…", …}` in mise/global.toml; the tool may be quoted ("conda:tree-sitter-cli")
+MISE_LINE = re.compile(r'^(?P<head>"?(?P<tool>[^"=\s]+)"?\s*=\s*\{\s*version\s*=\s*")(?P<version>[^"]*)(?P<tail>".*)$')
 NONE = "-"  # a release pin with no numbered release yet
 NUMBERED = re.compile(r"^v?\d+(\.\d+)*$")
 GITHUB = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+?)(?:\.git)?/?$")
@@ -168,10 +173,42 @@ def latest_release(source: str, token: Optional[str] = None) -> Optional[str]:
 
 # ── commands ──────────────────────────────────────────────────────────
 
+def mise_latest(spec: str) -> str:
+    """The newest version of a mise tool, within the prefix after @ if there is one."""
+    try:
+        out = subprocess.run(["mise", "latest", spec], capture_output=True, text=True, timeout=TIMEOUT * 4, check=True).stdout.strip()
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise PinError("mise latest %s failed: %s" % (spec, getattr(exc, "stderr", "") or exc)) from exc
+    if not re.fullmatch(r"\d[\w.+-]*", out):
+        raise PinError("mise latest %s: unexpected %r" % (spec, out))
+    return out
+
+
+def mise_tool(spec: str) -> str:
+    return spec.split("@", 1)[0]
+
+
+def sync_mise_config(text: str, lines: Sequence[Line]) -> str:
+    """mise/global.toml with each mise pin's exact version; every pinned tool must be listed."""
+    versions = {mise_tool(pin.source): pin.version for pin in pins_of(lines) if pin.kind == "mise"}
+    seen = set()
+    out = []
+    for raw in text.splitlines():
+        match = MISE_LINE.match(raw)
+        if match and match.group("tool") in versions:
+            seen.add(match.group("tool"))
+            raw = match.group("head") + versions[match.group("tool")] + match.group("tail")
+        out.append(raw)
+    missing = sorted(set(versions) - seen)
+    if missing:
+        raise PinError("pinned in pins.txt but not in mise/global.toml: " + ", ".join(missing))
+    return "\n".join(out) + "\n"
+
+
 Lookup = Callable[[str], Optional[str]]
 
 
-def bump(lines: Sequence[Line], head: Lookup, release: Lookup) -> Tuple[List[Line], List[Change], List[str]]:
+def bump(lines: Sequence[Line], lookups: Mapping[str, Lookup]) -> Tuple[List[Line], List[Change], List[str]]:
     """Each pin moved to the newest version: (new lines, what changed, warnings)."""
     changes: List[Change] = []
     warnings: List[str] = []
@@ -181,7 +218,7 @@ def bump(lines: Sequence[Line], head: Lookup, release: Lookup) -> Tuple[List[Lin
             out.append(line)
             continue
         try:
-            newest = head(line.source) if line.kind == "commit" else release(line.source)
+            newest = lookups[line.kind](line.source)
         except PinError as exc:
             warnings.append("%s: kept %s (%s)" % (line.name, short(line.version), exc))
             newest = None
@@ -228,6 +265,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         command.add_argument("--pins", type=Path, default=ROOT / "pins.txt")
         if name == "bump":
             command.add_argument("--changes", type=Path, help="also write the change list here")
+            command.add_argument("--mise-config", type=Path, default=MISE_CONFIG, help="mise config to write the mise pins into")
         if name == "asset":
             command.add_argument("name")
             command.add_argument("pattern")
@@ -237,15 +275,21 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: Optional[Sequence[str]] = None, head: Lookup = git_head, release: Optional[Lookup] = None) -> int:
+def default_lookups(token: Optional[str]) -> Dict[str, Lookup]:
+    return {"commit": git_head, "release": lambda source: latest_release(source, token), "mise": mise_latest}
+
+
+def main(argv: Optional[Sequence[str]] = None, lookups: Optional[Mapping[str, Lookup]] = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     token = os.environ.get("GITHUB_TOKEN") or None
     try:
         if args.command == "bump":
-            lines, changes, warnings = bump(load(args.pins), head, release or (lambda source: latest_release(source, token)))
+            lines, changes, warnings = bump(load(args.pins), lookups or default_lookups(token))
             for warning in warnings:
                 print("warning: " + warning, file=sys.stderr)
+            mise_config = sync_mise_config(args.mise_config.read_text(encoding="utf-8"), lines)
             args.pins.write_text(render(lines), encoding="utf-8")
+            args.mise_config.write_text(mise_config, encoding="utf-8")
             report = "".join("%s\n" % change for change in changes)
             if args.changes:
                 args.changes.write_text(report, encoding="utf-8")
@@ -256,7 +300,7 @@ def main(argv: Optional[Sequence[str]] = None, head: Lookup = git_head, release:
             print(table(load(args.pins)), end="")
         else:
             print(asset_url(load(args.pins), args.name, args.pattern, token))
-    except PinError as exc:
+    except (PinError, OSError) as exc:
         print("bump-pins: %s" % exc, file=sys.stderr)
         return 1
     return 0

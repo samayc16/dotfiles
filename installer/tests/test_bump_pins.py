@@ -27,7 +27,19 @@ tmux/tpm commit   https://github.com/tmux-plugins/tpm  %s
 
 # learn
 learn/kilo commit https://github.com/antirez/kilo %s
+mise/neovim mise neovim@0.12 0.12.1
+mise/ts mise conda:tree-sitter-cli 0.26.1
 """ % (OLD, OLD)
+MISE_TOML = """[tools]
+# comment
+neovim = { version = "0.12.1", os = ["linux"] }
+"conda:tree-sitter-cli" = { version = "0.26.1", os = ["linux"] } # note
+jq = { version = "1.8.2", os = ["linux"] }
+"""
+
+
+def lookups(head=lambda url: OLD, release=lambda src: "v0.1.0", mise=lambda spec: {"neovim@0.12": "0.12.1", "conda:tree-sitter-cli": "0.26.1"}[spec]):
+    return {"commit": head, "release": release, "mise": mise}
 
 
 def run(argv, **lookups):
@@ -40,7 +52,7 @@ def run(argv, **lookups):
 class Parse(unittest.TestCase):
     def test_pins_and_comments(self) -> None:
         lines = bp.parse(PINS)
-        self.assertEqual([p.name for p in bp.pins_of(lines)], ["tamp", "tmux/tpm", "learn/kilo"])
+        self.assertEqual([p.name for p in bp.pins_of(lines)], ["tamp", "tmux/tpm", "learn/kilo", "mise/neovim", "mise/ts"])
         self.assertEqual(lines[0], "# header comment")
 
     def test_rejects_bad_lines(self) -> None:
@@ -71,13 +83,14 @@ class Parse(unittest.TestCase):
 
 class Bump(unittest.TestCase):
     def test_moves_each_pin_and_reports(self) -> None:
-        lines, changes, warnings = bp.bump(bp.parse(PINS), head=lambda url: NEW, release=lambda src: "v0.2.0")
-        self.assertEqual([str(c) for c in changes], ["tamp: v0.1.0 → v0.2.0", "tmux/tpm: %s → %s" % (OLD[:12], NEW[:12]), "learn/kilo: %s → %s" % (OLD[:12], NEW[:12])])
+        mise = lambda spec: {"neovim@0.12": "0.12.6", "conda:tree-sitter-cli": "0.27.2"}[spec]
+        lines, changes, warnings = bp.bump(bp.parse(PINS), lookups(lambda url: NEW, lambda src: "v0.2.0", mise))
+        self.assertEqual([str(c) for c in changes], ["tamp: v0.1.0 → v0.2.0", "tmux/tpm: %s → %s" % (OLD[:12], NEW[:12]), "learn/kilo: %s → %s" % (OLD[:12], NEW[:12]),
+                                                     "mise/neovim: 0.12.1 → 0.12.6", "mise/ts: 0.26.1 → 0.27.2"])
         self.assertEqual(warnings, [])
-        self.assertTrue(all(p.version in (NEW, "v0.2.0") for p in bp.pins_of(lines)))
 
     def test_no_release_keeps_pin(self) -> None:
-        lines, changes, warnings = bp.bump(bp.parse(PINS), head=lambda url: OLD, release=lambda src: None)
+        lines, changes, warnings = bp.bump(bp.parse(PINS), lookups(release=lambda src: None))
         self.assertEqual(changes, [])
         self.assertEqual(bp.pins_of(lines)[0].version, "v0.1.0")
         self.assertIn("no numbered release", warnings[0])
@@ -86,27 +99,56 @@ class Bump(unittest.TestCase):
         def broken(url):
             raise bp.PinError("network down")
 
-        lines, changes, warnings = bp.bump(bp.parse(PINS), head=broken, release=lambda src: "v0.1.0")
+        lines, changes, warnings = bp.bump(bp.parse(PINS), lookups(head=broken))
         self.assertEqual(changes, [])
         self.assertEqual(len(warnings), 2)
         self.assertIn("network down", warnings[0])
 
     def test_command_rewrites_file_and_writes_changes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            pins, changes = Path(tmp) / "pins.txt", Path(tmp) / "changes.txt"
+            pins, changes, toml = Path(tmp) / "pins.txt", Path(tmp) / "changes.txt", Path(tmp) / "global.toml"
             pins.write_text(PINS)
-            code, out, _ = run(["bump", "--pins", str(pins), "--changes", str(changes)], head=lambda url: NEW, release=lambda src: "v0.1.0")
+            toml.write_text(MISE_TOML)
+            mise = lambda spec: {"neovim@0.12": "0.12.6", "conda:tree-sitter-cli": "0.26.1"}[spec]
+            code, out, _ = run(["bump", "--pins", str(pins), "--changes", str(changes), "--mise-config", str(toml)], lookups=lookups(lambda url: NEW, mise=mise))
             self.assertEqual(code, 0)
             self.assertEqual(out, changes.read_text())
-            self.assertEqual(out.count("→"), 2)
+            self.assertEqual(out.count("→"), 3)
             self.assertEqual(sum(p.version == NEW for p in bp.pins_of(bp.load(pins))), 2)
+            self.assertIn('neovim = { version = "0.12.6", os = ["linux"] }', toml.read_text())
 
     def test_command_when_nothing_moves(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            pins = Path(tmp) / "pins.txt"
+            pins, toml = Path(tmp) / "pins.txt", Path(tmp) / "global.toml"
             pins.write_text(PINS)
-            code, out, _ = run(["bump", "--pins", str(pins)], head=lambda url: OLD, release=lambda src: "v0.1.0")
+            toml.write_text(MISE_TOML)
+            code, out, _ = run(["bump", "--pins", str(pins), "--mise-config", str(toml)], lookups=lookups())
             self.assertEqual((code, out.strip()), (0, "every pin is already the newest"))
+
+
+class MiseConfig(unittest.TestCase):
+    def test_writes_exact_versions_and_keeps_the_rest(self) -> None:
+        lines = bp.parse(PINS.replace("0.12.1", "0.12.6"))
+        text = bp.sync_mise_config(MISE_TOML, lines)
+        self.assertEqual(text, MISE_TOML.replace("0.12.1", "0.12.6"))
+
+    def test_a_pinned_tool_missing_from_the_config_is_an_error(self) -> None:
+        with self.assertRaises(bp.PinError):
+            bp.sync_mise_config(MISE_TOML.replace("neovim", "vim"), bp.parse(PINS))
+
+    def test_repo_config_matches_the_pins(self) -> None:
+        toml = (ROOT / "mise" / "global.toml").read_text()
+        self.assertEqual(bp.sync_mise_config(toml, bp.load(ROOT / "pins.txt")), toml)
+        self.assertNotIn('"latest"', toml)
+        self.assertNotIn('"lts"', toml)
+
+    def test_mise_latest(self) -> None:
+        with mock.patch.object(bp.subprocess, "run", return_value=mock.Mock(stdout="0.12.6\n")) as run_:
+            self.assertEqual(bp.mise_latest("neovim@0.12"), "0.12.6")
+        self.assertEqual(run_.call_args.args[0], ["mise", "latest", "neovim@0.12"])
+        with mock.patch.object(bp.subprocess, "run", return_value=mock.Mock(stdout="")):
+            with self.assertRaises(bp.PinError):
+                bp.mise_latest("nope")
 
 
 class Lookups(unittest.TestCase):

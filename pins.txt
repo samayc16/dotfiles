@@ -1,11 +1,12 @@
 # Every external version the installer uses, one per line: name kind source version.
 # CI maintains this file: on each push to main, scripts/bump-pins.py moves every pin to the
 # newest upstream version, the whole install is tested with them, and only then are they
-# committed here. kind is `commit` (a commit on the repo's default branch) or `release` (its
-# newest numbered GitHub release, `-` until there is one).
+# committed here. kind is `commit` (a commit on the repo's default branch), `release` (its newest
+# numbered GitHub release, `-` until there is one) or `mise` (`mise latest <spec>`; neovim@0.12
+# stays on 0.12.x). bump-pins.py writes the mise versions into mise/global.toml too.
 
 # name                       kind     source                                                          version
-plexamp-tui                  release  https://github.com/samayc16/plexamp-tui                         -
+plexamp-tui                  release  https://github.com/samayc16/plexamp-tui                         v0.1.0
 
 # learn/fetch.sh: Exercism tracks, example projects, offline docs
 learn/exercism-python        commit   https://github.com/exercism/python                              479f11b44b02337b0413e805b948491c2179615a
@@ -23,7 +24,7 @@ learn/swift-argument-parser  commit   https://github.com/apple/swift-argument-pa
 learn/picorv32               commit   https://github.com/YosysHQ/picorv32                             ef203c2b0a3fb793280f5114941416c425c5b461
 learn/lyah                   commit   https://github.com/learnyouahaskell/learnyouahaskell.github.io  1e60d107cceadccf2a2d4b6cf67e94fc77c61e19
 learn/swift-book             commit   https://github.com/swiftlang/swift-book                         16a2a4caa408c86fc85bde1e1dfff4745b6e454c
-learn/verilator-docs         commit   https://github.com/verilator/verilator                          ceac2832c313e4fe302f130190aaeb3071e3bde8
+learn/verilator-docs         commit   https://github.com/verilator/verilator                          47f4e2e83c08d2ef0964f4ea0b036a579c41e353
 
 # install.d/tmux.sh: TPM and the plugins tmux.conf lists, cloned into ~/.tmux/plugins/<name>
 tmux/tpm                     commit   https://github.com/tmux-plugins/tpm                             e261deb1b47614eed3400089ce7197dc68acc4eb
@@ -34,3 +35,20 @@ tmux/tmux-continuum          commit   https://github.com/tmux-plugins/tmux-conti
 tmux/tmux-sessionist         commit   https://github.com/tmux-plugins/tmux-sessionist                 a315c423328d9bdf5cf796435ce7075fa5e1bffb
 tmux/tmux-prefix-highlight   commit   https://github.com/tmux-plugins/tmux-prefix-highlight           06cbb4ecd3a0a918ce355c70dc56d79debd455c7
 tmux/tmux-fzf                commit   https://github.com/sainnhe/tmux-fzf                             ad64bb663096d497a8500469ecc64e9598058242
+
+# mise/global.toml: the Linux CLI tools, exact versions (macOS gets Homebrew's current ones)
+mise/neovim                  mise     neovim@0.12                                                     0.12.6
+mise/tree-sitter             mise     conda:tree-sitter-cli                                           0.27.2
+mise/tmux                    mise     tmux                                                            3.8
+mise/ripgrep                 mise     ripgrep                                                         16.0.0
+mise/fd                      mise     fd                                                              10.5.2
+mise/fzf                     mise     fzf                                                             0.75.0
+mise/bat                     mise     bat                                                             0.26.1
+mise/eza                     mise     eza                                                             0.23.5
+mise/delta                   mise     delta                                                           0.22.0
+mise/lazygit                 mise     lazygit                                                         0.66.3
+mise/zoxide                  mise     zoxide                                                          0.10.0
+mise/jq                      mise     jq                                                              1.8.2
+mise/gh                      mise     gh                                                              2.105.0
+mise/node                    mise     node@lts                                                        24.22.3
+mise/uv                      mise     uv                                                              0.13.9

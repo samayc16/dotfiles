@@ -8,10 +8,10 @@ source "$(dirname "$0")/lib.sh"
 CLI_FORMULAE=(
   neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k fzf-tab
   fzf ripgrep fd bat eza zoxide git-delta lazygit gh jq tldr htop trash mise git-lfs
-  tree-sitter-cli
+  tree-sitter-cli uv
 )
 DEV_FORMULAE=(
-  uv node cmake gcc                       # gcc: GNU GCC as gcc-NN/g++-NN (plain gcc is Apple clang)
+  node cmake gcc                          # gcc: GNU GCC as gcc-NN/g++-NN (plain gcc is Apple clang)
   verilator icarus-verilog surfer z3      # HDL: simulate, waveforms, z3 = Verilator constrained-random
   xcode-build-server xcbeautify           # Swift/Xcode from nvim (xcodebuild.nvim)
 )
