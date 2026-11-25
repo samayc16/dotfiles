@@ -25,7 +25,7 @@ class Profiles(unittest.TestCase):
 
     def test_cli_is_minimal(self) -> None:
         ran = runs(LINUX, Selection("cli"))
-        self.assertEqual(ran, ["packages", "fonts", "links", "mise", "zsh", "nvim", "claude"])
+        self.assertEqual(ran, ["packages", "fonts", "links", "mise", "zsh", "tmux", "nvim", "claude"])
 
     def test_dev_adds_hdl_rust_and_smoke_not_games(self) -> None:
         ran = runs(LINUX, Selection("dev"))

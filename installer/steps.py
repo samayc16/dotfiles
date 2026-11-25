@@ -15,7 +15,7 @@ from .host import Host
 
 PROFILES = ("cli", "dev", "full")
 PROFILE_HELP = {
-    "cli": "shell, tmux, Neovim + plugins, CLI tools, font, Claude Code",
+    "cli": "shell, tmux + plugins, Neovim + plugins, CLI tools, font, Claude Code",
     "dev": "cli + language servers/formatters/debuggers, parsers, HDL toolchain, smoke test",
     "full": "dev + Swift (Linux), Haskell, games, learning tracks — everything (default)",
 }
@@ -56,6 +56,7 @@ STEPS: Tuple[Step, ...] = (
     Step("links", "symlink configs into place", "links.sh"),
     Step("mise", "user-local CLI tools: neovim, ripgrep, fzf, … (no root)", "mise.sh", platforms=LINUX),
     Step("zsh", "zsh, prompt + plugins, login shell", "zsh.sh", interactive=True),
+    Step("tmux", "tmux plugins (TPM) at the commits in pins.txt", "tmux.sh"),
     Step("nvim", "Neovim plugins (+ LSPs, debuggers, parsers on dev/full)", "nvim.sh"),
     Step("claude", "Claude Code CLI", "claude.sh"),  # after nvim: reuses its lua-language-server
     Step("hdl", "Verilator, Icarus Verilog, Surfer", "hdl.sh", profile="dev", platforms=LINUX),

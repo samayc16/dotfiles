@@ -1,0 +1,36 @@
+# Every external version the installer uses, one per line: name kind source version.
+# CI maintains this file: on each push to main, scripts/bump-pins.py moves every pin to the
+# newest upstream version, the whole install is tested with them, and only then are they
+# committed here. kind is `commit` (a commit on the repo's default branch) or `release` (its
+# newest numbered GitHub release, `-` until there is one).
+
+# name                       kind     source                                                          version
+plexamp-tui                  release  https://github.com/samayc16/plexamp-tui                         -
+
+# learn/fetch.sh: Exercism tracks, example projects, offline docs
+learn/exercism-python        commit   https://github.com/exercism/python                              479f11b44b02337b0413e805b948491c2179615a
+learn/exercism-c             commit   https://github.com/exercism/c                                   1675b02c310198e9752e516ee1a2294b76a37f84
+learn/exercism-cpp           commit   https://github.com/exercism/cpp                                 3ad5d0e99c0972b7e429d30c9539954207238b37
+learn/exercism-swift         commit   https://github.com/exercism/swift                               a0e8e9ef7453d4010e123c6af8e1fb296eafad43
+learn/exercism-rust          commit   https://github.com/exercism/rust                                0a9b22d667da5a226bf480b0152ae29dfba99545
+learn/kilo                   commit   https://github.com/antirez/kilo                                 323d93b29bd89a2cb446de90c4ed4fea1764176e
+learn/chibicc                commit   https://github.com/rui314/chibicc                               90d1f7f199cc55b13c7fdb5839d1409806633fdb
+learn/argparse               commit   https://github.com/p-ranav/argparse                             7d093f8e1201db2dded2eee94de77665698ee9dc
+learn/SPSCQueue              commit   https://github.com/rigtorp/SPSCQueue                            cd49c7cb430fbb298d981c1793c0d46348c4c9d5
+learn/micrograd              commit   https://github.com/karpathy/micrograd                           7bc720e951fe422b8f8814aa5aa1b64121d26b4c
+learn/stamina                commit   https://github.com/hynek/stamina                                8f399b7bd620cfa7e0f5928cb243c025a0f10451
+learn/swift-argument-parser  commit   https://github.com/apple/swift-argument-parser                  d225b6fe8aed45478d1e36e770bf269c5d48d3a9
+learn/picorv32               commit   https://github.com/YosysHQ/picorv32                             ef203c2b0a3fb793280f5114941416c425c5b461
+learn/lyah                   commit   https://github.com/learnyouahaskell/learnyouahaskell.github.io  1e60d107cceadccf2a2d4b6cf67e94fc77c61e19
+learn/swift-book             commit   https://github.com/swiftlang/swift-book                         16a2a4caa408c86fc85bde1e1dfff4745b6e454c
+learn/verilator-docs         commit   https://github.com/verilator/verilator                          ceac2832c313e4fe302f130190aaeb3071e3bde8
+
+# install.d/tmux.sh: TPM and the plugins tmux.conf lists, cloned into ~/.tmux/plugins/<name>
+tmux/tpm                     commit   https://github.com/tmux-plugins/tpm                             e261deb1b47614eed3400089ce7197dc68acc4eb
+tmux/tmux-sensible           commit   https://github.com/tmux-plugins/tmux-sensible                   25cb91f42d020f675bb0a2ce3fbd3a5d96119efa
+tmux/tmux-yank               commit   https://github.com/tmux-plugins/tmux-yank                       acfd36e4fcba99f8310a7dfb432111c242fe7392
+tmux/tmux-resurrect          commit   https://github.com/tmux-plugins/tmux-resurrect                  cff343cf9e81983d3da0c8562b01616f12e8d548
+tmux/tmux-continuum          commit   https://github.com/tmux-plugins/tmux-continuum                  0698e8f4b17d6454c71bf5212895ec055c578da0
+tmux/tmux-sessionist         commit   https://github.com/tmux-plugins/tmux-sessionist                 a315c423328d9bdf5cf796435ce7075fa5e1bffb
+tmux/tmux-prefix-highlight   commit   https://github.com/tmux-plugins/tmux-prefix-highlight           06cbb4ecd3a0a918ce355c70dc56d79debd455c7
+tmux/tmux-fzf                commit   https://github.com/sainnhe/tmux-fzf                             ad64bb663096d497a8500469ecc64e9598058242
