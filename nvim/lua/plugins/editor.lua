@@ -7,6 +7,8 @@ return {
       { '<C-h>', '<cmd>TmuxNavigateLeft<cr>', desc = 'Navigate left' },
       { '<C-j>', '<cmd>TmuxNavigateDown<cr>', desc = 'Navigate down' },
       { '<C-k>', '<cmd>TmuxNavigateUp<cr>', desc = 'Navigate up' },
+      -- Ctrl-k means "up" in insert mode too (Vim's digraph key is Ctrl-k otherwise)
+      { '<C-k>', '<C-\\><C-n><cmd>TmuxNavigateUp<cr>', mode = 'i', desc = 'Navigate up (leaves insert mode)' },
       { '<C-l>', '<cmd>TmuxNavigateRight<cr>', desc = 'Navigate right' },
     },
   },

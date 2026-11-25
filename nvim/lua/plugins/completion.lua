@@ -24,6 +24,9 @@ return {
     opts = {
       keymap = {
         preset = 'default',
+        -- Ctrl-k is for moving to the pane / split above (tmux), so signature help is on Alt-s
+        ['<C-k>'] = false,
+        ['<M-s>'] = { 'show_signature', 'hide_signature', 'fallback' },
         ['<CR>'] = { 'accept', 'fallback' },
         ['<Tab>'] = {
           function(cmp)

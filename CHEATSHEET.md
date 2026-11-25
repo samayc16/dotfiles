@@ -214,9 +214,9 @@ Standalone C++ files default to **C++26** and C files to **C23** (`clangd/config
 |---|---|
 | `Ctrl-y` / `Tab` / `Enter` | accept suggestion (all three work; `Ctrl-e` closes the menu for a plain newline) |
 | `Ctrl-n` / `Ctrl-p` | next / previous suggestion |
-| `Ctrl-Space` | open menu / docs |
+| `Ctrl-Space` | reopen the menu (it opens by itself as you type; `Ctrl-e` closes it) · with the menu open: show / hide its docs |
 | `Tab` / `Shift-Tab` | jump between snippet placeholders |
-| `Ctrl-k` | signature help |
+| `Alt-s` | signature help: the parameters of the call you're typing (it also pops up by itself after `(` and `,`) |
 
 SystemVerilog snippets: `mod` `modp` `aff` `affs` `acomb` `fsm` `intf` `pkg` `struct` `enum` `genfor` `tb` `assertp` `coverp` `cg` `class` `func` `task` `fork` · UVM: `uvm_item` `uvm_seq` `uvm_drv` `uvm_mon` `uvm_agent` `uvm_sb` `uvm_env` `uvm_test` `uvm_top` `uinfo` `uerr` `ufatal` `cfgset` `cfgget`.
 
@@ -299,7 +299,7 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `]c` `[c` · `<leader>hs` `hr` `hp` `hb` `hd` | next/prev git hunk · stage / reset / preview / blame / diff |
 | `<leader>gg` / `<leader>gl` / `<leader>gB` | lazygit / file log / open on GitHub |
 | `<leader>tb` | toggle inline git blame |
-| `Ctrl-h/j/k/l` | move between splits and tmux panes |
+| `Ctrl-h/j/k/l` | move between splits and tmux panes (`Ctrl-k` works from insert mode too) |
 | `<leader>tt` or `Ctrl-/` | toggle terminal |
 | `<leader>ut` | undotree |
 | `<leader>tm` · `<leader>tw` · `<leader>ts` · `<leader>tr` | toggle markdown render · wrap · spell · relative numbers |
