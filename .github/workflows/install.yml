@@ -18,7 +18,11 @@ on:
       - install.d/**
       - pins.txt
       - scripts/**
-      - bin/dotfiles
+      - bin/**
+      - cheatsheets/**
+      - CHEATSHEET.md
+      - claude/**
+      - codex/**
       - learn/fetch.sh
       - mise/**
       - atuin/**
@@ -29,6 +33,10 @@ on:
       - clangd/**
       - .github/ci/**
       - .github/workflows/install.yml
+  # Mondays: bump and test everything, so an upstream release that breaks the install shows up
+  # before your next push does (never commits or releases: only a push to main does)
+  schedule:
+    - cron: "17 9 * * 1"
   workflow_dispatch:
     inputs:
       bump:
@@ -54,10 +62,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: mise (looks up the Linux CLI tools' newest versions)
-        if: github.event_name == 'push' || inputs.bump
+        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.bump
         run: curl -fsSL https://mise.run | MISE_INSTALL_PATH="$HOME/.local/bin/mise" sh && echo "$HOME/.local/bin" >>"$GITHUB_PATH"
       - name: Bump every pin to the newest version
-        if: github.event_name == 'push' || inputs.bump
+        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.bump
         run: |
           python3 scripts/bump-pins.py bump --changes changes.txt
           { echo '### Pins moved'; echo '```'; cat changes.txt; echo '```'; } >>"$GITHUB_STEP_SUMMARY"
@@ -114,14 +122,22 @@ jobs:
             musl: true
           - image: alpine:latest
             mode: user
-            user_profile: dev
+            user_with: music
+            musl: true
+          # No root on older systems, the kind work machines and clusters run. Rocky 8 (glibc 2.28,
+          # no libatomic, no python3): Neovim's and Node's glibc 2.17 builds and a private Python,
+          # with the whole Neovim setup. Ubuntu 20.04 (glibc 2.31) and 22.04: profile cli.
           - image: rockylinux:8
             mode: user
             user_profile: dev
-          - image: alpine:latest
+          - image: ubuntu:20.04
             mode: user
-            user_with: music
-            musl: true
+          - image: ubuntu:22.04
+            mode: user
+          # the whole Neovim setup (language servers, parsers, the smoke test) without root
+          - image: ubuntu:24.04
+            mode: user
+            user_profile: dev
     container: ${{ matrix.image }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
