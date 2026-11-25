@@ -6,7 +6,7 @@ A portable terminal development environment for macOS and Linux: a Neovim IDE fo
 
 ## Install
 
-The latest release, on macOS or any Linux (Arch, Debian/Ubuntu, Fedora/RHEL, openSUSE, Alpine…), including SSH boxes without root:
+The latest release, on macOS or any Linux (Arch, Debian/Ubuntu, Fedora/RHEL, openSUSE, Alpine…), including SSH boxes without root (tested on every push without root on RHEL/Rocky 8 and 9, Ubuntu 20.04–24.04, Debian 12, Fedora, Arch, openSUSE and Alpine):
 
 ```sh
 bash -c "$(curl -fsSL https://github.com/samayc16/dotfiles/releases/latest/download/dotfiles)" - install
