@@ -1,59 +1,95 @@
-# Install the dotfiles from scratch on fresh Linux containers (as root, and as a user
-# with no sudo — the locked-down SSH box case) and check the result; macOS gets a dry
-# run + link check. Runs on changes to anything the installer touches.
+# The release pipeline. On every push to main:
+#   1. pins: bump everything in pins.txt to the newest upstream version, build a test tarball
+#   2. test: install from scratch with those pins on 5 Linux distros, as root from the checkout and
+#      as a user without sudo from the tarball, plus macOS (dry run, links, release update/rollback)
+#   3. release: only when every test passed, commit the tested pins to main and publish a dated
+#      release (vYYYY.MM.DD, .1 for a second one that day) with dotfiles.tar.gz
+# Pull requests test the committed pins. workflow_dispatch can bump and test without releasing.
 name: install
 
 on:
   push:
     branches: [main]
-    paths:
-      - install.sh
-      - install.py
-      - installer/**
-      - install.d/**
-      - mise/**
-      - zshrc
-      - zsh/**
-      - nvim/**
-      - clangd/**
-      - .github/workflows/install.yml
   pull_request:
     paths:
       - install.sh
       - install.py
       - installer/**
       - install.d/**
+      - pins.txt
+      - scripts/**
+      - bin/dotfiles
+      - learn/fetch.sh
       - mise/**
       - zshrc
       - zsh/**
+      - tmux.conf
       - nvim/**
       - clangd/**
+      - .github/ci/**
       - .github/workflows/install.yml
   workflow_dispatch:
+    inputs:
+      bump:
+        description: Bump the pins to the newest versions before testing (never commits or releases)
+        type: boolean
+        default: true
 
 concurrency:
   group: install-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer PR push replaces an older run; main runs all finish, so every push is tested and released.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
+  pins:
+    name: pins + tarball
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub API rate limits
+    steps:
+      - uses: actions/checkout@v7
+      - name: Bump every pin to the newest version
+        if: github.event_name == 'push' || inputs.bump
+        run: |
+          python3 scripts/bump-pins.py bump --changes changes.txt
+          { echo '### Pins moved'; echo '```'; cat changes.txt; echo '```'; } >>"$GITHUB_STEP_SUMMARY"
+      - name: Build the tarball a release would ship
+        run: scripts/build-release.sh "0.0.${{ github.run_number }}" dotfiles.tar.gz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pins
+          path: |
+            pins.txt
+            dotfiles.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - name: Unit tests (installer, stdlib unittest)
+      - uses: actions/checkout@v7
+      - name: zsh (the update prompt's tests drive it)
+        run: sudo apt-get install -y -qq zsh >/dev/null
+      - name: Unit tests (installer, pins, dotfiles CLI, update prompt; stdlib unittest)
         run: python3 -m unittest discover -s installer/tests -t . -v
+      - name: Unit tests (learn)
+        working-directory: learn
+        run: python3 -m unittest discover -s tests
       - name: shellcheck
         run: |
-          shellcheck -x -P install.d -s bash install.d/*.sh
-          shellcheck -s sh install.sh install-arch.sh
+          shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles scripts/build-release.sh
+          shellcheck -S warning -x -P install.d -s bash learn/fetch.sh
+          shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh
       - name: zsh syntax
-        run: sudo apt-get install -y -qq zsh >/dev/null && zsh -n zshrc && zsh -n zsh/common.zsh
+        run: for f in zshrc zsh/*.zsh; do zsh -n "$f"; done
 
   linux:
-    needs: lint
+    needs: [lint, pins]
     runs-on: ubuntu-latest
     timeout-minutes: 75
     strategy:
@@ -61,6 +97,10 @@ jobs:
       matrix:
         image: [ubuntu:24.04, debian:12, fedora:latest, rockylinux:9, archlinux:latest]
         mode: [root, user]
+        include: # the learn fetch (16 pinned repos + offline docs) on one leg
+          - image: ubuntu:24.04
+            mode: root
+            extra: music,learn
     container: ${{ matrix.image }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
@@ -69,56 +109,45 @@ jobs:
       - name: Minimal base for the no-root user (git, curl, zsh, compiler — no Python, no sudo)
         if: matrix.mode == 'user'
         run: |
-          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils unzip make gcc g++ util-linux >/dev/null
-          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz unzip make gcc gcc-c++ util-linux findutils
-          elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl zsh tar xz unzip make gcc util-linux
+          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils gzip unzip make gcc g++ util-linux >/dev/null
+          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz gzip unzip make gcc gcc-c++ util-linux findutils
+          elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl zsh tar xz gzip unzip make gcc util-linux
           fi
           useradd -m -s /bin/bash tester
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: pins
+          path: ci-artifacts
+      - name: Use the pins under test
+        run: cp ci-artifacts/pins.txt pins.txt
 
-      - name: Install as root (profile dev)
+      - name: Install as root from the checkout (profile dev + ${{ matrix.extra || 'music' }})
         if: matrix.mode == 'root'
         # Distro HDL packages are used where they work; Rocky 9's Verilator is broken, so it
         # takes the source-build path a real install would (~15 min).
-        run: ./install.sh --profile dev --no-log
+        run: ./install.sh --profile dev --with "${{ matrix.extra || 'music' }}" --no-log
 
-      - name: Install as a user without sudo (profile cli + hdl)
+      - name: Install a release tarball as a user without sudo (profile cli + hdl, music)
         if: matrix.mode == 'user'
         run: |
-          cp -r "$GITHUB_WORKSPACE" /home/tester/dotfiles && chown -R tester: /home/tester/dotfiles
+          install -m 755 bin/dotfiles /tmp/dotfiles-cli
+          install -m 644 ci-artifacts/dotfiles.tar.gz /tmp/dotfiles.tar.gz
           runuser -u tester -- env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
-            bash -c 'cd ~/dotfiles && ./install.sh --no-sudo --profile cli --with hdl --no-log'
+            bash /tmp/dotfiles-cli install --from /tmp/dotfiles.tar.gz --no-sudo --profile cli --with hdl,music --no-log
 
       - name: Verify
         run: |
-          cat >/tmp/verify.sh <<'EOF'
-          set -eu
-          export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
-          echo "nvim: $(nvim --version | head -n1)"
-          v=$(nvim --version | head -n1 | sed 's/^NVIM v//; s/-.*//')
-          [ "$(printf '%s\n0.12.0\n' "$v" | sort -V | head -n1)" = 0.12.0 ] || { echo "nvim too old: $v"; exit 1; }
-          for t in rg fd fzf bat eza delta lazygit zoxide tree-sitter; do printf '%-12s ' "$t"; "$t" --version 2>&1 | head -n1; done
-          printf '%-12s ' tmux; tmux -V
-          for l in .zshrc .tmux.conf .gitconfig .config/nvim .config/mise/config.toml .config/clangd/config.yaml; do
-            [ -L "$HOME/$l" ] && [ -e "$HOME/$l" ] || { echo "missing link: ~/$l"; exit 1; }
-          done
-          if command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; exit'" /dev/null 2>&1)
-          else out=$(zsh -ic 'echo ZSH_OK' 2>&1 | grep -v "can't change option: zle"); fi
-          echo "$out" | grep -q ZSH_OK || { echo "zsh failed: $out"; exit 1; }
-          if echo "$out" | grep -E -i 'not found|error|no such file'; then echo "zsh startup printed errors"; exit 1; fi
-          nvim --headless "+Lazy! restore" +qa
-          cd "$(mktemp -d)" # both simulators, end to end
-          printf 'module t; initial begin $display("sim ok"); $finish; end endmodule\n' >t.sv
-          { iverilog -g2012 -o t.vvp t.sv && vvp t.vvp | grep -q 'sim ok'; } || { echo "iverilog failed"; exit 1; }
-          { verilator --binary -Wno-fatal t.sv >/dev/null && ./obj_dir/Vt | grep -q 'sim ok'; } || { echo "verilator failed"; exit 1; }
-          echo "simulators: verilator $(verilator --version | cut -d' ' -f2), iverilog $(iverilog -V 2>&1 | head -n1 | cut -d' ' -f4)"
-          echo "verify: all good"
-          EOF
-          if [ "${{ matrix.mode }}" = user ]; then runuser -u tester -- env HOME=/home/tester sh /tmp/verify.sh; else sh /tmp/verify.sh; fi
+          install -m 755 .github/ci/verify.sh /tmp/verify.sh
+          if [ "${{ matrix.mode }}" = user ]; then
+            runuser -u tester -- env HOME=/home/tester RELEASE=1 PINS=/home/tester/.local/share/dotfiles/current/pins.txt sh /tmp/verify.sh
+          else
+            LEARN=${{ contains(matrix.extra, 'learn') && '1' || '0' }} PINS="$PWD/pins.txt" sh /tmp/verify.sh
+          fi
 
       - name: Upload Neovim logs
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: logs-${{ strategy.job-index }}-${{ matrix.mode }}
           path: |
@@ -127,18 +156,115 @@ jobs:
           if-no-files-found: ignore
 
   macos:
-    needs: lint
+    needs: [lint, pins]
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - name: Unit tests
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: pins
+          path: ci-artifacts
+      - name: Use the pins under test
+        run: cp ci-artifacts/pins.txt pins.txt
+      - name: Unit tests (bash 3.2 included)
         run: python3 -m unittest discover -s installer/tests -t .
       - name: Plan + dry run
         run: ./install.sh --list-steps && ./install.sh --dry-run --no-log --skip smoke
-      - name: Link into a fresh HOME
+      - name: Link and pre-clone tmux plugins into a fresh HOME
         run: |
-          export HOME="$(mktemp -d)"
-          ./install.sh --link-only --no-log
-          for l in .zshrc .tmux.conf .config/nvim .config/mise/config.toml "Library/Preferences/clangd/config.yaml" "Library/Application Support/lazygit/config.yml"; do
+          HOME="$(mktemp -d)" && export HOME
+          ./install.sh --only links,tmux --no-log
+          for l in .zshrc .tmux.conf .tmux/scripts .config/nvim .config/mise/config.toml "Library/Preferences/clangd/config.yaml" "Library/Application Support/lazygit/config.yml"; do
             [ -L "$HOME/$l" ] || { echo "missing link: ~/$l"; exit 1; }
           done
+          grep '^tmux/' pins.txt | while read -r name _ _ rev; do
+            [ "$(git -C "$HOME/.tmux/plugins/${name#tmux/}" rev-parse HEAD)" = "$rev" ] || { echo "$name not at its pin"; exit 1; }
+          done
+      - name: Release install, update and rollback in a fresh HOME
+        run: |
+          install -m 755 bin/dotfiles "$RUNNER_TEMP/dotfiles" # as the one-line install downloads it
+          HOME="$(mktemp -d)" && export HOME
+          store="$HOME/.local/share/dotfiles" v1="$(tar -xzOf ci-artifacts/dotfiles.tar.gz dotfiles/VERSION)"
+          "$RUNNER_TEMP/dotfiles" install --from ci-artifacts/dotfiles.tar.gz --link-only --no-log
+          [ "$(readlink "$HOME/.zshrc")" = "$store/current/zshrc" ] && [ -e "$HOME/.zshrc" ]
+          mkdir next && tar -xzf ci-artifacts/dotfiles.tar.gz -C next && echo "$v1.1" >next/dotfiles/VERSION
+          tar -czf next.tar.gz -C next dotfiles
+          "$HOME/bin/dotfiles" update --from next.tar.gz --link-only --no-log
+          [ "$(readlink "$store/current")" = "$v1.1" ] && [ "$(readlink "$store/previous")" = "$v1" ]
+          "$HOME/bin/dotfiles" rollback
+          [ "$(readlink "$store/current")" = "$v1" ] && grep -q DOTFILES "$HOME/.zshrc"
+          "$HOME/bin/dotfiles" list && "$HOME/bin/dotfiles" status
+
+  release:
+    needs: [pins, lint, linux, macos]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          name: pins
+          path: ${{ runner.temp }}/tested
+      - name: Commit the tested pins to main
+        id: pins
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo "::notice::main moved on during this run; the run for $(git rev-parse --short HEAD) releases it"
+            echo "release=false" >>"$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "release=true" >>"$GITHUB_OUTPUT"
+          cp "$RUNNER_TEMP/tested/pins.txt" pins.txt
+          if git diff --quiet -- pins.txt; then echo "pins unchanged"; exit 0; fi
+          git show HEAD:pins.txt >"$RUNNER_TEMP/old-pins.txt"
+          changes="$(python3 scripts/bump-pins.py diff "$RUNNER_TEMP/old-pins.txt" pins.txt)"
+          echo "$changes"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "chore: bump pins" -m "$changes" -m "Tested in $RUN_URL" -- pins.txt
+          # A push with GITHUB_TOKEN starts no workflow, so this can't loop.
+          if ! git push -q origin HEAD:main; then
+            git fetch -q origin main
+            [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ] || exit 1
+            echo "::notice::main moved on while committing the pins; its own run releases it"
+            echo "release=false" >>"$GITHUB_OUTPUT"
+          fi
+      - name: Tag, build and publish
+        if: steps.pins.outputs.release == 'true'
+        run: |
+          base="v$(date -u +%Y.%m.%d)" n=0
+          tag="$base"
+          while git rev-parse -q --verify "refs/tags/$tag" >/dev/null; do n=$((n + 1)) && tag="$base.$n"; done
+          previous="$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD 2>/dev/null || true)"
+          scripts/build-release.sh "${tag#v}" dotfiles.tar.gz
+          # shellcheck disable=SC2016 # the notes show these commands literally
+          {
+            echo 'Install (macOS or Linux, no root needed):'
+            echo '```sh'
+            echo 'bash -c "$(curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/dotfiles)" - install'
+            echo '```'
+            echo 'Already installed? `dotfiles update`; `dotfiles rollback` goes back.'
+            echo
+            echo "## Changes${previous:+ since $previous}"
+            git log --no-merges --format='- %s (%h)' ${previous:+"$previous..HEAD"} | head -n 60
+            echo
+            echo '## Pinned versions'
+            echo '```'
+            python3 scripts/bump-pins.py table
+            echo '```'
+          } >notes.md
+          gh release create "$tag" dotfiles.tar.gz bin/dotfiles --target "$(git rev-parse HEAD)" \
+            --title "dotfiles ${tag#v}" --notes-file notes.md --latest
+          echo "::notice::released $tag: ${{ github.server_url }}/${{ github.repository }}/releases/tag/$tag"
