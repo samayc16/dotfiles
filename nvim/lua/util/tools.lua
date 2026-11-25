@@ -94,13 +94,24 @@ function M.builds_and_runs(compiler, lang, flags)
   return run_cache[key]
 end
 
+--- mmap ASLR entropy in bits, or nil where it can't be read: the file is root-only on most
+--- kernels (io.open, not readfile, which throws E484 there and broke <leader>rr for non-root users)
+local function mmap_rnd_bits()
+  local file = io.open('/proc/sys/vm/mmap_rnd_bits', 'r')
+  if not file then return nil end
+  local bits = tonumber((file:read '*l' or ''):match '%d+')
+  file:close()
+  return bits
+end
+
 --- Sanitizer runtimes older than GCC 14 / LLVM 18 crash at random ("AddressSanitizer:DEADLYSIGNAL")
 --- on kernels with 32 bits of mmap ASLR entropy (Linux 6.x defaults; GitHub's runners). A probe
---- can pass and the next run still crash, so on such a kernel only newer runtimes count.
+--- can pass and the next run still crash, so on such a kernel only newer runtimes count. When the
+--- entropy can't be read (not root), assume it's high: at worst old runtimes run without sanitizers.
 function M.sanitizers_work(compiler, lang, flags)
   if vim.fn.has 'linux' == 1 then
-    local bits = tonumber((vim.fn.readfile('/proc/sys/vm/mmap_rnd_bits', '', 1)[1] or ''):match '%d+')
-    if bits and bits > 28 then
+    local bits = mmap_rnd_bits()
+    if bits == nil or bits > 28 then
       local version = (vim.system({ compiler, '--version' }, { text = true }):wait().stdout or ''):match '[^\n]*'
       local major = tonumber(version:match 'version (%d+)' or version:match ' (%d+)%.%d+%.?%d*%s*$' or version:match '%) (%d+)%.' or '')
       local minimum = version:find 'clang' and 18 or 14
