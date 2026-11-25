@@ -5,3 +5,6 @@ __pycache__/
 *.vcd
 *.fst
 obj_dir/
+
+# release builds (scripts/build-release.sh bundles the plexamp-tui wheel here)
+dist/

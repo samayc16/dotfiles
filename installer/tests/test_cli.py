@@ -1,11 +1,12 @@
 """Argument parsing and an end-to-end dry run of a single step."""
 
 import io
+import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from installer.cli import main, parse_args
+from installer.cli import install_args, main, parse_args, remember_install_args
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -25,6 +26,24 @@ class ParseArgs(unittest.TestCase):
     def test_typo_is_an_error(self) -> None:
         with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             parse_args(["--only", "nvimm"])
+
+
+class RememberArgs(unittest.TestCase):
+    def test_flags_round_trip(self) -> None:
+        args = parse_args(["--profile", "cli", "--no-sudo", "--with", "music,hdl", "--skip", "games", "-v"])
+        self.assertEqual(install_args(args), ["--profile", "cli", "--with", "hdl,music", "--without", "games", "--no-sudo"])
+        self.assertEqual(install_args(parse_args(install_args(args))), install_args(args))
+
+    def test_whole_install_is_recorded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            remember_install_args(parse_args(["--profile", "dev"]), Path(tmp))
+            self.assertEqual((Path(tmp) / "install-args").read_text(), "--profile\ndev\n")
+
+    def test_partial_runs_are_not(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            for argv in (["--only", "nvim"], ["--link-only"], ["--dry-run"]):
+                remember_install_args(parse_args(argv), Path(tmp))
+            self.assertFalse((Path(tmp) / "install-args").exists())
 
 
 class DryRun(unittest.TestCase):

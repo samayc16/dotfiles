@@ -20,6 +20,7 @@ link_shell() {
   local_git_identity
   link "$DOTFILES/git/ignore" "$HOME/.config/git/ignore"
   link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
+  link "$DOTFILES/scripts" "$HOME/.tmux/scripts" # tmux.conf's popups, clipboard, weather
   local script
   for script in "$DOTFILES"/bin/*; do
     [[ -f "$script" ]] && link "$script" "$HOME/bin/$(basename "$script")"

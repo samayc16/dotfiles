@@ -8,7 +8,7 @@ set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
 NVIM_MIN_VERSION="0.12.0"
-BOOTSTRAP_SCRIPT="$HOME/.config/nvim/scripts/bootstrap.lua"
+BOOTSTRAP_SCRIPT="$DOTFILES/nvim/scripts/bootstrap.lua"
 
 check_prereqs() {
   export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
@@ -39,6 +39,7 @@ ensure_modern_python() {
 main() {
   section "Neovim plugins, parsers, language servers"
   check_prereqs
+  use_repo_nvim_config
   local failed=0
   if wants lazy cli; then
     info "plugins (lazy-lock.json)…"

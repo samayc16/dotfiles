@@ -7,6 +7,18 @@
 
 # Always the repo this file lives in (an exported DOTFILES from the shell could point elsewhere)
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# What the home links point through. A git clone is linked directly. A release install lives in
+# <store>/<version>/ (bin/dotfiles) and is linked through <store>/current, so an update or a
+# rollback is one atomic flip of that symlink.
+release_link_root() {
+  local version
+  [[ -f "$DOTFILES/VERSION" && ! -e "$DOTFILES/.git" ]] || return 1
+  read -r version <"$DOTFILES/VERSION" || return 1
+  [[ "$(basename "$DOTFILES")" == "$version" ]] || return 1
+  echo "$(dirname "$DOTFILES")/current"
+}
+LINK_ROOT="${DOTFILES_LINK_ROOT:-$(release_link_root || echo "$DOTFILES")}"
 DRY_RUN="${DRY_RUN:-0}"
 NO_SUDO="${NO_SUDO:-0}"
 PROFILE="${PROFILE:-full}"
@@ -14,7 +26,7 @@ WITH="${WITH:-}"
 WITHOUT="${WITHOUT:-}"
 LOCAL_PREFIX="${LOCAL_PREFIX:-$HOME/.local}"
 export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$HOME/.cargo/bin:/opt/homebrew/opt/rustup/bin:$PATH" # tools from earlier steps
-export DOTFILES DRY_RUN NO_SUDO PROFILE WITH WITHOUT LOCAL_PREFIX
+export DOTFILES LINK_ROOT DRY_RUN NO_SUDO PROFILE WITH WITHOUT LOCAL_PREFIX
 
 # Exit code a step uses to say "nothing to do here" (shown as skipped, not failed)
 SKIP=3
@@ -116,30 +128,36 @@ can_install_system() {
 }
 
 # ── Symlinks ──────────────────────────────────────────────────────────
-# link SRC DST: symlink DST → SRC. Already-correct links are left alone; anything
-# else at DST is moved aside to DST.bak (DST.bak.<timestamp> if that exists).
+# link SRC DST: symlink DST → SRC (through LINK_ROOT for a file in this repo). Already-correct
+# links are left alone, and so is nothing else: a link into another version of a release install
+# is ours and is replaced, anything else at DST is moved aside to DST.bak (DST.bak.<timestamp>
+# if that exists).
 link() {
-  local src="$1" dst="$2" backup
-  if [[ "$(readlink "$dst" 2>/dev/null)" == "$src" ]]; then
+  local src="$1" dst="$2" backup current
+  [[ "$src" == "$DOTFILES"/* ]] && src="$LINK_ROOT/${src#"$DOTFILES"/}"
+  current="$(readlink "$dst" 2>/dev/null || true)"
+  if [[ "$current" == "$src" ]]; then
     info "${C_DIM}linked  $dst${C_RESET}"
     return 0
   fi
   run mkdir -p "$(dirname "$dst")"
-  if [[ -e "$dst" || -L "$dst" ]]; then
+  if [[ -L "$dst" && "$LINK_ROOT" != "$DOTFILES" && "$current" == "$(dirname "$LINK_ROOT")"/* ]]; then
+    run rm "$dst"
+  elif [[ -e "$dst" || -L "$dst" ]]; then
     backup="$dst.bak"
     [[ -e "$backup" || -L "$backup" ]] && backup="$dst.bak.$(date +%Y%m%d-%H%M%S)"
     warn "backing up $dst → $backup"
     run mv "$dst" "$backup"
   fi
   run ln -s "$src" "$dst"
-  ok "linked  $dst → ${src#"$DOTFILES"/}"
+  ok "linked  $dst → ${src#"$LINK_ROOT"/}"
 }
 
 # Copy a starting file into place once. Unlike link(), the copy is yours: apps that save their
 # settings (Claude Code, Codex) write to it, and nothing they write comes back to this repo.
 seed() {
   local src="$1" dst="$2"
-  if [[ -L "$dst" && "$(readlink "$dst")" == "$DOTFILES"/* ]]; then
+  if [[ -L "$dst" && ("$(readlink "$dst")" == "$DOTFILES"/* || "$(readlink "$dst")" == "$LINK_ROOT"/*) ]]; then
     run rm "$dst" # an older install linked it into the repo: swap the link for a copy
   elif [[ -e "$dst" || -L "$dst" ]]; then
     info "${C_DIM}kept    $dst${C_RESET}"
@@ -172,6 +190,22 @@ fetch() {
     err "need curl or wget to download $url"
     return 1
   fi
+}
+
+# Steps that run nvim use this repo's config even while ~/.config/nvim points at another version
+# (a release update runs the new version's installer before it flips `current`): exports an
+# XDG_CONFIG_HOME that mirrors the real one with nvim/ swapped for this repo's.
+use_repo_nvim_config() {
+  local real="${XDG_CONFIG_HOME:-$HOME/.config}" shadow entry
+  [[ "$(cd "$real/nvim" 2>/dev/null && pwd -P)" == "$(cd "$DOTFILES/nvim" && pwd -P)" ]] && return 0
+  shadow="$(mktemp -d)"
+  # shellcheck disable=SC2064 # expand now: the path is fixed
+  trap "rm -rf '$shadow'" EXIT
+  for entry in "$real"/*; do
+    [[ -e "$entry" && "$(basename "$entry")" != nvim ]] && ln -s "$entry" "$shadow/"
+  done
+  ln -s "$DOTFILES/nvim" "$shadow/nvim"
+  export XDG_CONFIG_HOME="$shadow"
 }
 
 # Compare dotted versions: version_ge 3.4 3.2 → true

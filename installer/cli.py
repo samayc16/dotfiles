@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from contextlib import contextmanager
@@ -87,6 +88,35 @@ def list_steps(ui: Ui, host: host_mod.Host, selection: Selection) -> None:
     ui.line(ui.paint("  components (for --with/--without): " + ", ".join(sorted(COMPONENTS)), dim=True))
 
 
+def install_args(args: argparse.Namespace) -> List[str]:
+    """The flags that define this install, as `dotfiles update` should pass them again."""
+    argv = ["--profile", args.profile]
+    if args.extra:
+        argv += ["--with", ",".join(sorted(args.extra))]
+    if args.skip:
+        argv += ["--without", ",".join(sorted(args.skip))]
+    if args.no_sudo:
+        argv.append("--no-sudo")
+    return argv
+
+
+def remember_install_args(args: argparse.Namespace, state_dir: Path) -> None:
+    """Record a whole install's flags (not --only/--dry-run runs) for `dotfiles update`."""
+    if args.only or args.dry_run:
+        return
+    try:
+        state_dir.mkdir(parents=True, exist_ok=True)
+        tmp = state_dir / "install-args.tmp"
+        tmp.write_text("".join(arg + "\n" for arg in install_args(args)), encoding="utf-8")
+        tmp.replace(state_dir / "install-args")
+    except OSError as exc:  # never fail an install over bookkeeping
+        print("note: could not record the install flags in %s: %s" % (state_dir, exc), file=sys.stderr)
+
+
+def state_dir() -> Path:
+    return Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state") / "dotfiles"
+
+
 @contextmanager
 def open_log(disabled: bool) -> Iterator[Optional[TextIO]]:
     if disabled:
@@ -121,6 +151,7 @@ def main(argv: Optional[Sequence[str]] = None, root: Optional[Path] = None) -> i
     if args.list_steps:
         list_steps(ui, host, selection)
         return 0
+    remember_install_args(args, state_dir())
     env = step_env(root, host, args.profile, ",".join(sorted(args.extra)), ",".join(sorted(args.skip)), args.dry_run, args.no_sudo)
     with open_log(args.no_log or args.dry_run) as log:
         ctx = Context(root, host, env, ui, log, args.dry_run, args.verbose)

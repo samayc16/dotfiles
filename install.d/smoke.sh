@@ -5,13 +5,14 @@
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
-SMOKE_SCRIPT="$HOME/.config/nvim/scripts/smoke.lua"
+SMOKE_SCRIPT="$DOTFILES/nvim/scripts/smoke.lua"
 
 main() {
   section "Smoke test (nvim)"
   export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
   has nvim || skip "nvim not installed"
   [[ -f "$SMOKE_SCRIPT" ]] || skip "no smoke test at $SMOKE_SCRIPT"
+  use_repo_nvim_config
   run nvim --headless -c "luafile $SMOKE_SCRIPT"
 }
 

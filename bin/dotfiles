@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+# dotfiles: install, update and roll back these dotfiles.
+#
+#   dotfiles status                         what's installed; whether a newer release exists
+#   dotfiles update [--force] [--from TARBALL] [INSTALL FLAGS]
+#   dotfiles rollback [VERSION]             back to the previous release install (or VERSION)
+#   dotfiles list                           the release versions on disk
+#   dotfiles install [--from TARBALL] [INSTALL FLAGS]   install a release (first time, or again)
+#   dotfiles check [--quiet]                look up the newest release now (the shell's prompt uses this)
+#
+# Release installs keep each version in ~/.local/share/dotfiles/<version>/ and link your home
+# through ~/.local/share/dotfiles/current. An update unpacks the new version beside the old one,
+# runs its installer, and only then flips `current`, so a failed install leaves you where you
+# were. The last 3 versions stay for `dotfiles rollback`.
+# A git clone (~/dotfiles) updates with `git pull --ff-only` and re-runs ./install.sh; with local
+# changes or a diverged branch it stops and says what to do. It never stashes, resets or forces.
+# INSTALL FLAGS (--profile cli, --no-sudo, ...) go to install.sh; without any, the flags of your
+# last full install are used. TARBALL is a dotfiles.tar.gz path or URL (offline installs).
+# Bash 3.2 compatible (macOS /bin/bash).
+set -euo pipefail
+
+REPO="samayc16/dotfiles"
+RELEASES="${DOTFILES_RELEASES:-https://github.com/$REPO/releases}"
+API_LATEST="${DOTFILES_API_LATEST:-https://api.github.com/repos/$REPO/releases/latest}"
+STORE="${DOTFILES_HOME:-$HOME/.local/share/dotfiles}"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+ASSET="dotfiles.tar.gz"
+KEEP=3
+
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  C_RESET=$'\033[0m' C_DIM=$'\033[2m' C_BOLD=$'\033[1m' C_GREEN=$'\033[38;2;169;220;118m'
+  C_YELLOW=$'\033[38;2;255;216;102m' C_RED=$'\033[38;2;255;97;136m'
+else
+  C_RESET='' C_DIM='' C_BOLD='' C_GREEN='' C_YELLOW='' C_RED=''
+fi
+say() { printf '%s\n' "$*"; }
+ok() { printf '%s✓%s %s\n' "$C_GREEN" "$C_RESET" "$*"; }
+warn() { printf '%s!%s %s\n' "$C_YELLOW" "$C_RESET" "$*" >&2; }
+# die MESSAGE [DETAIL...]: each DETAIL (may span lines) is printed indented under MESSAGE.
+die() {
+  printf '%s✗%s %s\n' "$C_RED" "$C_RESET" "$1" >&2
+  shift
+  local detail
+  for detail in "$@"; do printf '%s\n' "$detail" | sed 's/^/  /' >&2; done
+  exit 1
+}
+usage() { sed -n '2,/^# Bash 3.2/{s/^# \{0,1\}//;p;}' "$SELF" 2>/dev/null | sed '$d' || say "see https://github.com/$REPO"; }
+
+# ── Where this script lives ──────────────────────────────────────────
+# Follow symlinks by hand: macOS before 12.3 has no `readlink -f`.
+resolve() {
+  local path="$1" target
+  while [[ -L "$path" ]]; do
+    target="$(readlink "$path")"
+    case "$target" in /*) path="$target" ;; *) path="$(dirname "$path")/$target" ;; esac
+  done
+  printf '%s/%s\n' "$(cd "$(dirname "$path")" && pwd -P)" "$(basename "$path")"
+}
+SELF=""
+[[ -f "${BASH_SOURCE[0]:-}" ]] && SELF="$(resolve "${BASH_SOURCE[0]}")" # empty under `bash -c "$(curl …)"`
+ROOT="${SELF:+$(dirname "$(dirname "$SELF")")}"
+
+# git: running from a clone · release: from a version in the store · none: neither (curl | bash)
+install_kind() {
+  if [[ -n "$ROOT" && -e "$ROOT/.git" ]]; then
+    echo git
+  elif [[ -L "$STORE/current" || (-n "$ROOT" && -f "$ROOT/VERSION") ]]; then
+    echo release
+  else
+    echo none
+  fi
+}
+
+# ── Versions ─────────────────────────────────────────────────────────
+valid_version() { [[ "$1" =~ ^[0-9]+(\.[0-9]+)*$ ]]; }
+sort_versions() { sort -t. -k1,1n -k2,2n -k3,3n -k4,4n -k5,5n; }
+version_gt() { [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort_versions | tail -n1)" == "$1" ]]; }
+
+link_target() { [[ -L "$STORE/$1" ]] && basename "$(readlink "$STORE/$1")"; }
+current_version() { link_target current || true; }
+previous_version() { link_target previous || true; }
+
+installed_version() {
+  case "$(install_kind)" in
+    git) git -C "$ROOT" describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null | sed 's/^v//' || true ;;
+    release) current_version ;;
+  esac
+}
+
+stored_versions() {
+  local dir
+  for dir in "$STORE"/*/; do
+    dir="$(basename "$dir")"
+    if valid_version "$dir" && [[ ! -L "$STORE/$dir" ]]; then echo "$dir"; fi
+  done | sort_versions
+}
+
+# The newest release's version: the releases/latest redirect (no API rate limit), else the API.
+latest_version() {
+  local timeout="${1:-20}" url tag auth=()
+  url="$(curl -fsS --max-time "$timeout" -o /dev/null -w '%{redirect_url}' "$RELEASES/latest" 2>/dev/null)" || url=""
+  tag="${url##*/tag/}"
+  if [[ -z "$url" || "$tag" == "$url" ]]; then
+    [[ -n "${GITHUB_TOKEN:-}" ]] && auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+    tag="$(curl -fsS --max-time "$timeout" ${auth[@]+"${auth[@]}"} "$API_LATEST" 2>/dev/null |
+      sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p' | head -n1)" || tag=""
+  fi
+  tag="${tag#v}"
+  valid_version "$tag" || return 1
+  echo "$tag"
+}
+
+# ── The store: unpack, flip, prune ───────────────────────────────────
+# Files in a version dir that an install or a program rewrites on its own; anything else that
+# differs from the tarball is an edit of yours.
+manifest() {
+  (cd "$1" && find . -type f ! -name .manifest ! -name .DS_Store ! -name '*.pyc' ! -path '*/__pycache__/*' \
+    ! -path ./nvim/lazy-lock.json -exec cksum {} + | LC_ALL=C sort)
+}
+
+# Files you changed, added or deleted in a version dir.
+local_edits() {
+  [[ -f "$1/.manifest" ]] || return 0
+  manifest "$1" | LC_ALL=C comm -3 "$1/.manifest" - | sed 's/^[[:space:]]*//' | cut -d' ' -f3- | sed 's|^\./||' | LC_ALL=C sort -u
+}
+
+# Unpack a tarball (path or URL) into the store; prints the version dir. An existing one is reused.
+unpack() {
+  local src="$1" work file version
+  mkdir -p "$STORE"
+  work="$(mktemp -d "$STORE/.incoming.XXXXXX")"
+  # shellcheck disable=SC2064 # expand now: the path is fixed
+  trap "rm -rf '$work'" EXIT
+  case "$src" in
+    http://* | https://* | file://*)
+      say "downloading $src" >&2
+      curl -fL --retry 3 --progress-bar -o "$work/$ASSET" "$src" || die "download failed: $src"
+      file="$work/$ASSET"
+      ;;
+    *) [[ -f "$src" ]] || die "no such file: $src"; file="$src" ;;
+  esac
+  tar -xzf "$file" -C "$work" 2>/dev/null || die "not a dotfiles release tarball: $src"
+  [[ -f "$work/dotfiles/VERSION" && -f "$work/dotfiles/install.sh" ]] || die "not a dotfiles release tarball: $src"
+  read -r version <"$work/dotfiles/VERSION" || true
+  valid_version "${version:-}" || die "bad VERSION in $src: ${version:-}"
+  if [[ ! -d "$STORE/$version" ]]; then
+    manifest "$work/dotfiles" >"$work/dotfiles/.manifest"
+    mv "$work/dotfiles" "$STORE/$version"
+  fi
+  echo "$STORE/$version"
+}
+
+# Point $STORE/NAME at TARGET in one rename (mv -T on GNU, mv -h on BSD/macOS).
+set_link() {
+  local name="$1" target="$2" tmp="$STORE/.$1.$$"
+  [[ -e "$STORE/$name" && ! -L "$STORE/$name" ]] && die "$STORE/$name is not a symlink; move it away first"
+  ln -s "$target" "$tmp"
+  mv -T "$tmp" "$STORE/$name" 2>/dev/null || mv -h "$tmp" "$STORE/$name" 2>/dev/null || {
+    rm -f "$tmp"
+    ln -sfn "$target" "$STORE/$name"
+  }
+}
+
+flip() {
+  local from
+  from="$(current_version)"
+  [[ -n "$from" && "$from" != "$1" ]] && set_link previous "$from"
+  set_link current "$1"
+}
+
+# Keep `current`, `previous` and the newest others up to $KEEP; never a version you've edited.
+prune() {
+  local cur prev version kept=" " count=0
+  cur="$(current_version)"
+  prev="$(previous_version)"
+  for version in $cur $prev; do kept="$kept$version " && count=$((count + 1)); done
+  for version in $(stored_versions | sed '1!G;h;$!d'); do # newest first
+    [[ "$kept" == *" $version "* ]] && continue
+    if ((count < KEEP)); then
+      kept="$kept$version " && count=$((count + 1))
+    elif [[ -n "$(local_edits "$STORE/$version")" ]]; then
+      warn "kept $version: you changed files in it ($STORE/$version)"
+    else
+      rm -rf "${STORE:?}/$version"
+    fi
+  done
+}
+
+lock() {
+  mkdir -p "$STORE"
+  if ! mkdir "$STORE/.lock" 2>/dev/null; then
+    local pid
+    pid="$(cat "$STORE/.lock/pid" 2>/dev/null || true)"
+    [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null && die "another dotfiles update is running (pid $pid)"
+    rm -rf "$STORE/.lock"
+    mkdir "$STORE/.lock" 2>/dev/null || die "cannot lock $STORE"
+  fi
+  echo $$ >"$STORE/.lock/pid"
+  trap 'rm -rf "$STORE/.lock"' EXIT
+}
+
+# ── Running the installer ────────────────────────────────────────────
+run_installer() {
+  local dir="$1" flags=() line
+  shift
+  flags=("$@")
+  if ((${#flags[@]} == 0)) && [[ -f "$STATE/install-args" ]]; then
+    while IFS= read -r line; do [[ -n "$line" ]] && flags+=("$line"); done <"$STATE/install-args"
+  fi
+  say "${C_BOLD}running $dir/install.sh ${flags[*]-}${C_RESET}"
+  "$dir/install.sh" ${flags[@]+"${flags[@]}"}
+}
+
+# ── Commands ─────────────────────────────────────────────────────────
+update_release() {
+  local force="$1" from="$2" have want dir version edits
+  shift 2
+  lock
+  have="$(current_version)"
+  if [[ -z "$from" ]]; then
+    want="$(latest_version)" || die "couldn't look up the newest release (offline?)"
+    if [[ -n "$have" && "$force" == 0 ]] && ! version_gt "$want" "$have"; then
+      ok "dotfiles $have is up to date (newest release: $want)"
+      return 0
+    fi
+    from="$STORE/$want"
+    [[ -d "$from" ]] || from="$RELEASES/download/v$want/$ASSET"
+  fi
+  if [[ -d "$from" ]]; then dir="$from"; else dir="$(unpack "$from")" || exit 1; fi
+  version="$(basename "$dir")"
+  if [[ "$version" == "$have" && "$force" == 0 ]]; then
+    ok "dotfiles $version is already installed (--force runs its installer again)"
+    return 0
+  fi
+  edits="$(local_edits "$STORE/${have:-.none}" 2>/dev/null || true)"
+  if [[ -n "$have" && -n "$edits" && "$force" == 0 ]]; then
+    die "you changed files in $have, which an update would leave behind:" "$edits" \
+      "Move those changes to ~/.zshrc.local, ~/.gitconfig.local or another per-machine file," \
+      "then run dotfiles update again (--force updates anyway; $STORE/$have keeps your edits)."
+  fi
+  if [[ -z "$have" ]]; then flip "$version"; fi # first install: nothing to protect; links resolve while it runs
+  if ! run_installer "$dir" "$@"; then
+    [[ "$have" == "$version" || -z "$have" ]] && die "the installer reported problems (see the summary above)"
+    die "the installer for $version reported problems: still on $have." \
+      "Fix what the summary above shows and run dotfiles update again, or use it anyway: dotfiles rollback $version"
+  fi
+  flip "$version"
+  prune
+  ok "dotfiles $version is live${have:+ (was $have)}. Open a new shell to use it; dotfiles rollback goes back."
+}
+
+update_git() {
+  local force="$1" upstream changes counts ahead behind
+  shift 2
+  upstream="$(git -C "$ROOT" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)" ||
+    die "$ROOT: this branch has no upstream to pull from" "Set one with: git -C $ROOT branch -u origin/main"
+  changes="$(git -C "$ROOT" status --porcelain --untracked-files=no)"
+  [[ -z "$changes" ]] || die "you have local changes in $ROOT:" "$changes" \
+    "Commit or stash them yourself, then run dotfiles update again. Nothing was changed."
+  git -C "$ROOT" fetch --quiet --tags || die "git fetch failed (offline?)"
+  counts="$(git -C "$ROOT" rev-list --left-right --count "HEAD...$upstream")"
+  ahead="${counts%%[[:space:]]*}" behind="${counts##*[[:space:]]}"
+  if ((ahead > 0 && behind > 0)); then
+    die "your branch and $upstream have diverged: $ahead commit(s) of yours, $behind new upstream." \
+      "(CI commits pin bumps to main after each push.) Nothing was changed. Run:" \
+      "  git -C $ROOT pull --rebase && dotfiles update"
+  fi
+  if ((behind == 0)) && [[ "$force" == 0 ]]; then
+    local unpushed=""
+    ((ahead > 0)) && unpushed=" ($ahead commit(s) of yours to push)"
+    ok "up to date with $upstream$unpushed"
+    return 0
+  fi
+  if ((behind > 0)); then git -C "$ROOT" pull --ff-only --quiet || die "git pull --ff-only failed"; fi
+  ok "pulled $behind commit(s): now $(git -C "$ROOT" describe --tags --always 2>/dev/null)"
+  run_installer "$ROOT" "$@" || die "the installer reported problems (see the summary above)"
+}
+
+cmd_update() {
+  local force=0 from="" flags=()
+  while (($#)); do
+    case "$1" in
+      --force) force=1 ;;
+      --from) (($# > 1)) || die "--from needs a tarball path or URL"; from="$2"; shift ;;
+      -h | --help) usage; return 0 ;;
+      *) flags+=("$1") ;;
+    esac
+    shift
+  done
+  [[ "${CMD:-update}" == install ]] && force=1
+  case "$(install_kind)" in
+    git)
+      [[ "${CMD:-update}" == install || -n "$from" ]] && warn "$ROOT is a git clone: installing a release into $STORE instead"
+      [[ "${CMD:-update}" == install || -n "$from" ]] || { update_git "$force" "$from" ${flags[@]+"${flags[@]}"}; return; }
+      ;;
+    none) [[ "${CMD:-update}" == install || -n "$from" ]] || die "no release install in $STORE yet: run dotfiles install" ;;
+  esac
+  update_release "$force" "$from" ${flags[@]+"${flags[@]}"}
+}
+
+cmd_rollback() {
+  local target="${1:-}" cur
+  [[ -L "$STORE/current" ]] || die "no release install in $STORE (a git clone rolls back with git)"
+  lock
+  cur="$(current_version)"
+  target="${target:-$(previous_version)}"
+  [[ -n "$target" ]] || die "nothing to roll back to: there is no previous version"
+  [[ -d "$STORE/$target" ]] || die "$target is not on disk (dotfiles list shows what is)"
+  [[ "$target" == "$cur" ]] && { ok "already on $cur"; return 0; }
+  flip "$target"
+  ok "rolled back to $target (from $cur); dotfiles rollback again returns to $cur."
+  say "${C_DIM}Configs switched now; open a new shell. To also put back that version's plugins and tools: $STORE/current/install.sh${C_RESET}"
+}
+
+cmd_list() {
+  local version cur prev mark
+  cur="$(current_version)"
+  prev="$(previous_version)"
+  for version in $(stored_versions); do
+    mark="  "
+    [[ "$version" == "$prev" ]] && mark="${C_DIM}p ${C_RESET}"
+    [[ "$version" == "$cur" ]] && mark="${C_GREEN}* ${C_RESET}"
+    printf '%s%s%s\n' "$mark" "$version" "$([[ -n "$(local_edits "$STORE/$version")" ]] && echo "  (edited)")"
+  done
+}
+
+cmd_check() {
+  local quiet=0 latest have
+  [[ "${1:-}" == --quiet ]] && quiet=1
+  mkdir -p "$STATE" 2>/dev/null && : >"$STATE/checked" 2>/dev/null || true
+  if ! latest="$(latest_version 5)"; then
+    ((quiet)) || warn "couldn't look up the newest release (offline?)"
+    return $((quiet ? 0 : 1))
+  fi
+  printf '%s\n' "$latest" >"$STATE/latest.$$" && mv -f "$STATE/latest.$$" "$STATE/latest"
+  ((quiet)) && return 0
+  have="$(installed_version)"
+  if [[ -n "$have" ]] && ! version_gt "$latest" "$have"; then
+    ok "dotfiles $have is up to date"
+  else
+    say "dotfiles $latest is available${have:+ (you have $have)}: dotfiles update"
+  fi
+}
+
+cmd_status() {
+  local kind have latest edits
+  kind="$(install_kind)"
+  have="$(installed_version)"
+  case "$kind" in
+    git) say "dotfiles ${have:-(no release tag yet)}: git clone at $ROOT ($(git -C "$ROOT" rev-parse --abbrev-ref HEAD))" ;;
+    release) say "dotfiles ${have:-?}: release install at $STORE/${have:-current}"
+      [[ -n "$(previous_version)" ]] && say "  previous: $(previous_version) (dotfiles rollback)"
+      edits="$(local_edits "$STORE/$have")"
+      [[ -n "$edits" ]] && say "  you changed: $(echo "$edits" | tr '\n' ' ')" ;;
+    none) say "dotfiles is not installed here: dotfiles install" ;;
+  esac
+  if [[ -r "$STATE/latest" ]]; then
+    read -r latest <"$STATE/latest" || true
+    if [[ -n "${latest:-}" ]] && { [[ -z "$have" ]] || version_gt "$latest" "$have"; }; then
+      say "  newest release: $latest (dotfiles update)"
+    fi
+  fi
+  if [[ "${DOTFILES_NO_UPDATE_CHECK:-0}" == 1 ]]; then
+    say "  ${C_DIM}update prompt: off (DOTFILES_NO_UPDATE_CHECK=1)${C_RESET}"
+  else
+    say "  ${C_DIM}update prompt: on, checks daily (DOTFILES_NO_UPDATE_CHECK=1 turns it off)${C_RESET}"
+  fi
+}
+
+main() {
+  CMD="${1:-help}"
+  (($#)) && shift
+  case "$CMD" in
+    update | install) cmd_update "$@" ;;
+    rollback) cmd_rollback "$@" ;;
+    list) cmd_list ;;
+    check) cmd_check "$@" ;;
+    status | version) cmd_status ;;
+    help | -h | --help) usage ;;
+    *) usage >&2; exit 2 ;;
+  esac
+}
+
+main "$@"
