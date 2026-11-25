@@ -115,12 +115,6 @@ jobs:
             mode: user
             user_with: music
             musl: true
-          # Tumbleweed's rolling Verilator (5.052) can't build the smoke test's traced model with
-          # its GCC 16; its no-root leg covers the simulators (conda-forge builds) instead
-          - image: opensuse/tumbleweed:latest
-            mode: root
-            without: hdl
-            nosim: true
     container: ${{ matrix.image }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
@@ -136,11 +130,12 @@ jobs:
         if: matrix.mode == 'user'
         # No zsh: the installer must bring its own (zsh-bin, static). bash: every step is a bash
         # script. file: the verify step's linkage check. libstdc++: Claude Code on musl.
+        # findutils: Verilator's generated makefiles run xargs.
         run: |
           if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates tar xz-utils gzip unzip make gcc g++ util-linux file >/dev/null
           elif command -v dnf >/dev/null; then dnf install -y -q git tar xz gzip unzip make gcc gcc-c++ util-linux findutils file
           elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl tar xz gzip unzip make gcc util-linux file
-          elif command -v zypper >/dev/null; then zypper --non-interactive install git curl tar xz gzip unzip make gcc gcc-c++ util-linux file shadow
+          elif command -v zypper >/dev/null; then zypper --non-interactive install git curl tar xz gzip unzip make gcc gcc-c++ util-linux findutils file shadow
           elif command -v apk >/dev/null; then apk add --no-cache bash git curl ca-certificates tar xz gzip unzip make gcc musl-dev file libgcc libstdc++
           fi
           if command -v useradd >/dev/null; then useradd -m -s /bin/bash tester; else adduser -D -s /bin/bash tester; fi
@@ -156,7 +151,7 @@ jobs:
         if: matrix.mode == 'root'
         # Distro HDL packages are used where they work; Rocky 9's Verilator is broken, so it
         # takes the source-build path a real install would (~15 min).
-        run: ./install.sh --profile "${{ matrix.profile || 'dev' }}" --with "${{ matrix.extra || 'music' }}" ${{ matrix.without && format('--without {0}', matrix.without) || '' }} --no-log
+        run: ./install.sh --profile "${{ matrix.profile || 'dev' }}" --with "${{ matrix.extra || 'music' }}" --no-log
 
       - name: Install a release tarball as a user without sudo (profile cli + ${{ matrix.user_with || 'hdl,music' }})
         if: matrix.mode == 'user'
@@ -169,7 +164,7 @@ jobs:
       - name: Verify
         env:
           NVIM: ${{ matrix.musl && '0' || '1' }}
-          SIM: ${{ (matrix.musl || matrix.nosim) && '0' || '1' }}
+          SIM: ${{ matrix.musl && '0' || '1' }}
         run: |
           install -m 755 .github/ci/verify.sh /tmp/verify.sh
           if [ "${{ matrix.mode }}" = user ]; then

@@ -13,7 +13,7 @@ base_packages() {
     arch) echo base-devel git curl unzip tar xz zsh tmux python which file ;;
     debian) echo build-essential git curl ca-certificates unzip tar xz-utils zsh tmux python3 python3-venv file ;;
     rhel) echo git curl unzip tar xz make gcc gcc-c++ zsh tmux python3 which file findutils util-linux-user libatomic ;;
-    suse) echo git curl unzip tar xz make gcc gcc-c++ zsh tmux python3 which file libatomic1 ;;
+    suse) echo git curl unzip tar xz make gcc gcc-c++ zsh tmux python3 which file findutils libatomic1 ;;
     alpine) echo bash git curl ca-certificates unzip tar xz build-base zsh tmux python3 file ncurses ;;
   esac
 }

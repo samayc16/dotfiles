@@ -94,4 +94,20 @@ function M.builds_and_runs(compiler, lang, flags)
   return run_cache[key]
 end
 
+--- Sanitizer runtimes older than GCC 14 / LLVM 18 crash at random ("AddressSanitizer:DEADLYSIGNAL")
+--- on kernels with 32 bits of mmap ASLR entropy (Linux 6.x defaults; GitHub's runners). A probe
+--- can pass and the next run still crash, so on such a kernel only newer runtimes count.
+function M.sanitizers_work(compiler, lang, flags)
+  if vim.fn.has 'linux' == 1 then
+    local bits = tonumber((vim.fn.readfile('/proc/sys/vm/mmap_rnd_bits', '', 1)[1] or ''):match '%d+')
+    if bits and bits > 28 then
+      local version = (vim.system({ compiler, '--version' }, { text = true }):wait().stdout or ''):match '[^\n]*'
+      local major = tonumber(version:match 'version (%d+)' or version:match ' (%d+)%.%d+%.?%d*%s*$' or version:match '%) (%d+)%.' or '')
+      local minimum = version:find 'clang' and 18 or 14
+      if not major or major < minimum then return false end
+    end
+  end
+  return M.builds_and_runs(compiler, lang, flags)
+end
+
 return M

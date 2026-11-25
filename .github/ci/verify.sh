@@ -30,6 +30,11 @@ if [ "$mac" = 0 ]; then
     case $t in
       nvim | tree-sitter) [ "$nvim_on" = 1 ] || continue ;;
       zsh) [ -x "$HOME/.local/bin/zsh" ] || continue ;;
+      node) # newer Node needs libatomic.so.1, a system library only root can add; the installer says so
+        if ! ldconfig -p 2>/dev/null | grep -q libatomic.so.1 && [ ! -e /usr/lib/libatomic.so.1 ] && ! mise which node >/dev/null 2>&1; then
+          echo "node         not installed: this box lacks libatomic.so.1 (the installer warned)"
+          continue
+        fi ;;
     esac
     case $t in mise | zsh) bin=$(command -v "$t") ;; *) bin=$(mise which "$t") ;; esac
     info=$(file -L "$bin")

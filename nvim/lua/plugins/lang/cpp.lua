@@ -26,7 +26,7 @@ local function compile_and_run(ft)
     local compiler = compiler_for(ft)
     if not compiler then return nil end
     local lang = ft == 'c' and 'c' or 'c++'
-    local flags = '-g -O0 -Wall -Wextra' .. (tools.builds_and_runs(compiler, lang, { sanitizers }) and ' ' .. sanitizers or '')
+    local flags = '-g -O0 -Wall -Wextra' .. (tools.sanitizers_work(compiler, lang, { sanitizers }) and ' ' .. sanitizers or '')
     local build = ('%s -std=%s %s %s -o %s'):format(q(compiler), std_for(ft, compiler), flags, q(ctx.file), q(ctx.out))
     return { cmd = build .. ' && ' .. q(ctx.out), cwd = ctx.dir }
   end
