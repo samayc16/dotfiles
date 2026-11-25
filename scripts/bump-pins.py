@@ -151,6 +151,7 @@ def github_api(path: str, token: Optional[str]) -> Optional[dict]:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
             return json.load(response)
     except urllib.error.HTTPError as exc:
+        exc.close()
         if exc.code == 404:
             return None
         raise PinError("GitHub API %s: HTTP %d" % (path, exc.code)) from exc

@@ -138,12 +138,12 @@ class Lookups(unittest.TestCase):
             self.assertIsNone(bp.latest_release("https://github.com/o/r"))
 
     def test_latest_release_404_means_none(self) -> None:
-        error = urllib.error.HTTPError("u", 404, "Not Found", {}, None)
+        error = urllib.error.HTTPError("u", 404, "Not Found", {}, io.BytesIO())
         with mock.patch.object(bp.urllib.request, "urlopen", side_effect=error):
             self.assertIsNone(bp.latest_release("https://github.com/o/r"))
 
     def test_latest_release_rate_limit_is_a_pin_error(self) -> None:
-        error = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+        error = urllib.error.HTTPError("u", 403, "Forbidden", {}, io.BytesIO())
         with mock.patch.object(bp.urllib.request, "urlopen", side_effect=error):
             with self.assertRaises(bp.PinError):
                 bp.latest_release("https://github.com/o/r")

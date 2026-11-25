@@ -20,12 +20,16 @@ PROMPT = b"Update now? [y/N]"
 STUB = '#!/bin/sh\necho "$*" >>"$HOME/cli.log"\n'
 
 
+# Some distros' /etc/zsh/zshrc runs compinit first, which can ask about insecure directories.
+COMPINIT_PROMPT = b"abort compinit [n]? "
+
+
 def run_in_pty(argv: list, env: Dict[str, str], answer: Optional[bytes] = None, timeout: float = 10.0) -> bytes:
     """Run argv in $HOME on a terminal; type `answer` once the update prompt shows. Returns all output."""
     leader, follower = pty.openpty()
     proc = subprocess.Popen(argv, stdin=follower, stdout=follower, stderr=follower, env=env, cwd=env["HOME"], close_fds=True)
     os.close(follower)
-    out, answered, deadline = b"", False, time.monotonic() + timeout
+    out, answered, deadline, compinit_answered = b"", False, time.monotonic() + timeout, 0
     try:
         while time.monotonic() < deadline:
             ready, _, _ = select.select([leader], [], [], 0.1)
@@ -37,6 +41,9 @@ def run_in_pty(argv: list, env: Dict[str, str], answer: Optional[bytes] = None, 
                 if not chunk:
                     break
                 out += chunk
+                if out.count(COMPINIT_PROMPT) > compinit_answered:
+                    os.write(leader, b"y")
+                    compinit_answered += 1
                 if answer is not None and not answered and PROMPT in out:
                     os.write(leader, answer)
                     answered = True
