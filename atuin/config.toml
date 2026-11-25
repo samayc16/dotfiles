@@ -1,0 +1,22 @@
+# atuin: shell history in a local SQLite database, searched with Ctrl-R (the up arrow stays zsh's
+# prefix search). Linked to ~/.atuin/config.toml by install.d/links.sh; anything not set here keeps
+# atuin's default (`atuin default-config` prints them all). Commands typed with a leading space,
+# and ones that look like secrets (AWS, GitHub, Slack, Stripe keys), are never recorded.
+#
+# Local only: no account, no sync, no network. With auto_sync off and no `atuin login` nothing
+# leaves this machine, and update_check = false stops the version lookup too.
+#
+# A self-hosted sync server later (`atuin server start`, or the ghcr.io/atuinsh/atuin image): keep
+# its address out of this public repo by setting it in ~/.zshrc.local (env vars override this
+# file), then sign in once per machine:
+#   export ATUIN_SYNC_ADDRESS=https://atuin.your-server.lan ATUIN_AUTO_SYNC=true
+#   atuin register -u <name> -e <email>     first machine (`atuin key` prints its encryption key)
+#   atuin login -u <name>                   every other machine, with that key
+#   atuin sync                              then it syncs after commands on its own
+
+auto_sync = false
+update_check = false
+# sync_address: deliberately unset (above)
+
+# Enter and Tab both put the command on the line to edit, as fzf's Ctrl-R did; Enter again runs it.
+enter_accept = false

@@ -40,6 +40,7 @@ Either way it installs everything, then smoke-tests every language in Neovim. Ad
 | **Music** | [plexamp-tui](https://github.com/samayc16/plexamp-tui) (`tamp`): Plex in the terminal. Play here, or follow and control Plexamp on your phone with synced lyrics; now playing in the tmux bar | [plexamp-tui](https://github.com/samayc16/plexamp-tui#readme) |
 | **Games** | `play`: vim trainers, GameShell, a grep murder mystery, DOOM in Neovim, Zork, roguelikes | [docs/games.md](docs/games.md) |
 | **Terminal** | zsh + Powerlevel10k with fuzzy Tab completion for everything, `tools` to see what's installed, tmux with popups, kitty, fzf/zoxide/eza/bat, lazygit + delta | [CHEATSHEET.md](CHEATSHEET.md) |
+| **Workflow** | atuin history search on `Ctrl-R` (local only), sesh project sessions (`prefix T`), a focus timer in the tmux bar (`prefix P`), yazi (`y`), btop, direnv, `kitten ssh` from kitty | [CHEATSHEET.md](CHEATSHEET.md#history-files-processes-atuin-yazi-btop-direnv) |
 | **Claude Code** | Remote Control in every session, Claude inside Neovim (`Space ac`), a Tutor style for learning, `quiz` and `learn-coach` skills | [below](#claude-code) |
 
 Every keybinding is in [CHEATSHEET.md](CHEATSHEET.md). In tmux press `prefix ?`; in Neovim press `Space` and wait.

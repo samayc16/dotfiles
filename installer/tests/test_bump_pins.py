@@ -73,6 +73,15 @@ class Parse(unittest.TestCase):
         self.assertEqual(len([n for n in names if n.startswith("learn/")]), 16)
         self.assertIn("plexamp-tui", names)
 
+    def test_ci_checks_the_linkage_of_every_mise_tool(self) -> None:
+        verify = (ROOT / ".github" / "ci" / "verify.sh").read_text()
+        loop = re.search(r"^  for t in (mise tmux [^;]+); do$", verify, re.M)
+        self.assertIsNotNone(loop, "verify.sh's linkage loop moved")
+        checked = set(loop.group(1).split())
+        command = {"neovim": "nvim", "ripgrep": "rg"}
+        pinned = {command.get(p.name[5:], p.name[5:]) for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.name.startswith("mise/")}
+        self.assertEqual(pinned - checked, set())
+
     def test_tmux_pins_match_tmux_conf(self) -> None:
         conf = (ROOT / "tmux.conf").read_text()
         plugins = {name.split("/")[1] for name in re.findall(r"^set -g @plugin '([^']+)'", conf, re.M)}

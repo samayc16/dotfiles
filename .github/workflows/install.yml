@@ -21,6 +21,7 @@ on:
       - bin/dotfiles
       - learn/fetch.sh
       - mise/**
+      - atuin/**
       - zshrc
       - zsh/**
       - tmux.conf
@@ -79,7 +80,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: zsh (the update prompt's tests drive it)
         run: sudo apt-get install -y -qq zsh >/dev/null
-      - name: Unit tests (installer, pins, dotfiles CLI, update prompt; stdlib unittest)
+      - name: Unit tests (installer, pins, dotfiles CLI, update prompt, focus timer; stdlib unittest)
         run: python3 -m unittest discover -s installer/tests -t . -v
       - name: Unit tests (learn)
         working-directory: learn
@@ -88,7 +89,7 @@ jobs:
         run: |
           shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles scripts/build-release.sh
           shellcheck -S warning -x -P install.d -s bash learn/fetch.sh
-          shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh
+          shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh scripts/focus.sh
       - name: zsh syntax
         run: for f in zshrc zsh/*.zsh; do zsh -n "$f"; done
 
@@ -203,7 +204,7 @@ jobs:
         run: |
           HOME="$(mktemp -d)" && export HOME
           ./install.sh --only links,tmux --no-log
-          for l in .zshrc .tmux.conf .tmux/scripts .config/nvim .config/mise/config.toml "Library/Preferences/clangd/config.yaml" "Library/Application Support/lazygit/config.yml"; do
+          for l in .zshrc .tmux.conf .tmux/scripts .atuin/config.toml .config/nvim .config/mise/config.toml "Library/Preferences/clangd/config.yaml" "Library/Application Support/lazygit/config.yml"; do
             [ -L "$HOME/$l" ] || { echo "missing link: ~/$l"; exit 1; }
           done
           grep '^tmux/' pins.txt | while read -r name _ _ rev; do

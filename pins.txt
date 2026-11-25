@@ -57,3 +57,8 @@ mise/jq                      mise     jq                                        
 mise/gh                      mise     gh                                                              2.105.0
 mise/node                    mise     node@lts                                                        26.13.1
 mise/uv                      mise     github:astral-sh/uv                                             0.13.9
+mise/atuin                   mise     github:atuinsh/atuin                                            18.25.1
+mise/sesh                    mise     github:joshmedeski/sesh                                         2.34.0
+mise/yazi                    mise     github:sxyazi/yazi                                              26.9.1
+mise/btop                    mise     github:aristocratos/btop                                        1.4.8
+mise/direnv                  mise     github:direnv/direnv                                            2.38.2

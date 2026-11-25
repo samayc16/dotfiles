@@ -52,6 +52,30 @@ _source_first() {
   done
   return 1
 }
+
+# Source a tool's generated shell init from a cache, instead of running the tool in every new shell:
+#   _source_init <command> <file the init also depends on, or ''> <args…>
+# The cache is rebuilt when the command resolves to another binary (an upgrade does that: Homebrew's
+# Cellar and mise keep one directory per version), when the binary or that file is newer than the
+# cache, or when the arguments change. Where it can't be written, the tool runs as usual.
+_source_init() {
+  local cmd=$1 dep=$2 exe=$commands[$1] bin cache stamp
+  shift 2
+  [[ -n $exe ]] || return 1
+  bin=${exe:A} # the real file, for the stamp (run $exe itself: a mise shim needs its own name)
+  cache=${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init-$cmd.zsh
+  [[ -r $cache ]] && read -r stamp <$cache
+  if [[ $stamp != "# $bin $*" || $bin -nt $cache || ( -n $dep && $dep -nt $cache ) ]]; then
+    if ! { mkdir -p ${cache:h} && { print -r -- "# $bin $*" && $exe "$@" } >|$cache.$$ &&
+      mv -f -- $cache.$$ $cache } 2>/dev/null; then
+      command rm -f -- $cache.$$ 2>/dev/null
+      eval "$($exe "$@")"
+      return
+    fi
+  fi
+  source $cache
+}
+
 _zplug_dirs=(
   ${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share}
   "$HOME/.local/share/zsh-plugins"
@@ -97,6 +121,16 @@ bindkey '^[f' forward-word
 # ── Functions ────────────────────────────────────────────────────
 mkcd() { mkdir -p "$1" && cd "$1" }
 
+# yazi's shell wrapper: `y` browses files and, when you quit with q, leaves the shell in the
+# directory you were in (Q quits without moving).
+function y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+  command rm -f -- "$tmp"
+}
+
 # ── Aliases ───────────────────────────────────────────────────────────
 # Debian/Ubuntu name some tools differently
 (( $+commands[batcat] && ! $+commands[bat] )) && alias bat='batcat'
@@ -121,6 +155,12 @@ else
   alias rm='rm -i'
 fi
 (( $+commands[kitten] )) && alias img='kitten icat'
+# In a kitty window, ssh carries kitty's terminfo and shell integration to the remote host. Not
+# inside tmux: kitty's docs say the ssh kitten may not work under a multiplexer (and the window id
+# can be stale there). Plain ssh everywhere else.
+if [[ ( $TERM == xterm-kitty || -n $KITTY_WINDOW_ID ) && -z $TMUX ]] && (( $+commands[kitten] )); then
+  alias ssh='kitten ssh'
+fi
 alias lg='lazygit'
 alias c='clear'
 alias 1='cd ..'
@@ -147,6 +187,9 @@ fi
 
 # ── fzf ───────────────────────────────────────────────────────────────
 if (( $+commands[fzf] )); then
+  # atuin takes Ctrl-R (below); an empty FZF_CTRL_R_COMMAND makes fzf skip binding it. Ctrl-T and
+  # Alt-C stay fzf's.
+  (( $+commands[atuin] )) && FZF_CTRL_R_COMMAND=
   source <(fzf --zsh)
   export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
@@ -175,6 +218,27 @@ if (( $+commands[zoxide] )); then
   eval "$(zoxide init zsh --cmd cd)"
   alias z=cd zi=cdi
 fi
+
+# ── atuin: Ctrl-R searches every shell's history (local only: atuin/config.toml) ──
+# After fzf, so Ctrl-R is atuin's whatever fzf did. The up arrow stays zsh's prefix search, and
+# autosuggestions keep reading zsh's history: atuin's strategy runs `atuin search` per keystroke.
+if (( $+commands[atuin] )); then
+  # atuin's init runs `atuin uuid` for this shell's session id unless one is set; making the same
+  # UUIDv7 here (48-bit ms clock, version 7, variant 10, random bits) saves that process per shell.
+  () {
+    [[ -n $ATUIN_SESSION && $ATUIN_SHLVL == $SHLVL ]] && return
+    zmodload -F zsh/datetime p:EPOCHREALTIME 2>/dev/null || return
+    local -i ms=$(( EPOCHREALTIME * 1000 ))
+    printf -v ATUIN_SESSION '%012x7%03x%x%03x%04x%04x%04x' $ms $(( RANDOM & 0xfff )) \
+      $(( 8 | (RANDOM & 3) )) $(( RANDOM & 0xfff )) $RANDOM $RANDOM $(( ($$ ^ RANDOM) & 0xffff ))
+    export ATUIN_SESSION ATUIN_SHLVL=$SHLVL
+  }
+  _source_init atuin "$HOME/.atuin/config.toml" init zsh --disable-up-arrow
+  ZSH_AUTOSUGGEST_STRATEGY=(history)
+fi
+
+# ── direnv: per-directory environments from .envrc (`direnv allow` once per file) ──
+(( $+commands[direnv] )) && _source_init direnv '' hook zsh
 
 # ── Git delta ─────────────────────────────────────────────────────────
 # Delta is configured via ~/.gitconfig (see git config setup)

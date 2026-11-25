@@ -42,6 +42,15 @@ lazygit = { version = "0.66.3", os = ["linux"] }     # Go: static
 gh = { version = "2.105.0", os = ["linux"] }         # Go: static
 jq = { version = "1.8.2", os = ["linux"] }           # upstream's static build
 
+# History search (Ctrl-R), the tmux session picker (prefix T), file manager (y), process viewer and
+# per-directory environments: all static (Rust/C++ musl builds, Go). direnv ships a bare binary,
+# which `bin` names.
+"github:atuinsh/atuin" = { version = "18.25.1", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "atuin-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "atuin-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:joshmedeski/sesh" = { version = "2.34.0", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "sesh_Linux_x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "sesh_Linux_arm64.tar.gz" } } }
+"github:sxyazi/yazi" = { version = "26.9.1", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "yazi-x86_64-unknown-linux-musl.zip" }, linux-arm64 = { asset_pattern = "yazi-aarch64-unknown-linux-musl.zip" } } }
+"github:aristocratos/btop" = { version = "1.4.8", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "btop-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "btop-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:direnv/direnv" = { version = "2.38.2", os = ["linux"], bin = "direnv", platforms = { linux-x64 = { asset_pattern = "direnv.linux-amd64" }, linux-arm64 = { asset_pattern = "direnv.linux-arm64" } } }
+
 # Runtimes for language servers (mason installs npm/pip-based servers with these)
 node = { version = "26.13.1", os = ["linux"] }
 "github:astral-sh/uv" = { version = "0.13.9", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "uv-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "uv-aarch64-unknown-linux-musl.tar.gz" } } }

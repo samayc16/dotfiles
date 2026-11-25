@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # zsh itself, prompt/plugins, and making zsh the login shell — with no-root fallbacks.
 set -euo pipefail
-source "$(dirname "$0")/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=pins.sh
-source "$(dirname "$0")/pins.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/pins.sh"
 
 PLUGIN_DIR="$HOME/.local/share/zsh-plugins"
 
@@ -26,14 +26,48 @@ generate_completions() {
   run mkdir -p "$dir"
   for spec in "rg --generate complete-zsh" "fd --gen-completions zsh" "bat --completion zsh" \
     "delta --generate-completion zsh" "gh completion -s zsh" "mise completion zsh" \
-    "uv generate-shell-completion zsh" "tree-sitter complete --shell zsh"; do
+    "uv generate-shell-completion zsh" "tree-sitter complete --shell zsh" \
+    "atuin gen-completions --shell zsh" "sesh completion zsh"; do
     name="${spec%% *}"
     has "$name" || continue
     if [[ "$DRY_RUN" == 1 ]]; then info "would generate _$name"; continue; fi
     # shellcheck disable=SC2086 # spec is a command line
     $spec >"$dir/_$name" 2>/dev/null || rm -f "$dir/_$name"
   done
+  # yazi ships its completions instead of printing them
+  local yazi
+  if [[ "$DRY_RUN" != 1 ]] && yazi="$(mise where github:sxyazi/yazi 2>/dev/null)"; then
+    cp "$yazi"/completions/_yazi "$yazi"/completions/_ya "$dir/" 2>/dev/null || true
+  fi
   ok "zsh completions in $dir"
+}
+
+# atuin starts with the zsh history typed before it: imported once, the first time this step finds
+# atuin (a marker remembers). From then on atuin records each command itself; importing again would
+# be harmless anyway, since atuin skips entries it already has. No history file: nothing to import.
+import_history() {
+  local marker="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/atuin-imported" history="$HOME/.zsh_history" out
+  has atuin || return 0
+  if [[ -e "$marker" ]]; then
+    info "${C_DIM}atuin: history imported earlier${C_RESET}"
+    return 0
+  fi
+  if [[ "$DRY_RUN" == 1 ]]; then
+    info "would import $history into atuin (once)"
+    return 0
+  fi
+  if [[ -s "$history" ]]; then
+    # quiet unless it fails: atuin prints a banner
+    if ! out="$(SHELL="$(command -v zsh)" HISTFILE="$history" atuin import auto 2>&1)"; then
+      printf '%s\n' "$out" | tail -n 5 >&2
+      warn "atuin could not import $history; run \`atuin import auto\` in zsh to retry"
+      return 0
+    fi
+    ok "atuin: imported $history ($(wc -l <"$history" | tr -d ' ') lines)"
+  else
+    info "atuin: no zsh history to import yet"
+  fi
+  mkdir -p "$(dirname "$marker")" && : >"$marker"
 }
 
 # No zsh and no root: romkatv/zsh-bin, a static zsh that runs on any Linux. Its install script,
@@ -94,7 +128,9 @@ main() {
   fi
   sync_plugins
   generate_completions
+  import_history
   make_login_shell
 }
 
-main "$@"
+# Sourced (by the tests), only the functions are defined.
+[[ "${BASH_SOURCE[0]}" != "$0" ]] || main "$@"

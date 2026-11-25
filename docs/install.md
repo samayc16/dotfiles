@@ -43,7 +43,7 @@ The last step opens a sample file per language (and per installed compiler or si
 |---|---|
 | macOS | Homebrew for everything |
 | Linux with root/sudo | distro packages for the basics (compilers, zsh, tmux, Python, Verilator, Icarus, z3) |
-| Linux, always | [mise](https://mise.jdx.dev) (itself a static build) downloads the fast-moving tools user-locally at the exact versions in `pins.txt`: Neovim 0.12, tree-sitter, ripgrep, fd, fzf, bat, eza, delta, lazygit, zoxide, jq, gh, tmux, Node, uv (`mise/global.toml`). They are self-contained binaries, so they work on any distro (below). |
+| Linux, always | [mise](https://mise.jdx.dev) (itself a static build) downloads the fast-moving tools user-locally at the exact versions in `pins.txt`: Neovim 0.12, tree-sitter, ripgrep, fd, fzf, bat, eza, delta, lazygit, zoxide, jq, gh, tmux, Node, uv, atuin, sesh, yazi, btop, direnv (`mise/global.toml`). They are self-contained binaries, so they work on any distro (below). |
 | Linux without root | zsh plugins cloned to `~/.local/share/zsh-plugins`; a static zsh from [zsh-bin](https://github.com/romkatv/zsh-bin) if there is none (sha256-checked); Swift via swiftly; Haskell via ghcup |
 | Linux simulators | Verilator and Icarus Verilog from the distro if they work, else prebuilt conda-forge builds via mise (user-local, any glibc ≥ 2.17, recorded in `~/.config/mise/conf.d/hdl.toml`), else a source build. Each must simulate a test design to count. |
 | no Python 3.8+ (RHEL 8, minimal containers) | the shim installs one, or fetches a standalone build with uv |
@@ -54,7 +54,7 @@ Each Linux tool is the upstream release binary, chosen per architecture (x86_64 
 
 | | tools |
 |---|---|
-| static (any distro, any libc) | ripgrep, fd, bat, zoxide, uv (musl builds); fzf, lazygit, gh (Go); jq; tmux ([tmux-builds](https://github.com/tmux/tmux-builds)); eza and delta on x86_64; mise; zsh from zsh-bin |
+| static (any distro, any libc) | ripgrep, fd, bat, zoxide, uv, atuin, yazi, btop (musl builds); fzf, lazygit, gh, sesh, direnv (Go); jq; tmux ([tmux-builds](https://github.com/tmux/tmux-builds)); eza and delta on x86_64; mise; zsh from zsh-bin |
 | needs glibc ≥ 2.34 | Neovim (its official build; Debian 12, Ubuntu 22.04, RHEL/Rocky 9, Fedora 35 and newer) |
 | needs glibc ≥ 2.28 | Node (official build). On musl, mise uses the musl build from [unofficial-builds.nodejs.org](https://unofficial-builds.nodejs.org) (x86_64). |
 | needs glibc ≥ 2.17 | tree-sitter (conda-forge; its GitHub builds need glibc 2.39) |
@@ -97,7 +97,7 @@ dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]
 
 ## Pins and releases
 
-`pins.txt` lists every external version the installer uses, one per line (`name kind source version`): the plexamp-tui release, mise itself and zsh-bin, the 16 repos `learn/fetch.sh` clones (Exercism tracks, example projects, docs), TPM with the 7 tmux plugins, and the 15 Linux CLI tools (written into `mise/global.toml` as exact versions). Nothing installs "whatever is newest today": `learn/fetch.sh` and the `tmux` step clone at the pinned commit (and leave a clone you've changed alone), and the `music` step installs the pinned plexamp-tui wheel. Neovim plugins are pinned separately by `nvim/lazy-lock.json`.
+`pins.txt` lists every external version the installer uses, one per line (`name kind source version`): the plexamp-tui release, mise itself and zsh-bin, the 16 repos `learn/fetch.sh` clones (Exercism tracks, example projects, docs), TPM with the 7 tmux plugins, and the 20 Linux CLI tools (written into `mise/global.toml` as exact versions). Nothing installs "whatever is newest today": `learn/fetch.sh` and the `tmux` step clone at the pinned commit (and leave a clone you've changed alone), and the `music` step installs the pinned plexamp-tui wheel. Neovim plugins are pinned separately by `nvim/lazy-lock.json`.
 
 On every push to `main`, `.github/workflows/install.yml`:
 
@@ -109,4 +109,4 @@ Pull requests test the committed pins. `scripts/bump-pins.py bump` locally does 
 
 ## CI
 
-`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9, Arch, openSUSE Tumbleweed and Alpine (musl), both as root from the checkout (`--profile dev --with music`, plus the learn fetch with offline docs on Ubuntu; `cli` on Alpine) and as a user without sudo, zsh or Python from the release tarball (`dotfiles install --from … --profile cli --with hdl,music`, so zsh comes from zsh-bin). macOS gets a real install of the release tarball (`--profile cli --with music`, Homebrew) plus unit tests under bash 3.2, a dry run, links, the tmux plugins, and a release update and rollback. Every job checks tool versions, symlinks (through `current` for a release install), each Linux binary's linkage (static, or a documented exception), a clean zsh start, `Lazy! restore`, every tmux plugin at its pin with TPM finding them all, `tamp --version` and `tamp status` (no mpv on the no-sudo leg), and a simulation in both Verilator and Icarus where the HDL tools are installed. Failed jobs upload Neovim's logs as an artifact.
+`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9, Arch, openSUSE Tumbleweed and Alpine (musl), both as root from the checkout (`--profile dev --with music`, plus the learn fetch with offline docs on Ubuntu; `cli` on Alpine) and as a user without sudo, zsh or Python from the release tarball (`dotfiles install --from … --profile cli --with hdl,music`, so zsh comes from zsh-bin). macOS gets a real install of the release tarball (`--profile cli --with music`, Homebrew) plus unit tests under bash 3.2, a dry run, links, the tmux plugins, and a release update and rollback. Every job checks tool versions, symlinks (through `current` for a release install), each Linux binary's linkage (static, or a documented exception), a clean zsh start with atuin on Ctrl-R, `Lazy! restore`, every tmux plugin at its pin with TPM finding them all, `tamp --version` and `tamp status` (no mpv on the no-sudo leg), and a simulation in both Verilator and Icarus where the HDL tools are installed. Failed jobs upload Neovim's logs as an artifact.

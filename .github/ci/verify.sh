@@ -10,7 +10,7 @@ nvim_on=${NVIM:-1}
 fail() { echo "verify: $*" >&2; exit 1; }
 pin_of() { awk -v n="$1" '$1 == n { print $4 }' "$PINS"; }
 
-tools="rg fd fzf bat eza delta lazygit zoxide"
+tools="rg fd fzf bat eza delta lazygit zoxide atuin sesh yazi btop direnv"
 if [ "$nvim_on" = 1 ]; then
   echo "nvim: $(nvim --version | head -n1)"
   v=$(nvim --version | head -n1 | sed 's/^NVIM v//; s/-.*//')
@@ -19,14 +19,15 @@ if [ "$nvim_on" = 1 ]; then
 else
   ! command -v nvim >/dev/null || fail "NVIM=0 but nvim is installed"
 fi
-for t in $tools; do printf '%-12s ' "$t"; "$t" --version 2>&1 | head -n1; done
+# the first line of --version with a version number in it (eza and yazi print a banner first)
+for t in $tools; do printf '%-12s ' "$t"; "$t" --version 2>&1 | grep -m1 -E '[0-9]+\.[0-9]+' || fail "$t --version shows no version"; done
 printf '%-12s ' tmux; tmux -V
 
 # Linux tools are self-contained downloads: static, except where upstream publishes no static
 # build (neovim, tree-sitter, node; mise/global.toml says why). zsh-bin's zsh must be static too.
 if [ "$mac" = 0 ]; then
   command -v file >/dev/null || fail "verify needs file(1)"
-  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv node nvim tree-sitter zsh; do
+  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv atuin sesh yazi ya btop direnv node nvim tree-sitter zsh; do
     case $t in
       nvim | tree-sitter) [ "$nvim_on" = 1 ] || continue ;;
       zsh) [ -x "$HOME/.local/bin/zsh" ] || continue ;;
@@ -51,7 +52,7 @@ fi
 # Links, and for a release install: through ~/.local/share/dotfiles/current, so a flip moves them all
 clangd=.config/clangd/config.yaml
 [ "$mac" = 1 ] && clangd=Library/Preferences/clangd/config.yaml
-for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .config/nvim .config/mise/config.toml "$clangd" bin/dotfiles; do
+for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .atuin/config.toml .config/nvim .config/mise/config.toml "$clangd" bin/dotfiles; do
   [ -L "$HOME/$l" ] && [ -e "$HOME/$l" ] || fail "missing link: ~/$l"
 done
 if [ "${RELEASE:-0}" = 1 ]; then
@@ -60,11 +61,15 @@ if [ "${RELEASE:-0}" = 1 ]; then
 fi
 [ -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json" ] || fail "Claude settings must be a copy, not a link"
 
-if [ "$mac" = 1 ]; then out=$(script -q /dev/null zsh -ic 'echo ZSH_OK; exit' 2>&1)
-elif command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; exit'" /dev/null 2>&1)
-else out=$(zsh -ic 'echo ZSH_OK' 2>&1 | grep -v "can't change option: zle"); fi
+# A clean interactive start, with atuin on Ctrl-R (fzf keeps Ctrl-T) and the history import done
+if [ "$mac" = 1 ]; then out=$(script -q /dev/null zsh -ic 'echo ZSH_OK; bindkey "^R"; bindkey "^T"; exit' 2>&1)
+elif command -v script >/dev/null; then out=$(script -qec "zsh -ic 'echo ZSH_OK; bindkey \"^R\"; bindkey \"^T\"; exit'" /dev/null 2>&1)
+else out=$(zsh -ic 'echo ZSH_OK; bindkey "^R"; bindkey "^T"' 2>&1 | grep -v "can't change option: zle"); fi
 echo "$out" | grep -q ZSH_OK || fail "zsh failed: $out"
 if echo "$out" | grep -E -i 'not found|error|no such file'; then fail "zsh startup printed errors"; fi
+echo "$out" | grep -q 'atuin-search' || fail "Ctrl-R is not atuin's: $out"
+echo "$out" | grep -q 'fzf-file-widget' || fail "Ctrl-T is not fzf's: $out"
+[ -e "${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/atuin-imported" ] || fail "the zsh step didn't import the history into atuin"
 [ "$nvim_on" = 0 ] || nvim --headless "+Lazy! restore" +qa
 
 # tmux plugins: each at its pin, and TPM's own first run finds them all (installs nothing)

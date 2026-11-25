@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # tmux cheatsheet shown in a floating popup (prefix + ?)
 #
-# Must fit the popup's 34 inner rows (display-popup -h 36): keep it at 33 lines.
+# Must fit the popup's 36 inner rows (display-popup -h 38): keep it at 35 lines.
 # Padding is done by character count, not printf's byte count, so keys like
 # "M-←/→" stay aligned.
 
@@ -71,6 +71,7 @@ row "$Y" "d"    "detach"                       "$O" "M-jk"      "prev / next ses
 row "$Y" "m"    "toggle mouse"                 "$O" "M-1..0"    "select window"
 row "$Y" "S"    "sync panes"                   "$O" "M-←/→"     "word back / fwd"
 row "$Y" "C-l"  "clear history"                "$O" "M-HJKL"    "resize pane"
+row "$Y" "P"    "focus timer start / stop"     "$O" "M-p  M-n"  "music play / next"
 echo ""
 
 section "$Y" "WINDOWS"                         "$G" "PANES"
@@ -84,11 +85,12 @@ row ""   ""     ""                             "$G" "=  |"      "balance h / v"
 echo ""
 
 section "$V" "SESSIONS"                        "$O" "COPY MODE"
-row "$Y" "s"    "list"                         "$V" "["         "enter copy mode"
-row "$Y" "F"    "fzf sessions/windows/panes"   "$V" "v"         "begin selection"
-row "$Y" "\$"   "rename"                       "$V" "C-v"       "rectangle toggle"
-row "$Y" "( )"  "prev / next"                  "$V" "y"         "copy & exit"
-row "$Y" "A"    "alternate (last) session"     "$V" "Esc"       "cancel"
+row "$Y" "T"    "sesh: pick project / session" "$V" "["         "enter copy mode"
+row "$Y" "s"    "list"                         "$V" "v"         "begin selection"
+row "$Y" "F"    "fzf sessions/windows/panes"   "$V" "C-v"       "rectangle toggle"
+row "$Y" "\$"   "rename"                       "$V" "y"         "copy & exit"
+row "$Y" "( )"  "prev / next"                  "$V" "Esc"       "cancel"
+row "$Y" "A"    "alternate (last) session"     ""   ""          ""
 row "$Y" "C-c"  "new session"                  ""   ""          ""
 row "$Y" "C-f"  "find session"                 ""   ""          ""
 row "$Y" "g"    "goto session (prompt)"        ""   ""          ""

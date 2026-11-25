@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Linux: user-local dev tools via mise (neovim, ripgrep, fd, fzf, …) — no root.
+# Linux: user-local dev tools via mise (neovim, ripgrep, fd, fzf, atuin, …) — no root.
 # Set GITHUB_TOKEN to avoid GitHub API rate limits on shared IPs.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
@@ -69,7 +69,7 @@ main() {
   [[ "$DRY_RUN" == 1 ]] && return 0
   run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise reshim
   local tool missing=0
-  for tool in nvim rg fd fzf bat eza delta lazygit zoxide tree-sitter tmux jq; do
+  for tool in nvim rg fd fzf bat eza delta lazygit zoxide tree-sitter tmux jq atuin sesh yazi btop direnv; do
     if has "$tool"; then
       ok "$tool"
     elif is_musl && [[ "$tool" == nvim || "$tool" == tree-sitter ]]; then

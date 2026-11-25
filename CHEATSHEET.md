@@ -28,7 +28,8 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `1` … `5` | `cd ..`, `cd ../..`, … up N levels |
 | `mkcd <dir>` | mkdir + cd |
 | `Ctrl-T` | fzf **file picker** — insert path at cursor |
-| `Ctrl-R` | fzf **history search** |
+| `Ctrl-R` | atuin **history search**: every shell's history, fuzzy ([below](#history-files-processes-atuin-yazi-btop-direnv)) |
+| `↑` / `↓` | history entries starting with what you've typed |
 | `Alt-C` | fzf **cd** into a subdirectory |
 | `Alt-Y` | copy current command line to clipboard via OSC52 (no execute; works over SSH/tmux) |
 | `Shift-Tab` | accept autosuggestion |
@@ -64,6 +65,19 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `img <file>` | show image inline (kitty icat) |
 | `c` | clear |
 | `mux` | attach or create tmux session `main` |
+
+### history, files, processes (atuin, yazi, btop, direnv)
+| keys / cmd | does |
+|---|---|
+| `Ctrl-R` | atuin: search the history of every shell, fuzzy. `Enter` or `Tab` puts the command on the line, `Ctrl-R` again cycles global → host → session → directory, `Esc` leaves. Local only: no account, no sync |
+| `atuin stats` · `atuin search <text>` | your most-used commands · search without the UI |
+| `y [dir]` | yazi file manager; quit with `q` and the shell is in the directory you were in (`Q` quits without moving) |
+| in yazi | `h j k l` move · `Enter` open · `Space` select · `y` `x` `p` copy / cut / paste · `d` trash (`D` delete) · `a` new (`name/` makes a dir) · `r` rename · `.` hidden files · `s` / `S` search names / contents · `z` fzf jump · `Z` zoxide jump · `~` help |
+| `btop` | CPU, memory, disks, network and processes, graphed (`f` filter, `k` kill, `Esc` menu, `q` quit) |
+| `direnv allow` | trust this directory's `.envrc`: its variables load when you `cd` in and unload when you leave (the prompt shows it) · `direnv edit .` · `direnv deny` |
+| `ssh <host>` | in kitty (outside tmux) this is `kitten ssh`, which brings kitty's terminfo and shell integration along; plain `ssh` everywhere else |
+
+Images preview in yazi inside tmux too (kitty graphics, passed through by tmux).
 
 ### scripts (`bin/` → `~/bin`)
 | cmd | does |
@@ -117,6 +131,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 ### sessions
 | keys | does |
 |---|---|
+| `prefix T` | **sesh**: fuzzy-pick a tmux session or a zoxide directory (with preview) and switch to it, creating the session if needed. In the picker: `^a` all · `^t` sessions · `^g` configured · `^x` zoxide dirs · `^f` find dirs · `^d` kill session |
 | `prefix s` | session picker |
 | `prefix F` | fzf picker over sessions / windows / panes |
 | `prefix C-c` | new session |
@@ -145,8 +160,11 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `prefix C-l` | clear screen + scrollback |
 | `prefix r` | reload config |
 | `prefix I` | install plugins (tpm; the installer already cloned them at the commits in `pins.txt`) |
+| `prefix P` | **focus timer**: a 50-minute block counting down in the status bar (`◔ focus 32m`); again stops it early. When it's up: a message here and a desktop notification (macOS, or Linux with `notify-send`) |
 
-Status bar: session pill (green) · windows (active = pink pill; ● activity, 🔔 bell, 🔍 zoom) · right: PREFIX / COPY / SYNC, host (SSH only), weather (hidden offline), date + time pill. Active pane border: purple in copy mode, orange while synced.
+Focus length: `set -g @focus-minutes 25` (in tmux.conf, or `tmux set -g @focus-minutes 25` for now), or `FOCUS_MINUTES=25` in the environment tmux starts with. The timer is `~/.tmux/scripts/focus.sh` (`start [min]`, `stop`, `toggle`, `status`); its state is one line in `~/.local/state/dotfiles/focus`.
+
+Status bar: session pill (green) · windows (active = pink pill; ● activity, 🔔 bell, 🔍 zoom) · right: PREFIX / COPY / SYNC, focus timer (while one runs), host (SSH only), now playing, weather (hidden offline), date + time pill. Active pane border: purple in copy mode, orange while synced.
 
 Renames (`,` `$`), move (`.`), find (`C-f`) and new/goto session (`C` / `g`) open a small centred popup with the current name pre-filled: Enter applies, Esc cancels. Kills (`x` `X` `C-x`) ask in a Yes/No menu with Cancel pre-selected.
 

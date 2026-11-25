@@ -13,12 +13,14 @@ local_git_identity() {
 }
 
 link_shell() {
-  section "Shell, git, tmux"
+  section "Shell, git, atuin, tmux"
   link "$DOTFILES/zshrc" "$HOME/.zshrc"
   link "$DOTFILES/zsh/p10k.zsh" "$HOME/.p10k.zsh"
   link "$DOTFILES/gitconfig" "$HOME/.gitconfig"
   local_git_identity
   link "$DOTFILES/git/ignore" "$HOME/.config/git/ignore"
+  # atuin reads ~/.atuin/config.toml first (~/.config/atuin is only a fallback for older installs)
+  link "$DOTFILES/atuin/config.toml" "$HOME/.atuin/config.toml"
   link "$DOTFILES/tmux.conf" "$HOME/.tmux.conf"
   link "$DOTFILES/scripts" "$HOME/.tmux/scripts" # tmux.conf's popups, clipboard, weather
   local script

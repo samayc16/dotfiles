@@ -9,6 +9,7 @@ CLI_FORMULAE=(
   neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k fzf-tab
   fzf ripgrep fd bat eza zoxide git-delta lazygit gh jq tlrc htop trash mise git-lfs
   tree-sitter-cli uv
+  atuin sesh yazi btop direnv             # history (Ctrl-R), sessions (prefix T), files, processes, .envrc
 )
 DEV_FORMULAE=(
   node cmake gcc                          # gcc: GNU GCC as gcc-NN/g++-NN (plain gcc is Apple clang)

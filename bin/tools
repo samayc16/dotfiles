@@ -8,7 +8,8 @@ set -euo pipefail
 # category|command|what it's for
 CATALOG='search|rg|search file contents (fast grep; respects .gitignore)
 search|fd|find files by name
-search|fzf|fuzzy-pick anything: Ctrl-T files, Ctrl-R history, Alt-C cd
+search|fzf|fuzzy-pick anything: Ctrl-T files, Alt-C cd, Tab completion
+search|atuin|shell history from every session: Ctrl-R (local only)
 search|grep|classic text search
 view|bat|cat with syntax highlighting (cat is aliased to it)
 view|eza|ls with icons and git status (ls, ll, lt, lrt)
@@ -27,6 +28,8 @@ text|column|align text into columns
 text|xargs|turn input lines into arguments
 text|diff|compare files (git diff uses delta)
 navigate|zoxide|powers cd: cd <part> jumps to frequent dirs, cdi to pick
+navigate|yazi|file manager: y opens it, quitting with q cds there
+navigate|sesh|tmux session per project: prefix T picks or creates one
 git|git|version control
 git|lazygit|git UI in the terminal (lg)
 git|gh|GitHub from the terminal: PRs, issues, repos
@@ -35,6 +38,7 @@ dev|nvim|editor (vim is aliased to it)
 dev|tmux|terminal multiplexer (mux attaches to "main")
 dev|claude|Claude Code
 dev|mise|install and switch tool versions
+dev|direnv|per-directory env vars from .envrc (direnv allow)
 dev|uv|fast Python packaging and venvs
 dev|python3|Python
 dev|clang|C compiler (clang++ for C++)
@@ -50,6 +54,7 @@ learn|play|games and trainers menu
 learn|tldr|example-first help for any command
 learn|man|full manual pages
 system|htop|processes and resource use
+system|btop|processes, CPU, memory, disks and network, graphed
 system|trash|safe delete (rm is aliased to it)
 system|copy|pipe output to the clipboard, even over SSH'
 
