@@ -1,15 +1,21 @@
 # Portable zshrc: macOS (Homebrew) and Linux (distro packages, mise, user-local clones).
 # Machine-specific settings and secrets go in ~/.zshrc.local (sourced by zsh/common.zsh).
 
+# The repo this file lives in (follows the ~/.zshrc symlink; an inherited DOTFILES may point elsewhere)
+export DOTFILES="${${(%):-%N}:A:h}"
+
+# A newer release asks once whether to update (zsh/update-check.zsh). It may read a key, so it
+# sits above the instant prompt. Off in CI, without a terminal, or with DOTFILES_NO_UPDATE_CHECK=1.
+if [[ -o interactive && -t 0 && -t 1 && -z ${CI-} && ${DOTFILES_NO_UPDATE_CHECK:-0} != 1 ]]; then
+  source "$DOTFILES/zsh/update-check.zsh"
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
-
-# The repo this file lives in (follows the ~/.zshrc symlink; an inherited DOTFILES may point elsewhere)
-export DOTFILES="${${(%):-%N}:A:h}"
 
 # ── Platform ──────────────────────────────────────────────────────────
 if [[ "$OSTYPE" == darwin* ]]; then
