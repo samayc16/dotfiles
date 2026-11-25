@@ -68,6 +68,19 @@ class Libc(unittest.TestCase):
             with self.subTest(name):
                 self.assertEqual(self.ask(system, "wants_glibc217_node"), wanted)
 
+    def test_git(self) -> None:
+        cases = {
+            "none installed": ("hash -r; PATH=/nonexistent", False),
+            "CentOS 7: 1.8.3.1": ('git() { echo "git version 1.8.3.1"; }', False),
+            "2.18.5: one short of partial clones": ('git() { echo "git version 2.18.5"; }', False),
+            "2.19.0": ('git() { echo "git version 2.19.0"; }', True),
+            "Apple's: 2.50.1 (Apple Git-155)": ('git() { echo "git version 2.50.1 (Apple Git-155)"; }', True),
+        }
+        for name, (system, wanted) in cases.items():
+            with self.subTest(name):
+                self.assertEqual(self.ask(system, "git_ok"), wanted)
+        self.assertTrue(self.ask('hash -r; PATH=/nonexistent; v="$(git_version)"', '[[ -z "$v" ]]'))  # no git ends nothing
+
     def test_python(self) -> None:
         cases = {
             "none installed": ("hash -r; PATH=/nonexistent", False),

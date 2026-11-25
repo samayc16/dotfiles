@@ -98,6 +98,7 @@ jobs:
           shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles bin/cheat scripts/build-release.sh
           shellcheck -S warning -x -P install.d -s bash learn/fetch.sh
           shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh scripts/focus.sh
+          shellcheck -s bash .github/ci/centos7.sh
       - name: zsh syntax
         run: for f in zshrc zsh/*.zsh; do zsh -n "$f"; done
 
@@ -206,6 +207,25 @@ jobs:
             /home/tester/.local/state/nvim/*.log
           if-no-files-found: ignore
 
+  # CentOS 7 (glibc 2.17, git 1.8.3), still on some work machines and clusters, without root. GitHub's
+  # actions need a newer glibc than CentOS 7's, so this job checks out on the runner and starts the
+  # container itself (.github/ci/centos7.sh), rather than using `container:`.
+  centos7:
+    name: linux (centos:7, user, dev)
+    needs: [lint, pins]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: pins
+          path: ci-artifacts
+      - name: Install a release tarball as a user without sudo in CentOS 7 (profile dev + hdl,music), and verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
+        run: docker run --rm -e GITHUB_TOKEN -v "$PWD:/src:ro" centos:7 bash /src/.github/ci/centos7.sh
+
   macos:
     needs: [lint, pins]
     runs-on: macos-latest
@@ -271,7 +291,7 @@ jobs:
         run: RELEASE=1 SIM=0 PINS="$HOME/.local/share/dotfiles/current/pins.txt" sh .github/ci/verify.sh
 
   release:
-    needs: [pins, lint, linux, macos, macos-install]
+    needs: [pins, lint, linux, centos7, macos, macos-install]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15

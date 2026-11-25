@@ -44,6 +44,7 @@ tmux/tmux-fzf                commit   https://github.com/sainnhe/tmux-fzf       
 # mise/global.toml: the Linux CLI tools, exact versions (macOS gets Homebrew's current ones)
 mise/neovim                  mise     github:neovim/neovim@0.12                                       0.12.6
 mise/neovim-old-glibc        mise     github:neovim/neovim-releases@0.12                              0.12.5
+mise/git-old-system          mise     conda:git                                                       2.56.1
 mise/tree-sitter             mise     conda:tree-sitter-cli                                           0.27.2
 mise/tmux                    mise     github:tmux/tmux-builds                                         3.8
 mise/ripgrep                 mise     github:BurntSushi/ripgrep                                       16.0.0

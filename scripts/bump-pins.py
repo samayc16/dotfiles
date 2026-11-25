@@ -42,6 +42,7 @@ HEADER = ("#", "name", "kind", "source", "version")
 # ~/.config/mise/conf.d/ only where they're needed
 INSTALLER_ONLY = {
     "github:neovim/neovim-releases": "Neovim's glibc 2.17 build, for systems older than glibc 2.34",
+    "conda:git": "a user-local git where the system's is older than 2.19 (CentOS 7) or missing",
 }
 TIMEOUT = 30
 

@@ -55,6 +55,7 @@ musl_setup() {
 # glibc older than Neovim's floor (Ubuntu 20.04, RHEL/Rocky 8, …): use Neovim's own glibc 2.17
 # build (neovim/neovim-releases, pinned as mise/neovim-old-glibc) in place of the usual one.
 OLD_GLIBC_CONFIG="$HOME/.config/mise/conf.d/old-glibc.toml"
+GIT_CONFIG="$HOME/.config/mise/conf.d/git.toml"
 
 old_glibc_setup() {
   local glibc spec version
@@ -75,6 +76,28 @@ disable_tools = ["github:neovim/neovim"]
 
 [tools]
 "github:neovim/neovim-releases" = { version = "$version", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "nvim-linux-x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "nvim-linux-arm64.tar.gz" } } }
+EOF
+}
+
+# A system git older than 2.19 (CentOS 7 ships 1.8.3), or none: lazy.nvim's partial clones and
+# the later steps' `git -C` need newer, and only root could upgrade it. conda-forge's git runs on
+# glibc ≥ 2.17 with its libraries alongside (pins.txt: mise/git-old-system); mise's shim then comes
+# before /usr/bin/git on PATH, for the later steps and your shells.
+git_setup() {
+  local spec version have
+  if git_ok; then
+    if [[ -f "$GIT_CONFIG" ]]; then run rm -f "$GIT_CONFIG"; fi
+    return 0
+  fi
+  read -r spec version < <(pin_lookup mise/git-old-system) || { err "mise/git-old-system is not in pins.txt"; return 1; }
+  have="$(git_version)"
+  info "${have:+git $have is older than $GIT_FLOOR}${have:-no git here}: installing git $version from conda-forge for you ($spec)"
+  [[ "$DRY_RUN" == 1 ]] && return 0
+  mkdir -p "$(dirname "$GIT_CONFIG")"
+  cat >"$GIT_CONFIG" <<EOF
+# Written by the dotfiles installer: the system git is older than $GIT_FLOOR (pins.txt: mise/git-old-system)
+[tools]
+"conda:git" = "$version"
 EOF
 }
 
@@ -136,11 +159,15 @@ main() {
   musl_setup
   old_glibc_setup
   node_setup
+  git_setup
   # Use the repo manifest directly so this works even before links.sh has run.
   # Keep going if a single tool fails; only the core tools below are required.
   retry 3 run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
   if [[ -f "$OLD_GLIBC_CONFIG" ]]; then
     retry 3 run env MISE_GLOBAL_CONFIG_FILE="$OLD_GLIBC_CONFIG" mise install --yes || warn "Neovim's glibc 2.17 build failed to install (see above)"
+  fi
+  if [[ -f "$GIT_CONFIG" ]]; then
+    retry 3 run env MISE_GLOBAL_CONFIG_FILE="$GIT_CONFIG" mise install --yes || warn "git from conda-forge failed to install (see above)"
   fi
   [[ "$DRY_RUN" == 1 ]] && return 0
   run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise reshim
@@ -157,6 +184,12 @@ main() {
   done
   check_node
   ensure_python
+  if git_ok; then
+    ok "git $(git_version)"
+  else
+    err "git $(git_version) is still older than $GIT_FLOOR: plugin installs will fail"
+    missing=1
+  fi
   return "$missing"
 }
 

@@ -22,13 +22,18 @@ fi
 # the first line of --version with a version number in it (eza and yazi print a banner first)
 for t in $tools; do printf '%-12s ' "$t"; "$t" --version 2>&1 | grep -m1 -E '[0-9]+\.[0-9]+' || fail "$t --version shows no version"; done
 printf '%-12s ' tmux; tmux -V
+# git ≥ 2.19 for lazy.nvim's partial clones: the system's, or the installer's conda-forge one (CentOS 7)
+git_v=$(git --version | awk '{ print $3 }')
+printf '%-12s %s\n' git "$git_v ($(command -v git))"
+[ "$(printf '%s\n2.19\n' "$git_v" | sort -V | head -n1)" = 2.19 ] || fail "git $git_v is older than 2.19"
 
 # Linux tools are self-contained downloads: static, except where upstream publishes no static
 # build (neovim, tree-sitter, node; mise/global.toml says why). zsh-bin's zsh must be static too.
 if [ "$mac" = 0 ]; then
   command -v file >/dev/null || fail "verify needs file(1)"
-  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv atuin sesh yazi ya btop direnv node nvim tree-sitter zsh; do
+  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv atuin sesh yazi ya btop direnv node nvim tree-sitter zsh git; do
     case $t in
+      git) mise which git >/dev/null 2>&1 || continue ;; # only where the installer added one (old systems)
       nvim | tree-sitter) [ "$nvim_on" = 1 ] || continue ;;
       zsh) [ -x "$HOME/.local/bin/zsh" ] || continue ;;
       node) # newer Node needs libatomic.so.1, a system library only root can add; the installer says so
@@ -41,7 +46,7 @@ if [ "$mac" = 0 ]; then
     info=$(file -L "$bin")
     case "$info" in
       *interpreter*) interp=$(echo "$info" | sed 's/.*interpreter \([^,]*\).*/\1/')
-        case $t in nvim | tree-sitter | node) printf '%-12s dynamic (%s), a documented exception\n' "$t" "$interp" ;;
+        case $t in nvim | tree-sitter | node | git) printf '%-12s dynamic (%s), a documented exception\n' "$t" "$interp" ;;
           *) fail "$t ($bin) is dynamically linked ($interp): pick its static build in mise/global.toml" ;; esac ;;
       *ELF*) printf '%-12s static\n' "$t" ;;
       *) fail "$t ($bin) is not an ELF binary: $info" ;;

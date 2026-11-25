@@ -4,6 +4,7 @@
 
 NVIM_GLIBC_FLOOR=2.34 # Neovim's usual Linux build
 NODE_GLIBC_FLOOR=2.28 # Node's official Linux build, which also needs libatomic.so.1
+GIT_FLOOR=2.19        # lazy.nvim's partial clones (--filter); the installer's `git -C` needs 1.8.5
 
 # "2.28", or empty on musl, where getconf has no GNU_LIBC_VERSION
 # (`|| true`: under pipefail the failing getconf would otherwise end the caller)
@@ -26,6 +27,16 @@ wants_glibc217_node() {
   glibc="$(glibc_version)"
   [[ -n "$glibc" && "$(uname -m)" == x86_64 ]] || return 1
   ! has_libatomic || ! version_ge "$glibc" "$NODE_GLIBC_FLOOR"
+}
+
+# "1.8.3.1" for the git on PATH, or empty without one (`|| true`: as for glibc_version)
+git_version() { git --version 2>/dev/null | awk '{ print $3 }' || true; }
+
+# A git new enough for everything here (CentOS 7's 1.8.3 isn't; neither is no git at all).
+git_ok() {
+  local version
+  version="$(git_version)"
+  [[ -n "$version" ]] && version_ge "$version" "$GIT_FLOOR"
 }
 
 # A python3 ≥ 3.9 that can make a venv with pip in it (Debian's lacks ensurepip without python3-venv).
