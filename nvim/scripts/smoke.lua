@@ -210,13 +210,22 @@ local function run_file(expect)
   local overseer = require 'overseer'
   local newest = function() return overseer.list_tasks({ sort = function(a, b) return a.id > b.id end })[1] end
   local previous = newest()
-  require('util.runner').run()
+  local said, notify = {}, vim.notify
+  vim.notify = function(msg, ...) -- the runner says why it didn't start a task this way
+    table.insert(said, tostring(msg))
+    return notify(msg, ...)
+  end
+  local ran, err = pcall(require('util.runner').run)
+  vim.notify = notify
   local task
   vim.wait(10000, function()
     task = newest()
     return task ~= nil and task ~= previous
   end, 100)
-  if not task or task == previous then return false, 'no task started' end
+  if not task or task == previous then
+    local why = vim.list_extend(ran and {} or { tostring(err) }, said)
+    return false, 'no task started' .. (#why > 0 and (': ' .. table.concat(why, ' | ')) or '')
+  end
   vim.wait(300000, function() return task:is_complete() end, 200)
   local bufnr = task:get_bufnr()
   local output = bufnr and table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), '\n') or ''

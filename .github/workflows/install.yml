@@ -114,6 +114,12 @@ jobs:
             musl: true
           - image: alpine:latest
             mode: user
+            user_profile: dev
+          - image: rockylinux:8
+            mode: user
+            user_profile: dev
+          - image: alpine:latest
+            mode: user
             user_with: music
             musl: true
     container: ${{ matrix.image }}

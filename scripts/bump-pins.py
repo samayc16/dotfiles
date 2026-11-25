@@ -38,6 +38,11 @@ NONE = "-"  # a release pin with no numbered release yet
 NUMBERED = re.compile(r"^v?\d+(\.\d+)*$")
 GITHUB = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+?)(?:\.git)?/?$")
 HEADER = ("#", "name", "kind", "source", "version")
+# mise pins that are deliberately not in mise/global.toml: install.d/mise.sh writes them into
+# ~/.config/mise/conf.d/ only where they're needed
+INSTALLER_ONLY = {
+    "github:neovim/neovim-releases": "Neovim's glibc 2.17 build, for systems older than glibc 2.34",
+}
 TIMEOUT = 30
 
 
@@ -199,7 +204,7 @@ def sync_mise_config(text: str, lines: Sequence[Line]) -> str:
             seen.add(match.group("tool"))
             raw = match.group("head") + versions[match.group("tool")] + match.group("tail")
         out.append(raw)
-    missing = sorted(set(versions) - seen)
+    missing = sorted(set(versions) - seen - set(INSTALLER_ONLY))
     if missing:
         raise PinError("pinned in pins.txt but not in mise/global.toml: " + ", ".join(missing))
     return "\n".join(out) + "\n"

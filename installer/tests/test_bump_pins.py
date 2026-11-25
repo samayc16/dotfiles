@@ -78,7 +78,7 @@ class Parse(unittest.TestCase):
         loop = re.search(r"^  for t in (mise tmux [^;]+); do$", verify, re.M)
         self.assertIsNotNone(loop, "verify.sh's linkage loop moved")
         checked = set(loop.group(1).split())
-        command = {"neovim": "nvim", "ripgrep": "rg"}
+        command = {"neovim": "nvim", "neovim-old-glibc": "nvim", "ripgrep": "rg"}
         pinned = {command.get(p.name[5:], p.name[5:]) for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.name.startswith("mise/")}
         self.assertEqual(pinned - checked, set())
 
@@ -144,6 +144,13 @@ class MiseConfig(unittest.TestCase):
     def test_a_pinned_tool_missing_from_the_config_is_an_error(self) -> None:
         with self.assertRaises(bp.PinError):
             bp.sync_mise_config(MISE_TOML.replace("neovim", "vim"), bp.parse(PINS))
+
+    def test_installer_only_pins_are_pinned_and_used_by_the_installer(self) -> None:
+        pinned = {bp.mise_tool(p.source) for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.kind == "mise"}
+        installer = (ROOT / "install.d" / "mise.sh").read_text()
+        for tool in bp.INSTALLER_ONLY:
+            self.assertIn(tool, pinned)
+            self.assertIn('"%s"' % tool, installer)
 
     def test_repo_config_matches_the_pins(self) -> None:
         toml = (ROOT / "mise" / "global.toml").read_text()

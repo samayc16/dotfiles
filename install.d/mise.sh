@@ -49,6 +49,57 @@ musl_setup() {
   } >"$MUSL_CONFIG"
 }
 
+# glibc older than Neovim's floor (Ubuntu 20.04, RHEL/Rocky 8, …): use Neovim's own glibc 2.17
+# build (neovim/neovim-releases, pinned as mise/neovim-old-glibc) in place of the usual one.
+NVIM_GLIBC_FLOOR=2.34
+OLD_GLIBC_CONFIG="$HOME/.config/mise/conf.d/old-glibc.toml"
+glibc_version() { getconf GNU_LIBC_VERSION 2>/dev/null | awk '{ print $2 }'; }
+
+old_glibc_setup() {
+  local glibc spec version
+  glibc="$(glibc_version)"
+  if is_musl || [[ -z "$glibc" ]] || version_ge "$glibc" "$NVIM_GLIBC_FLOOR"; then
+    if [[ -f "$OLD_GLIBC_CONFIG" ]]; then run rm -f "$OLD_GLIBC_CONFIG"; fi
+    return 0
+  fi
+  read -r spec version < <(pin_lookup mise/neovim-old-glibc) || { err "mise/neovim-old-glibc is not in pins.txt"; return 1; }
+  info "glibc $glibc is older than the $NVIM_GLIBC_FLOOR Neovim's usual build needs: using its glibc 2.17 build ($spec → $version)"
+  export MISE_DISABLE_TOOLS="${MISE_DISABLE_TOOLS:+$MISE_DISABLE_TOOLS,}github:neovim/neovim"
+  [[ "$DRY_RUN" == 1 ]] && return 0
+  mkdir -p "$(dirname "$OLD_GLIBC_CONFIG")"
+  cat >"$OLD_GLIBC_CONFIG" <<EOF
+# Written by the dotfiles installer: glibc $glibc is older than $NVIM_GLIBC_FLOOR (pins.txt: mise/neovim-old-glibc)
+[settings]
+disable_tools = ["github:neovim/neovim"]
+
+[tools]
+"github:neovim/neovim-releases" = { version = "$version", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "nvim-linux-x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "nvim-linux-arm64.tar.gz" } } }
+EOF
+}
+
+# Mason's Python tools (basedpyright, debugpy, clang-format) need a python3 ≥ 3.9 that can make a
+# venv. With none (not installed, too old, or Debian's without python3-venv) and no root to add
+# one, uv installs a private CPython (python-build-standalone, checksum-verified) as python3.
+PYTHON_SERIES=3.13
+python_ok() { has python3 && python3 -c 'import sys, ensurepip, venv; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1; }
+
+ensure_python() {
+  if python_ok; then
+    ok "python3 $(python3 -c 'import platform; print(platform.python_version())')"
+    return 0
+  fi
+  if ! has uv; then
+    warn "no python3 ≥ 3.9 with venv here, and no uv to add one: Python language servers are skipped"
+    return 0
+  fi
+  info "no python3 ≥ 3.9 with venv here: installing Python $PYTHON_SERIES for you with uv → $LOCAL_PREFIX/bin/python3"
+  retry 3 run env UV_PYTHON_BIN_DIR="$LOCAL_PREFIX/bin" uv python install --default "$PYTHON_SERIES" ||
+    { warn "uv couldn't install Python: Python language servers are skipped"; return 0; }
+  [[ "$DRY_RUN" == 1 ]] && return 0
+  hash -r
+  if python_ok; then ok "python3 $(python3 -c 'import platform; print(platform.python_version())') (uv)"; else warn "python3 from uv isn't usable"; fi
+}
+
 check_node() {
   has node && node --version >/dev/null 2>&1 && { ok "node $(node --version)"; return 0; }
   if ! ldconfig -p 2>/dev/null | grep -q libatomic.so.1; then
@@ -63,9 +114,13 @@ main() {
   section "mise tools (user-local)"
   ensure_mise
   musl_setup
+  old_glibc_setup
   # Use the repo manifest directly so this works even before links.sh has run.
   # Keep going if a single tool fails; only the core tools below are required.
   retry 3 run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
+  if [[ -f "$OLD_GLIBC_CONFIG" ]]; then
+    retry 3 run env MISE_GLOBAL_CONFIG_FILE="$OLD_GLIBC_CONFIG" mise install --yes || warn "Neovim's glibc 2.17 build failed to install (see above)"
+  fi
   [[ "$DRY_RUN" == 1 ]] && return 0
   run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise reshim
   local tool missing=0
@@ -80,6 +135,7 @@ main() {
     fi
   done
   check_node
+  ensure_python
   return "$missing"
 }
 
