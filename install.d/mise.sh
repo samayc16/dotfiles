@@ -13,7 +13,8 @@ export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
 # Upstream publishes these for glibc only (mise/global.toml lists why); musl systems skip them.
 GLIBC_ONLY="github:neovim/neovim,conda:tree-sitter-cli"
 MUSL_CONFIG="$HOME/.config/mise/conf.d/musl.toml"
-NODE_MUSL_MIRROR="https://unofficial-builds.nodejs.org/download/release/"
+NODE_UNOFFICIAL_MIRROR="https://unofficial-builds.nodejs.org/download/release/"
+NODE_CONFIG="$HOME/.config/mise/conf.d/node.toml"
 
 ensure_mise() {
   if has mise; then
@@ -36,7 +37,7 @@ musl_setup() {
     [[ -f "$MUSL_CONFIG" ]] && run rm -f "$MUSL_CONFIG"
     return 0
   fi
-  export MISE_DISABLE_TOOLS="$GLIBC_ONLY" MISE_NODE_FLAVOR=musl MISE_NODE_MIRROR_URL="$NODE_MUSL_MIRROR" MISE_NODE_COMPILE=false
+  export MISE_DISABLE_TOOLS="$GLIBC_ONLY" MISE_NODE_FLAVOR=musl MISE_NODE_MIRROR_URL="$NODE_UNOFFICIAL_MIRROR" MISE_NODE_COMPILE=false
   warn "musl libc: Neovim and tree-sitter publish no musl build, so they're skipped." \
     "Install neovim ≥ 0.12 and tree-sitter yourself (Alpine: apk add neovim tree-sitter-cli)."
   [[ "$DRY_RUN" == 1 ]] && return 0
@@ -45,7 +46,7 @@ musl_setup() {
     echo "# Written by the dotfiles installer for this musl system (see mise/global.toml)"
     echo "[settings]"
     printf 'disable_tools = ["%s"]\n' "${GLIBC_ONLY//,/\", \"}"
-    printf 'node.flavor = "musl"\nnode.mirror_url = "%s"\nnode.compile = false\n' "$NODE_MUSL_MIRROR"
+    printf 'node.flavor = "musl"\nnode.mirror_url = "%s"\nnode.compile = false\n' "$NODE_UNOFFICIAL_MIRROR"
   } >"$MUSL_CONFIG"
 }
 
@@ -100,9 +101,34 @@ ensure_python() {
   if python_ok; then ok "python3 $(python3 -c 'import platform; print(platform.python_version())') (uv)"; else warn "python3 from uv isn't usable"; fi
 }
 
+# (no `| grep -q`: with pipefail, grep quitting at the first match can fail the pipeline)
+has_libatomic() { [[ "$({ ldconfig -p || /sbin/ldconfig -p; } 2>/dev/null)" == *libatomic.so.1* ]]; }
+
+# Node's official Linux build needs libatomic.so.1 and glibc 2.28: minimal RHEL-family systems
+# lack the first, older ones the second, and only root can add either. On x86-64 the Node.js
+# project's glibc 2.17 build (unofficial-builds, checked against its SHASUMS256) has them built
+# in, so it runs there; elsewhere keep the official build.
+node_setup() {
+  local glibc
+  glibc="$(glibc_version)"
+  if is_musl || [[ "$(uname -m)" != x86_64 || -z "$glibc" ]] || { has_libatomic && version_ge "$glibc" 2.28; }; then
+    if [[ -f "$NODE_CONFIG" ]]; then run rm -f "$NODE_CONFIG"; fi
+    return 0
+  fi
+  info "no libatomic.so.1 or glibc < 2.28 here: Node comes from the Node.js project's glibc 2.17 build"
+  export MISE_NODE_FLAVOR=glibc-217 MISE_NODE_MIRROR_URL="$NODE_UNOFFICIAL_MIRROR" MISE_NODE_COMPILE=false
+  [[ "$DRY_RUN" == 1 ]] && return 0
+  mkdir -p "$(dirname "$NODE_CONFIG")"
+  {
+    echo "# Written by the dotfiles installer: this system lacks libatomic.so.1 or glibc 2.28 (see install.d/mise.sh)"
+    echo "[settings]"
+    printf 'node.flavor = "glibc-217"\nnode.mirror_url = "%s"\nnode.compile = false\n' "$NODE_UNOFFICIAL_MIRROR"
+  } >"$NODE_CONFIG"
+}
+
 check_node() {
   has node && node --version >/dev/null 2>&1 && { ok "node $(node --version)"; return 0; }
-  if ! ldconfig -p 2>/dev/null | grep -q libatomic.so.1; then
+  if ! has_libatomic; then
     warn "node needs libatomic.so.1 (dnf install libatomic / zypper install libatomic1);" \
       "npm-based language servers (bash-language-server) are skipped until then"
   else
@@ -115,6 +141,7 @@ main() {
   ensure_mise
   musl_setup
   old_glibc_setup
+  node_setup
   # Use the repo manifest directly so this works even before links.sh has run.
   # Keep going if a single tool fails; only the core tools below are required.
   retry 3 run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
