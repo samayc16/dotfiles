@@ -10,7 +10,10 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `./install.sh --profile cli` | shell, tmux, nvim and CLI tools only (minimal boxes) |
 | `./install.sh --list-steps` · `--only <step>` · `--skip <step>` | show steps · re-run one · skip one |
 | `./install.sh --link-only` · `--dry-run` | just symlinks · print the plan |
-| `~/dotfiles/learn/fetch.sh` | refresh exercises, projects and offline docs before a flight |
+| `$DOTFILES/learn/fetch.sh` | refresh exercises, projects and offline docs before a flight |
+| `dotfiles status` · `dotfiles update` | what's installed and whether a newer release exists · update: a release install switches versions, a clone does `git pull --ff-only`; both re-run the installer with your flags |
+| `dotfiles rollback` · `dotfiles list` | back to the previous release (again: forward) · the versions on disk (last 3 kept) |
+| `DOTFILES_NO_UPDATE_CHECK=1` | in `~/.zshrc.local`: never ask `Update now? [y/N]` (asked once per release, checked daily in the background) |
 
 ---
 
@@ -141,7 +144,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 | `prefix S` | synchronize panes (type in all at once) |
 | `prefix C-l` | clear screen + scrollback |
 | `prefix r` | reload config |
-| `prefix I` | install plugins (tpm) |
+| `prefix I` | install plugins (tpm; the installer already cloned them at the commits in `pins.txt`) |
 
 Status bar: session pill (green) · windows (active = pink pill; ● activity, 🔔 bell, 🔍 zoom) · right: PREFIX / COPY / SYNC, host (SSH only), weather (hidden offline), date + time pill. Active pane border: purple in copy mode, orange while synced.
 

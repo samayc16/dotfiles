@@ -6,12 +6,20 @@ A portable terminal development environment for macOS and Linux: a Neovim IDE fo
 
 ## Install
 
+The latest release, on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SSH boxes without root:
+
+```sh
+bash -c "$(curl -fsSL https://github.com/samayc16/dotfiles/releases/latest/download/dotfiles)" - install
+```
+
+Or clone it to change it (updates then come from `git pull`):
+
 ```sh
 git clone https://github.com/samayc16/dotfiles.git ~/dotfiles
 cd ~/dotfiles && ./install.sh
 ```
 
-One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SSH boxes without root. It installs everything, then smoke-tests every language in Neovim.
+Either way it installs everything, then smoke-tests every language in Neovim. Add flags after `install` or `./install.sh` to install less:
 
 | profile | for |
 |---|---|
@@ -20,6 +28,8 @@ One command on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SS
 | `./install.sh --profile cli` | minimal servers: shell, tmux, Neovim, CLI tools |
 
 `./install.sh --list-steps` shows the plan; `--only <step>` re-runs one. Per-OS details, flags and no-root behaviour: [docs/install.md](docs/install.md).
+
+**Updates.** When a new release is out, a new shell asks once: `dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]`. `dotfiles update` does it any time and `dotfiles rollback` goes back; neither touches files you've changed. `DOTFILES_NO_UPDATE_CHECK=1` in `~/.zshrc.local` turns the question off. Every push to main bumps the pinned versions of everything external (`pins.txt`), tests the whole install with them, and only then publishes a dated release. Details: [docs/install.md](docs/install.md#updates-and-rollback).
 
 ## What you get
 
@@ -74,11 +84,12 @@ Tracked: `CLAUDE.md`, `output-styles/`, `skills/`, `rules/`, `agents/`, the stat
 
 ```
 install.sh · install.py · installer/ · install.d/   one installer, one script per step
+pins.txt     every external version the installer uses (CI bumps it)   bin/dotfiles  update / rollback
 nvim/        → ~/.config/nvim   lua/config, lua/plugins, lua/plugins/lang, scripts/{bootstrap,smoke}.lua
 learn/       learn CLI tracks, roadmap, reading quests     games/  offline games installer
 zshrc · zsh/ · tmux.conf · scripts/ · kitty/ · gitconfig · git/ · lazygit/ · clangd/ · mise/
-bin/         → ~/bin (learn, play, copy)                    claude/ → ~/.claude    codex/ → ~/.codex
-docs/        guides                                         .github/workflows/  installer CI
+bin/         → ~/bin (dotfiles, learn, play, copy)          claude/ → ~/.claude    codex/ → ~/.codex
+docs/        guides       scripts/ → ~/.tmux/scripts        .github/workflows/  test + release pipeline
 ```
 
 ## Privacy
