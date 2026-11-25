@@ -33,7 +33,7 @@ if [[ "$(awk '$1 == "plexamp-tui" { print $4 }' "$PKG/pins.txt")" == - ]]; then
   echo "warning: no plexamp-tui release pinned yet: nothing bundled in dist/" >&2
 else
   wheel_url="$(python3 "$ROOT/scripts/bump-pins.py" asset --pins "$PKG/pins.txt" plexamp-tui '*.whl')"
-  curl -fsSL --retry 3 -o "$PKG/dist/${wheel_url##*/}" "$wheel_url"
+  curl -fsSL --retry 6 --retry-delay 20 -o "$PKG/dist/${wheel_url##*/}" "$wheel_url" # GitHub 503s at times
 fi
 
 {
