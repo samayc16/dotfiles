@@ -58,6 +58,18 @@ run() {
 
 has() { command -v "$1" >/dev/null 2>&1; }
 
+# retry N CMD…: run CMD up to N times, waiting a little longer each time (flaky downloads).
+retry() {
+  local tries="$1" attempt=1
+  shift
+  until "$@"; do
+    ((attempt < tries)) || return 1
+    warn "attempt $attempt of $tries failed; retrying in $((attempt * 10))s: $*"
+    sleep $((attempt * 10))
+    attempt=$((attempt + 1))
+  done
+}
+
 # Is a component enabled? Explicit --without wins, then --with, then the profile.
 #   wants nvim          → on for every profile unless --without nvim
 #   wants games full    → on for profile "full" or with --with games

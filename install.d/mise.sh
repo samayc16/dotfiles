@@ -65,7 +65,7 @@ main() {
   musl_setup
   # Use the repo manifest directly so this works even before links.sh has run.
   # Keep going if a single tool fails; only the core tools below are required.
-  run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
+  retry 3 run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise install --yes || warn "some mise tools failed (see above)"
   [[ "$DRY_RUN" == 1 ]] && return 0
   run env MISE_GLOBAL_CONFIG_FILE="$DOTFILES/mise/global.toml" mise reshim
   local tool missing=0

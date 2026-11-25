@@ -44,7 +44,7 @@ install_zsh_bin() {
   if [[ "$DRY_RUN" == 1 ]]; then info "would install zsh-bin (static zsh) into $LOCAL_PREFIX"; return 0; fi
   script="$(mktemp)"
   { fetch "https://raw.githubusercontent.com/${url#https://github.com/}/$rev/install" "$script" &&
-    run sh "$script" -q -d "$LOCAL_PREFIX" -e no -a sha256 </dev/null; } || status=$?
+    retry 3 run sh "$script" -q -d "$LOCAL_PREFIX" -e no -a sha256 </dev/null; } || status=$?
   rm -f "$script"
   if [[ "$status" != 0 ]]; then
     warn "zsh-bin install failed — staying on bash (aliases in zshrc won't load)"
