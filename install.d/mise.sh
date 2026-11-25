@@ -5,6 +5,8 @@ set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 # shellcheck source=pins.sh
 source "$(dirname "$0")/pins.sh"
+# shellcheck source=libc.sh
+source "$(dirname "$0")/libc.sh"
 
 [[ "$OS" == macos ]] && skip "macOS gets these tools from Homebrew"
 
@@ -52,17 +54,15 @@ musl_setup() {
 
 # glibc older than Neovim's floor (Ubuntu 20.04, RHEL/Rocky 8, …): use Neovim's own glibc 2.17
 # build (neovim/neovim-releases, pinned as mise/neovim-old-glibc) in place of the usual one.
-NVIM_GLIBC_FLOOR=2.34
 OLD_GLIBC_CONFIG="$HOME/.config/mise/conf.d/old-glibc.toml"
-glibc_version() { getconf GNU_LIBC_VERSION 2>/dev/null | awk '{ print $2 }'; }
 
 old_glibc_setup() {
   local glibc spec version
-  glibc="$(glibc_version)"
-  if is_musl || [[ -z "$glibc" ]] || version_ge "$glibc" "$NVIM_GLIBC_FLOOR"; then
+  if ! wants_old_glibc_nvim; then
     if [[ -f "$OLD_GLIBC_CONFIG" ]]; then run rm -f "$OLD_GLIBC_CONFIG"; fi
     return 0
   fi
+  glibc="$(glibc_version)"
   read -r spec version < <(pin_lookup mise/neovim-old-glibc) || { err "mise/neovim-old-glibc is not in pins.txt"; return 1; }
   info "glibc $glibc is older than the $NVIM_GLIBC_FLOOR Neovim's usual build needs: using its glibc 2.17 build ($spec → $version)"
   export MISE_DISABLE_TOOLS="${MISE_DISABLE_TOOLS:+$MISE_DISABLE_TOOLS,}github:neovim/neovim"
@@ -82,7 +82,6 @@ EOF
 # venv. With none (not installed, too old, or Debian's without python3-venv) and no root to add
 # one, uv installs a private CPython (python-build-standalone, checksum-verified) as python3.
 PYTHON_SERIES=3.13
-python_ok() { has python3 && python3 -c 'import sys, ensurepip, venv; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1; }
 
 ensure_python() {
   if python_ok; then
@@ -101,21 +100,16 @@ ensure_python() {
   if python_ok; then ok "python3 $(python3 -c 'import platform; print(platform.python_version())') (uv)"; else warn "python3 from uv isn't usable"; fi
 }
 
-# (no `| grep -q`: with pipefail, grep quitting at the first match can fail the pipeline)
-has_libatomic() { [[ "$({ ldconfig -p || /sbin/ldconfig -p; } 2>/dev/null)" == *libatomic.so.1* ]]; }
-
 # Node's official Linux build needs libatomic.so.1 and glibc 2.28: minimal RHEL-family systems
 # lack the first, older ones the second, and only root can add either. On x86-64 the Node.js
 # project's glibc 2.17 build (unofficial-builds, checked against its SHASUMS256) has them built
 # in, so it runs there; elsewhere keep the official build.
 node_setup() {
-  local glibc
-  glibc="$(glibc_version)"
-  if is_musl || [[ "$(uname -m)" != x86_64 || -z "$glibc" ]] || { has_libatomic && version_ge "$glibc" 2.28; }; then
+  if ! wants_glibc217_node; then
     if [[ -f "$NODE_CONFIG" ]]; then run rm -f "$NODE_CONFIG"; fi
     return 0
   fi
-  info "no libatomic.so.1 or glibc < 2.28 here: Node comes from the Node.js project's glibc 2.17 build"
+  info "no libatomic.so.1 or glibc < $NODE_GLIBC_FLOOR here: Node comes from the Node.js project's glibc 2.17 build"
   export MISE_NODE_FLAVOR=glibc-217 MISE_NODE_MIRROR_URL="$NODE_UNOFFICIAL_MIRROR" MISE_NODE_COMPILE=false
   [[ "$DRY_RUN" == 1 ]] && return 0
   mkdir -p "$(dirname "$NODE_CONFIG")"
