@@ -25,7 +25,7 @@ class ParseOsRelease(unittest.TestCase):
 class Family(unittest.TestCase):
     def test_known(self) -> None:
         cases = {("arch", ""): "arch", ("fedora", ""): "rhel", ("opensuse-tumbleweed", "suse opensuse"): "suse",
-                 ("linuxmint", "ubuntu debian"): "debian", ("amzn", "centos rhel fedora"): "rhel"}
+                 ("linuxmint", "ubuntu debian"): "debian", ("amzn", "centos rhel fedora"): "rhel", ("alpine", ""): "alpine"}
         for (os_id, like), expected in cases.items():
             with self.subTest(os_id=os_id):
                 self.assertEqual(family(os_id, like), expected)

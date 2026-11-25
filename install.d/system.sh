@@ -14,6 +14,7 @@ base_packages() {
     debian) echo build-essential git curl ca-certificates unzip tar xz-utils zsh tmux python3 python3-venv file ;;
     rhel) echo git curl unzip tar xz make gcc gcc-c++ zsh tmux python3 which file findutils util-linux-user libatomic ;;
     suse) echo git curl unzip tar xz make gcc gcc-c++ zsh tmux python3 which file libatomic1 ;;
+    alpine) echo bash git curl ca-certificates unzip tar xz build-base zsh tmux python3 file ncurses ;;
   esac
 }
 dev_packages() {
@@ -21,7 +22,7 @@ dev_packages() {
   local common="clang cmake verilator iverilog z3 trash-cli htop autoconf flex bison"
   case "$OS" in
     debian) echo "$common libclang-rt-dev" ;; # clang's sanitizer runtimes
-    arch | rhel | suse) echo "$common" ;;
+    arch | rhel | suse | alpine) echo "$common" ;;
   esac
 }
 
@@ -34,6 +35,7 @@ installed() {
     arch) pacman -Q "$pkg" >/dev/null 2>&1 ;;
     debian) dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q 'install ok installed' ;;
     rhel | suse) rpm -q "$pkg" >/dev/null 2>&1 ;;
+    alpine) apk info -e "$pkg" >/dev/null 2>&1 ;;
     *) return 1 ;;
   esac
 }
@@ -45,6 +47,7 @@ pm_install() {
     debian) run $SUDO env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$@" ;;
     rhel) run $SUDO dnf install -y "$@" ;;
     suse) run $SUDO zypper --non-interactive install --no-recommends "$@" ;;
+    alpine) run $SUDO apk add --no-cache "$@" ;;
   esac
 }
 
@@ -52,6 +55,7 @@ refresh_index() {
   # shellcheck disable=SC2086
   case "$OS" in
     debian) run $SUDO apt-get update -qq ;;
+    alpine) run $SUDO apk update -q ;;
     rhel)
       # EPEL carries verilator/iverilog on RHEL clones (Fedora has them already)
       # shellcheck source=/dev/null
@@ -78,7 +82,7 @@ install_list() {
 }
 
 main() {
-  case "$OS" in arch | debian | rhel | suse) ;; *) skip "unknown distro ($OS) — install git, curl, zsh, tmux, make, gcc yourself" ;; esac
+  case "$OS" in arch | debian | rhel | suse | alpine) ;; *) skip "unknown distro ($OS) — install git, curl, zsh, tmux, make, gcc yourself" ;; esac
   section "System packages ($OS, $PROFILE)"
   refresh_index
   # shellcheck disable=SC2046

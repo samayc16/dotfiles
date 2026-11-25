@@ -7,7 +7,7 @@ source "$(dirname "$0")/lib.sh"
 
 CLI_FORMULAE=(
   neovim tmux zsh-autosuggestions zsh-syntax-highlighting powerlevel10k fzf-tab
-  fzf ripgrep fd bat eza zoxide git-delta lazygit gh jq tldr htop trash mise git-lfs
+  fzf ripgrep fd bat eza zoxide git-delta lazygit gh jq tlrc htop trash mise git-lfs
   tree-sitter-cli uv
 )
 DEV_FORMULAE=(
@@ -43,14 +43,25 @@ brew_retry() {
   return 1
 }
 
+# The command a formula provides, where the names differ.
+command_of() {
+  case "$1" in
+    ripgrep) echo rg ;;
+    git-delta) echo delta ;;
+    tree-sitter-cli) echo tree-sitter ;;
+    tlrc) echo tldr ;; # the official tldr client (Homebrew dropped the old `tldr` formula)
+    *) echo "$1" ;;
+  esac
+}
+
 # Print the subset of $@ that is not installed yet (kind: --formula | --cask).
 missing() {
   local kind="$1" installed item
   shift
   installed=" $(brew list "$kind" -1 2>/dev/null | tr '\n' ' ') "
   for item in "$@"; do
-    # also present when the command exists under another formula (e.g. node@22 → node)
-    [[ "$installed" == *" $item "* ]] || has "$item" || printf '%s\n' "$item"
+    # also present when the command exists under another formula (e.g. node@22 → node, tldr → tlrc)
+    [[ "$installed" == *" $item "* ]] || has "$(command_of "$item")" || printf '%s\n' "$item"
   done
 }
 

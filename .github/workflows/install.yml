@@ -99,25 +99,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [ubuntu:24.04, debian:12, fedora:latest, rockylinux:9, archlinux:latest]
+        image: [ubuntu:24.04, debian:12, fedora:latest, rockylinux:9, archlinux:latest, opensuse/tumbleweed:latest, alpine:latest]
         mode: [root, user]
         include: # the learn fetch (16 pinned repos + offline docs) on one leg
           - image: ubuntu:24.04
             mode: root
             extra: music,learn
+          # musl: Neovim, tree-sitter and the HDL simulators publish no musl builds (skipped, with a
+          # message), so these legs install profile cli
+          - image: alpine:latest
+            mode: root
+            profile: cli
+            musl: true
+          - image: alpine:latest
+            mode: user
+            user_with: music
+            musl: true
     container: ${{ matrix.image }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # mise/GitHub API rate limits
       NO_COLOR: "1"
     steps:
-      - name: Minimal base for the no-root user (git, curl, zsh, compiler — no Python, no sudo)
-        if: matrix.mode == 'user'
+      - name: What the checkout itself needs (tar, gzip)
+        if: matrix.mode == 'root'
         run: |
-          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates zsh tar xz-utils gzip unzip make gcc g++ util-linux >/dev/null
-          elif command -v dnf >/dev/null; then dnf install -y -q git zsh tar xz gzip unzip make gcc gcc-c++ util-linux findutils
-          elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl zsh tar xz gzip unzip make gcc util-linux
+          if command -v apk >/dev/null; then apk add --no-cache tar gzip
+          elif command -v zypper >/dev/null; then zypper --non-interactive install tar gzip
           fi
-          useradd -m -s /bin/bash tester
+      - name: Minimal base for the no-root user (git, curl, compiler — no Python, no zsh, no sudo)
+        if: matrix.mode == 'user'
+        # No zsh: the installer must bring its own (zsh-bin, static). bash: every step is a bash
+        # script. file: the verify step's linkage check. libstdc++: Claude Code on musl.
+        run: |
+          if command -v apt-get >/dev/null; then apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git curl ca-certificates tar xz-utils gzip unzip make gcc g++ util-linux file >/dev/null
+          elif command -v dnf >/dev/null; then dnf install -y -q git tar xz gzip unzip make gcc gcc-c++ util-linux findutils file
+          elif command -v pacman >/dev/null; then pacman -Syu --noconfirm --needed git curl tar xz gzip unzip make gcc util-linux file
+          elif command -v zypper >/dev/null; then zypper --non-interactive install git curl tar xz gzip unzip make gcc gcc-c++ util-linux file shadow
+          elif command -v apk >/dev/null; then apk add --no-cache bash git curl ca-certificates tar xz gzip unzip make gcc musl-dev file libgcc libstdc++
+          fi
+          if command -v useradd >/dev/null; then useradd -m -s /bin/bash tester; else adduser -D -s /bin/bash tester; fi
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
@@ -126,25 +146,28 @@ jobs:
       - name: Use the pins under test
         run: cp ci-artifacts/pins.txt pins.txt && cp ci-artifacts/mise/global.toml mise/global.toml
 
-      - name: Install as root from the checkout (profile dev + ${{ matrix.extra || 'music' }})
+      - name: Install as root from the checkout (profile ${{ matrix.profile || 'dev' }} + ${{ matrix.extra || 'music' }})
         if: matrix.mode == 'root'
         # Distro HDL packages are used where they work; Rocky 9's Verilator is broken, so it
         # takes the source-build path a real install would (~15 min).
-        run: ./install.sh --profile dev --with "${{ matrix.extra || 'music' }}" --no-log
+        run: ./install.sh --profile "${{ matrix.profile || 'dev' }}" --with "${{ matrix.extra || 'music' }}" --no-log
 
-      - name: Install a release tarball as a user without sudo (profile cli + hdl, music)
+      - name: Install a release tarball as a user without sudo (profile cli + ${{ matrix.user_with || 'hdl,music' }})
         if: matrix.mode == 'user'
         run: |
           install -m 755 bin/dotfiles /tmp/dotfiles-cli
           install -m 644 ci-artifacts/dotfiles.tar.gz /tmp/dotfiles.tar.gz
-          runuser -u tester -- env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
-            bash /tmp/dotfiles-cli install --from /tmp/dotfiles.tar.gz --no-sudo --profile cli --with hdl,music --no-log
+          .github/ci/as-tester.sh env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
+            bash /tmp/dotfiles-cli install --from /tmp/dotfiles.tar.gz --no-sudo --profile cli --with "${{ matrix.user_with || 'hdl,music' }}" --no-log
 
       - name: Verify
+        env:
+          NVIM: ${{ matrix.musl && '0' || '1' }}
+          SIM: ${{ matrix.musl && '0' || '1' }}
         run: |
           install -m 755 .github/ci/verify.sh /tmp/verify.sh
           if [ "${{ matrix.mode }}" = user ]; then
-            runuser -u tester -- env HOME=/home/tester RELEASE=1 PINS=/home/tester/.local/share/dotfiles/current/pins.txt sh /tmp/verify.sh
+            .github/ci/as-tester.sh env HOME=/home/tester RELEASE=1 NVIM="$NVIM" SIM="$SIM" PINS=/home/tester/.local/share/dotfiles/current/pins.txt sh /tmp/verify.sh
           else
             LEARN=${{ contains(matrix.extra, 'learn') && '1' || '0' }} PINS="$PWD/pins.txt" sh /tmp/verify.sh
           fi

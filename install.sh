@@ -35,6 +35,7 @@ system_python() {
   elif command -v dnf >/dev/null 2>&1; then as_root dnf install -y -q python3
   elif command -v pacman >/dev/null 2>&1; then as_root pacman -Syu --needed --noconfirm python # Arch never supports partial upgrades
   elif command -v zypper >/dev/null 2>&1; then as_root zypper --non-interactive install python3
+  elif command -v apk >/dev/null 2>&1; then as_root apk add --no-cache python3 bash
   else return 1
   fi
 }
@@ -52,6 +53,16 @@ uv_python() {
   fi
   uv python find 3.12 2>/dev/null || { uv python install 3.12 >&2 && uv python find 3.12; }
 }
+
+# Every step is a bash script; minimal images (Alpine) may not have bash yet.
+if ! command -v bash >/dev/null 2>&1; then
+  if privileged "$@" && command -v apk >/dev/null 2>&1; then
+    as_root apk add --no-cache bash >&2
+  else
+    echo "The installer needs bash: install it (Alpine: apk add bash) and run me again." >&2
+    exit 1
+  fi
+fi
 
 PY=$(find_python) || PY=""
 if [ -z "$PY" ] && privileged "$@"; then

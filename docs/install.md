@@ -43,10 +43,26 @@ The last step opens a sample file per language (and per installed compiler or si
 |---|---|
 | macOS | Homebrew for everything |
 | Linux with root/sudo | distro packages for the basics (compilers, zsh, tmux, Python, Verilator, Icarus, z3) |
-| Linux, always | [mise](https://mise.jdx.dev) installs fast-moving tools user-locally: Neovim ≥ 0.12, tree-sitter, ripgrep, fd, fzf, bat, eza, delta, lazygit, zoxide, jq, gh, tmux, Node, uv (`mise/global.toml`) |
-| Linux without root | zsh plugins cloned to `~/.local/share/zsh-plugins`; zsh built from source if missing; Swift via swiftly; Haskell via ghcup |
+| Linux, always | [mise](https://mise.jdx.dev) (itself a static build) downloads the fast-moving tools user-locally at the exact versions in `pins.txt`: Neovim 0.12, tree-sitter, ripgrep, fd, fzf, bat, eza, delta, lazygit, zoxide, jq, gh, tmux, Node, uv (`mise/global.toml`). They are self-contained binaries, so they work on any distro (below). |
+| Linux without root | zsh plugins cloned to `~/.local/share/zsh-plugins`; a static zsh from [zsh-bin](https://github.com/romkatv/zsh-bin) if there is none (sha256-checked); Swift via swiftly; Haskell via ghcup |
 | Linux simulators | Verilator and Icarus Verilog from the distro if they work, else prebuilt conda-forge builds via mise (user-local, any glibc ≥ 2.17, recorded in `~/.config/mise/conf.d/hdl.toml`), else a source build. Each must simulate a test design to count. |
 | no Python 3.8+ (RHEL 8, minimal containers) | the shim installs one, or fetches a standalone build with uv |
+
+### Any Linux: static where upstream allows
+
+Each Linux tool is the upstream release binary, chosen per architecture (x86_64 and aarch64), and mise checks every download's sha256 (GitHub's asset digest and artifact attestations, the aqua registry's checksums, Node's SHASUMS256, conda's repodata). Nothing depends on the distro's package versions, and CI checks each binary's linkage with `file`.
+
+| | tools |
+|---|---|
+| static (any distro, any libc) | ripgrep, fd, bat, zoxide, uv (musl builds); fzf, lazygit, gh (Go); jq; tmux ([tmux-builds](https://github.com/tmux/tmux-builds)); eza and delta on x86_64; mise; zsh from zsh-bin |
+| needs glibc ≥ 2.34 | Neovim (its official build; Debian 12, Ubuntu 22.04, RHEL/Rocky 9, Fedora 35 and newer) |
+| needs glibc ≥ 2.28 | Node (official build). On musl, mise uses the musl build from [unofficial-builds.nodejs.org](https://unofficial-builds.nodejs.org) (x86_64). |
+| needs glibc ≥ 2.17 | tree-sitter (conda-forge; its GitHub builds need glibc 2.39) |
+| glibc, aarch64 only | eza, delta (no aarch64 musl build upstream) |
+
+On musl systems (Alpine) Neovim and tree-sitter have no build to download: the installer says so, skips them (`~/.config/mise/conf.d/musl.toml`), and the Neovim steps skip too. Install them yourself (`apk add neovim tree-sitter-cli`) and run `./install.sh --only nvim`. CI installs on Alpine (profile cli) as root and without root.
+
+On macOS everything comes from Homebrew at its current versions: Homebrew can't pin, so the Linux pins in `pins.txt` (`mise/*`) don't apply there, and `VERSIONS.txt` says so.
 
 Fonts: Meslo Nerd Font (Homebrew cask on macOS, Nerd Fonts release + `fc-cache` on Linux; skipped on headless boxes, since the font matters where the terminal runs).
 
@@ -81,16 +97,16 @@ dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]
 
 ## Pins and releases
 
-`pins.txt` lists every external version the installer uses, one per line (`name kind source version`): the plexamp-tui release, the 16 repos `learn/fetch.sh` clones (Exercism tracks, example projects, docs), and TPM with the 7 tmux plugins. Nothing installs "whatever is newest today": `learn/fetch.sh` and the `tmux` step clone at the pinned commit (and leave a clone you've changed alone), and the `music` step installs the pinned plexamp-tui wheel. Neovim plugins are pinned separately by `nvim/lazy-lock.json`, and the Linux CLI tools by `mise/global.toml`.
+`pins.txt` lists every external version the installer uses, one per line (`name kind source version`): the plexamp-tui release, mise itself and zsh-bin, the 16 repos `learn/fetch.sh` clones (Exercism tracks, example projects, docs), TPM with the 7 tmux plugins, and the 15 Linux CLI tools (written into `mise/global.toml` as exact versions). Nothing installs "whatever is newest today": `learn/fetch.sh` and the `tmux` step clone at the pinned commit (and leave a clone you've changed alone), and the `music` step installs the pinned plexamp-tui wheel. Neovim plugins are pinned separately by `nvim/lazy-lock.json`.
 
 On every push to `main`, `.github/workflows/install.yml`:
 
-1. **pins**: `scripts/bump-pins.py bump` moves each pin to the newest version (`git ls-remote <url> HEAD` for commits, GitHub's `releases/latest` for numbered releases) and builds the tarball a release would ship.
+1. **pins**: `scripts/bump-pins.py bump` moves each pin to the newest version (`git ls-remote <url> HEAD` for commits, GitHub's `releases/latest` for numbered releases, `mise latest` for the CLI tools, Neovim within 0.12) and builds the tarball a release would ship.
 2. **tests**: installs from scratch with those pins (below).
-3. **release**, only if every test passed: commits the tested `pins.txt` to `main` as `github-actions[bot]` (listing what moved and the run that tested it), tags `vYYYY.MM.DD` (`.1`, `.2` for more that day) and publishes a GitHub release with `dotfiles.tar.gz` (the repo at that commit, the pinned plexamp-tui wheel in `dist/`, `VERSION` and `VERSIONS.txt`) and the `dotfiles` script. `releases/latest/download/dotfiles.tar.gz` is always the newest.
+3. **release**, only if every test passed: commits the tested `pins.txt` and `mise/global.toml` to `main` as `github-actions[bot]` (listing what moved and the run that tested it), tags `vYYYY.MM.DD` (`.1`, `.2` for more that day) and publishes a GitHub release with `dotfiles.tar.gz` (the repo at that commit, the pinned plexamp-tui wheel in `dist/`, `VERSION` and `VERSIONS.txt`) and the `dotfiles` script. `releases/latest/download/dotfiles.tar.gz` is always the newest.
 
 Pull requests test the committed pins. `scripts/bump-pins.py bump` locally does what CI does; `diff OLD NEW` and `table` print changes and versions.
 
 ## CI
 
-`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9 and Arch, both as root from the checkout (`--profile dev --with music`, plus the learn fetch with offline docs on Ubuntu) and as a user without sudo from the release tarball (`dotfiles install --from … --profile cli --with hdl,music`), plus macOS: unit tests under bash 3.2, a dry run, links, the tmux plugins, and a release install, update and rollback. Every Linux job checks tool versions, symlinks (through `current` for the release install), a clean zsh start, `Lazy! restore`, every tmux plugin at its pin with TPM finding them all, `tamp --version` and `tamp status` (no mpv on the no-sudo leg), and a simulation in both Verilator and Icarus. Failed jobs upload Neovim's logs as an artifact.
+`.github/workflows/install.yml` installs on Ubuntu 24.04, Debian 12, Fedora, Rocky 9, Arch, openSUSE Tumbleweed and Alpine (musl), both as root from the checkout (`--profile dev --with music`, plus the learn fetch with offline docs on Ubuntu; `cli` on Alpine) and as a user without sudo, zsh or Python from the release tarball (`dotfiles install --from … --profile cli --with hdl,music`, so zsh comes from zsh-bin). macOS gets a real install of the release tarball (`--profile cli --with music`, Homebrew) plus unit tests under bash 3.2, a dry run, links, the tmux plugins, and a release update and rollback. Every job checks tool versions, symlinks (through `current` for a release install), each Linux binary's linkage (static, or a documented exception), a clean zsh start, `Lazy! restore`, every tmux plugin at its pin with TPM finding them all, `tamp --version` and `tamp status` (no mpv on the no-sudo leg), and a simulation in both Verilator and Icarus where the HDL tools are installed. Failed jobs upload Neovim's logs as an artifact.

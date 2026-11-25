@@ -28,6 +28,7 @@ install_mpv() {
     debian) run $SUDO apt-get install -y -qq mpv ;;
     arch) run $SUDO pacman -S --needed --noconfirm mpv ;;
     suse) run $SUDO zypper --non-interactive install mpv ;;
+    alpine) run $SUDO apk add --no-cache mpv ;;
     rhel)
       # Fedora ships mpv; RHEL/Rocky only have it in RPM Fusion, which we don't enable for you.
       run $SUDO dnf install -y -q mpv || warn "mpv isn't in your repos (RPM Fusion has it); tamp will control other players only"

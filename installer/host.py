@@ -15,12 +15,13 @@ FAMILIES = {
     "debian": ("debian", "ubuntu", "linuxmint", "pop"),
     "rhel": ("fedora", "rhel", "centos", "rocky", "almalinux", "ol", "amzn"),
     "suse": ("opensuse", "opensuse-leap", "opensuse-tumbleweed", "suse", "sles"),
+    "alpine": ("alpine",),
 }
 
 
 @dataclass(frozen=True)
 class Host:
-    os: str  # macos | arch | debian | rhel | suse | linux | unknown
+    os: str  # macos | arch | debian | rhel | suse | alpine | linux | unknown
     distro: str  # human-readable, e.g. "Ubuntu 24.04.1 LTS"
     arch: str  # x86_64 | arm64 | aarch64 …
     is_root: bool

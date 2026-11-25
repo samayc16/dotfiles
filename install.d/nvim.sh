@@ -12,6 +12,7 @@ BOOTSTRAP_SCRIPT="$DOTFILES/nvim/scripts/bootstrap.lua"
 
 check_prereqs() {
   export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
+  if ! has nvim && is_musl; then skip "no Neovim: it publishes no musl build (Alpine: apk add neovim)"; fi
   has nvim || skip "nvim not installed"
   local version
   version="$(nvim --version | head -n1 | sed 's/^NVIM v//; s/-.*//')"

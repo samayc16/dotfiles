@@ -2,9 +2,10 @@
 # zsh itself, prompt/plugins, and making zsh the login shell — with no-root fallbacks.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
+# shellcheck source=pins.sh
+source "$(dirname "$0")/pins.sh"
 
 PLUGIN_DIR="$HOME/.local/share/zsh-plugins"
-ZSH_SRC_URL="https://sourceforge.net/projects/zsh/files/zsh/5.9/zsh-5.9.tar.xz/download"
 
 # Linux: clone the prompt + plugins user-locally (macOS gets them from Homebrew).
 sync_plugins() {
@@ -35,22 +36,22 @@ generate_completions() {
   ok "zsh completions in $dir"
 }
 
-# No zsh and no root: build it into ~/.local (needs a C compiler + ncurses headers).
-build_zsh() {
-  if ! has cc || ! has make; then
-    warn "no compiler: can't build zsh — staying on bash (aliases in zshrc won't load)"
+# No zsh and no root: romkatv/zsh-bin, a static zsh that runs on any Linux. Its install script,
+# pinned to a commit in pins.txt, checks the archive's sha256 before unpacking into ~/.local.
+install_zsh_bin() {
+  local url rev script
+  read -r url rev < <(pin_lookup zsh-bin) || { err "zsh-bin is not in pins.txt"; return 1; }
+  if [[ "$DRY_RUN" == 1 ]]; then info "would install zsh-bin (static zsh) into $LOCAL_PREFIX"; return 0; fi
+  script="$(mktemp)"
+  fetch "https://raw.githubusercontent.com/${url#https://github.com/}/$rev/install" "$script" &&
+    run sh "$script" -q -d "$LOCAL_PREFIX" -e no -a sha256 </dev/null
+  local status=$?
+  rm -f "$script"
+  if [[ "$status" != 0 ]]; then
+    warn "zsh-bin install failed — staying on bash (aliases in zshrc won't load)"
     return 1
   fi
-  [[ "$DRY_RUN" == 1 ]] && { info "would build zsh 5.9 from source into $LOCAL_PREFIX"; return 0; }
-  local work
-  work="$(mktemp -d)"
-  info "building zsh 5.9 into $LOCAL_PREFIX (a minute or two)…"
-  fetch "$ZSH_SRC_URL" "$work/zsh.tar.xz"
-  run tar -xJf "$work/zsh.tar.xz" -C "$work"
-  (cd "$work/zsh-5.9" && run ./configure --prefix="$LOCAL_PREFIX" --enable-multibyte >/dev/null && run make -j4 >/dev/null && run make install >/dev/null) \
-    || { warn "zsh build failed (missing ncurses headers?) — staying on bash"; return 1; }
-  rm -rf "$work"
-  ok "zsh → $LOCAL_PREFIX/bin/zsh"
+  ok "zsh (static, zsh-bin) → $LOCAL_PREFIX/bin/zsh"
 }
 
 # A login shell that isn't in /etc/shells can't be chsh'ed to without root, so as a
@@ -86,10 +87,10 @@ make_login_shell() {
 main() {
   section "zsh"
   export PATH="$LOCAL_PREFIX/bin:$PATH"
-  if ! has zsh; then build_zsh || exit 1; fi
+  if ! has zsh; then install_zsh_bin || exit 1; fi
   if ! has zsh; then
     [[ "$DRY_RUN" == 1 ]] && return 0
-    err "zsh still not found after building"
+    err "zsh still not found after installing zsh-bin"
     exit 1
   fi
   sync_plugins

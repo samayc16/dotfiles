@@ -10,6 +10,7 @@ SMOKE_SCRIPT="$DOTFILES/nvim/scripts/smoke.lua"
 main() {
   section "Smoke test (nvim)"
   export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
+  if ! has nvim && is_musl; then skip "no Neovim: it publishes no musl build (Alpine: apk add neovim)"; fi
   has nvim || skip "nvim not installed"
   [[ -f "$SMOKE_SCRIPT" ]] || skip "no smoke test at $SMOKE_SCRIPT"
   use_repo_nvim_config

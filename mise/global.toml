@@ -13,28 +13,37 @@
 #   mise doctor        diagnose PATH/activation
 
 [tools]
+# Every Linux tool is a self-contained download that runs on any distro: a static (musl) build
+# wherever upstream publishes one, picked explicitly per platform below because mise's defaults
+# would take the glibc build. mise checks each download's sha256 (GitHub's asset digest for
+# github:, the registry's checksums for aqua:, SHASUMS256 for node, repodata for conda:).
+# Not static, because upstream publishes no such build (docs/install.md lists the glibc floors):
+#   neovim (glibc ≥ 2.34), tree-sitter (conda-forge, glibc ≥ 2.17), node (glibc ≥ 2.28; the
+#   musl build from unofficial-builds.nodejs.org on Alpine), eza and delta on aarch64.
+# On musl systems (Alpine) the installer disables neovim and tree-sitter (conf.d/musl.toml).
+
 # Editor: the nvim config targets 0.12 (pins.txt: neovim@0.12); move to a new minor deliberately.
-neovim = { version = "0.12.6", os = ["linux"] }
+"github:neovim/neovim" = { version = "0.12.6", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "nvim-linux-x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "nvim-linux-arm64.tar.gz" } } }
 # nvim-treesitter (main) needs CLI ≥ 0.26.1. The GitHub release binaries need glibc 2.39
 # (no Debian 12 / RHEL 9); the conda-forge build runs on glibc ≥ 2.17.
 "conda:tree-sitter-cli" = { version = "0.27.2", os = ["linux"] }
-tmux = { version = "3.8", os = ["linux"] } # official static builds (tmux/tmux-builds)
+"github:tmux/tmux-builds" = { version = "3.8", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "tmux-*-linux-x86_64.tar.gz" }, linux-arm64 = { asset_pattern = "tmux-*-linux-arm64.tar.gz" } } }
 
 # Shell tools used by the aliases, fzf widgets and lazygit config
-ripgrep = { version = "16.0.0", os = ["linux"] }
-fd = { version = "10.5.2", os = ["linux"] }
-fzf = { version = "0.75.0", os = ["linux"] }
-bat = { version = "0.26.1", os = ["linux"] }
-eza = { version = "0.23.5", os = ["linux"] }
-delta = { version = "0.22.0", os = ["linux"] }
-lazygit = { version = "0.66.3", os = ["linux"] }
-zoxide = { version = "0.10.0", os = ["linux"] }
-jq = { version = "1.8.2", os = ["linux"] }
-gh = { version = "2.105.0", os = ["linux"] }
+"github:BurntSushi/ripgrep" = { version = "16.0.0", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "ripgrep-*-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:sharkdp/fd" = { version = "10.5.2", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "fd-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "fd-*-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:sharkdp/bat" = { version = "0.26.1", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "bat-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "bat-*-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:eza-community/eza" = { version = "0.23.5", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "eza_x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "eza_aarch64-unknown-linux-gnu.tar.gz" } } }
+"github:dandavison/delta" = { version = "0.22.0", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "delta-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "delta-*-aarch64-unknown-linux-gnu.tar.gz" } } }
+"github:ajeetdsouza/zoxide" = { version = "0.10.0", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "zoxide-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "zoxide-*-aarch64-unknown-linux-musl.tar.gz" } } }
+fzf = { version = "0.75.0", os = ["linux"] }         # Go: static
+lazygit = { version = "0.66.3", os = ["linux"] }     # Go: static
+gh = { version = "2.105.0", os = ["linux"] }         # Go: static
+jq = { version = "1.8.2", os = ["linux"] }           # upstream's static build
 
 # Runtimes for language servers (mason installs npm/pip-based servers with these)
 node = { version = "24.22.3", os = ["linux"] }
-uv = { version = "0.13.9", os = ["linux"] }
+"github:astral-sh/uv" = { version = "0.13.9", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "uv-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "uv-aarch64-unknown-linux-musl.tar.gz" } } }
 
 [settings]
 # Prefer prebuilt release binaries; never prompt (CI / unattended installs).

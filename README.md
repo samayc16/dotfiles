@@ -6,7 +6,7 @@ A portable terminal development environment for macOS and Linux: a Neovim IDE fo
 
 ## Install
 
-The latest release, on macOS, Arch, Debian/Ubuntu, Fedora/RHEL or openSUSE, including SSH boxes without root:
+The latest release, on macOS or any Linux (Arch, Debian/Ubuntu, Fedora/RHEL, openSUSE, Alpine…), including SSH boxes without root:
 
 ```sh
 bash -c "$(curl -fsSL https://github.com/samayc16/dotfiles/releases/latest/download/dotfiles)" - install
@@ -29,7 +29,7 @@ Either way it installs everything, then smoke-tests every language in Neovim. Ad
 
 `./install.sh --list-steps` shows the plan; `--only <step>` re-runs one. Per-OS details, flags and no-root behaviour: [docs/install.md](docs/install.md).
 
-**Updates.** When a new release is out, a new shell asks once: `dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]`. `dotfiles update` does it any time and `dotfiles rollback` goes back; neither touches files you've changed. `DOTFILES_NO_UPDATE_CHECK=1` in `~/.zshrc.local` turns the question off. Every push to main bumps the pinned versions of everything external (`pins.txt`), tests the whole install with them, and only then publishes a dated release. Details: [docs/install.md](docs/install.md#updates-and-rollback).
+**Updates.** When a new release is out, a new shell asks once: `dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]`. `dotfiles update` does it any time and `dotfiles rollback` goes back; neither touches files you've changed. `DOTFILES_NO_UPDATE_CHECK=1` in `~/.zshrc.local` turns the question off. Every push to main bumps the pinned versions of everything external (`pins.txt`), tests the whole install with them, and only then publishes a dated release. On Linux the tools are self-contained downloads (static wherever upstream builds one), so they don't depend on the distro; macOS uses Homebrew's current versions. Details: [docs/install.md](docs/install.md#updates-and-rollback).
 
 ## What you get
 

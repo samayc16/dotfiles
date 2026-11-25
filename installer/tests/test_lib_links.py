@@ -10,6 +10,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+class Platform(unittest.TestCase):
+    def test_lib_sh_knows_every_family_host_py_does(self) -> None:
+        from installer.host import FAMILIES
+
+        lib = (ROOT / "install.d" / "lib.sh").read_text()
+        for family in FAMILIES:
+            self.assertIn("echo %s && return" % family, lib)
+
+
 class ReleaseLinks(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())

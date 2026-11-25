@@ -74,7 +74,7 @@ wants() {
 }
 
 # ── Platform ──────────────────────────────────────────────────────────
-# Prints one of: macos arch debian rhel suse linux unknown
+# Prints one of: macos arch debian rhel suse alpine linux unknown
 detect_os() {
   case "$(uname -s)" in
     Darwin) echo macos && return ;;
@@ -93,6 +93,7 @@ detect_os() {
       debian | ubuntu | linuxmint | pop) echo debian && return ;;
       fedora | rhel | centos | rocky | almalinux | ol | amzn) echo rhel && return ;;
       opensuse* | suse | sles) echo suse && return ;;
+      alpine) echo alpine && return ;;
     esac
   done
   echo linux
@@ -102,6 +103,12 @@ OS="${OS:-$(detect_os)}"
 export OS
 
 is_wsl() { [[ -r /proc/version ]] && grep -qi microsoft /proc/version; }
+
+# musl libc (Alpine): downloads built against glibc won't run here.
+is_musl() {
+  [[ "$OS" != macos ]] || return 1
+  compgen -G "/lib/ld-musl-*.so.1" >/dev/null || ldd --version 2>&1 | grep -qi musl
+}
 
 # Sets SUDO to the prefix for privileged commands: "" as root, "sudo -n" when
 # passwordless/cached sudo works. Returns 1 when neither (no system packages).
