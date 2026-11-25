@@ -74,7 +74,8 @@ return {
     opts = {
       servers = {
         clangd = {
-          mason = not tools.is_mac and 'clangd' or false, -- Xcode's clangd knows the macOS SDK
+          -- Xcode's clangd knows the macOS SDK; on old glibc the installer's conda-forge one runs
+          mason = not tools.is_mac and not tools.old_glibc and 'clangd' or false,
           cmd = {
             clangd,
             '--background-index',
@@ -95,7 +96,7 @@ return {
         },
         neocmake = { mason = 'neocmakelsp' },
       },
-      tools = tools.is_mac and { 'codelldb' } or { 'codelldb', 'clang-format' },
+      tools = (tools.is_mac or tools.old_glibc) and { 'codelldb' } or { 'codelldb', 'clang-format' },
     },
   },
 

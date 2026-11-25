@@ -6,9 +6,39 @@
 # Skip either with --without lazy / --without bootstrap.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
+source "$(dirname "$0")/pins.sh"
+source "$(dirname "$0")/libc.sh"
 
 NVIM_MIN_VERSION="0.12.0"
 BOOTSTRAP_SCRIPT="$DOTFILES/nvim/scripts/bootstrap.lua"
+LSP_CONFIG="$HOME/.config/mise/conf.d/lsp-old-glibc.toml"
+
+# Mason's basedpyright, clangd and clang-format don't run on glibc older than 2.28 (CentOS 7):
+# basedpyright's npm build runs on the Node the installer set up, and conda-forge's clang-tools
+# (clangd, clang-format) needs glibc 2.17. Neovim leaves those three to PATH there (util/tools.lua).
+old_glibc_lsps() {
+  local pyright clang node
+  if ! wants_old_glibc_lsps; then
+    if [[ -f "$LSP_CONFIG" ]]; then run rm -f "$LSP_CONFIG"; fi
+    return 0
+  fi
+  read -r _ pyright < <(pin_lookup mise/basedpyright-old-glibc) || { err "mise/basedpyright-old-glibc is not in pins.txt"; return 1; }
+  read -r _ clang < <(pin_lookup mise/clang-tools-old-glibc) || { err "mise/clang-tools-old-glibc is not in pins.txt"; return 1; }
+  info "glibc $(glibc_version) is older than the $LSP_GLIBC_FLOOR Mason's Python and C servers need: basedpyright $pyright from npm, clangd + clang-format $clang from conda-forge"
+  [[ "$DRY_RUN" == 1 ]] && return 0
+  mkdir -p "$(dirname "$LSP_CONFIG")"
+  cat >"$LSP_CONFIG" <<EOF
+# Written by the dotfiles installer: glibc $(glibc_version) is older than $LSP_GLIBC_FLOOR (pins.txt: mise/*-old-glibc)
+[tools]
+"npm:basedpyright" = "$pyright"
+"conda:clang-tools" = "$clang"
+EOF
+  # npm runs from Node's own directory: under this one-file config, mise's node shim has no version
+  node="$(mise which node 2>/dev/null || true)"
+  retry 3 run env ${node:+PATH="$(dirname "$node"):$PATH"} MISE_GLOBAL_CONFIG_FILE="$LSP_CONFIG" mise install --yes ||
+    { warn "the Python / C language servers for old glibc failed to install (see above)"; return 1; }
+  run mise reshim
+}
 
 check_prereqs() {
   export PATH="$LOCAL_PREFIX/bin:$HOME/.local/share/mise/shims:$PATH"
@@ -48,6 +78,7 @@ main() {
   fi
   if wants bootstrap dev && [[ -f "$BOOTSTRAP_SCRIPT" || "$DRY_RUN" == 1 ]]; then
     ensure_modern_python
+    old_glibc_lsps || failed=1
     # tree-sitter compiles parsers with $CC; GCC 12 (Debian 12) spends 30+ min on Swift's.
     local cc="${CC:-cc}"
     [[ -z "${CC:-}" ]] && has clang && cc=clang

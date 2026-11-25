@@ -43,6 +43,8 @@ HEADER = ("#", "name", "kind", "source", "version")
 INSTALLER_ONLY = {
     "github:neovim/neovim-releases": "Neovim's glibc 2.17 build, for systems older than glibc 2.34",
     "conda:git": "a user-local git where the system's is older than 2.19 (CentOS 7) or missing",
+    "npm:basedpyright": "the Python language server where Mason's needs a newer glibc than 2.28",
+    "conda:clang-tools": "clangd and clang-format where Mason's need a newer glibc than 2.28",
 }
 TIMEOUT = 30
 

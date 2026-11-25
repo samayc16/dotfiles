@@ -4,6 +4,7 @@
 
 NVIM_GLIBC_FLOOR=2.34 # Neovim's usual Linux build
 NODE_GLIBC_FLOOR=2.28 # Node's official Linux build, which also needs libatomic.so.1
+LSP_GLIBC_FLOOR=2.28  # Mason's basedpyright (Node from PyPI), clangd and clang-format
 GIT_FLOOR=2.19        # lazy.nvim's partial clones (--filter); the installer's `git -C` needs 1.8.5
 
 # "2.28", or empty on musl, where getconf has no GNU_LIBC_VERSION
@@ -14,6 +15,14 @@ glibc_version() { getconf GNU_LIBC_VERSION 2>/dev/null | awk '{ print $2 }' || t
 has_libatomic() { [[ "$({ ldconfig -p || /sbin/ldconfig -p; } 2>/dev/null)" == *libatomic.so.1* ]]; }
 
 # Neovim's usual build can't run here (glibc too old), but its glibc 2.17 build can.
+# Mason's basedpyright, clangd and clang-format need a newer glibc (CentOS 7 has 2.17): the nvim
+# step installs basedpyright from npm and clangd + clang-format from conda-forge instead.
+wants_old_glibc_lsps() {
+  local glibc
+  glibc="$(glibc_version)"
+  [[ -n "$glibc" ]] && ! version_ge "$glibc" "$LSP_GLIBC_FLOOR"
+}
+
 wants_old_glibc_nvim() {
   local glibc
   glibc="$(glibc_version)"

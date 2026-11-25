@@ -1,5 +1,6 @@
 -- basedpyright (types, navigation) + ruff (lint, imports, format) + debugpy.
 local q = vim.fn.shellescape
+local tools = require 'util.tools'
 
 local function project_root(buf)
   return vim.fs.root(buf, { 'pyproject.toml', 'uv.lock', 'setup.py', 'requirements.txt', '.venv', '.git' })
@@ -21,6 +22,7 @@ return {
     opts = {
       servers = {
         basedpyright = {
+          mason = not tools.old_glibc and 'basedpyright' or false, -- old glibc: the installer's npm build
           settings = {
             basedpyright = {
               analysis = {

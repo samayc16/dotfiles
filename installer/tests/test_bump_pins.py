@@ -78,7 +78,8 @@ class Parse(unittest.TestCase):
         loop = re.search(r"^  for t in (mise tmux [^;]+); do$", verify, re.M)
         self.assertIsNotNone(loop, "verify.sh's linkage loop moved")
         checked = set(loop.group(1).split())
-        command = {"neovim": "nvim", "neovim-old-glibc": "nvim", "git-old-system": "git", "ripgrep": "rg"}
+        command = {"neovim": "nvim", "neovim-old-glibc": "nvim", "git-old-system": "git",
+                   "basedpyright-old-glibc": "basedpyright", "clang-tools-old-glibc": "clangd", "ripgrep": "rg"}
         pinned = {command.get(p.name[5:], p.name[5:]) for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.name.startswith("mise/")}
         self.assertEqual(pinned - checked, set())
 
@@ -147,7 +148,7 @@ class MiseConfig(unittest.TestCase):
 
     def test_installer_only_pins_are_pinned_and_used_by_the_installer(self) -> None:
         pinned = {bp.mise_tool(p.source) for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.kind == "mise"}
-        installer = (ROOT / "install.d" / "mise.sh").read_text()
+        installer = "".join(f.read_text() for f in sorted((ROOT / "install.d").glob("*.sh")))
         for tool in bp.INSTALLER_ONLY:
             self.assertIn(tool, pinned)
             self.assertIn('"%s"' % tool, installer)

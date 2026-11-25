@@ -56,7 +56,9 @@ tamp_sources() {
 install_tamp() {
   local source
   while read -r source; do
-    run uv tool install --upgrade --quiet "$source" </dev/null && return 0
+    # --no-build-package: the newest Pillow with a wheel for this system, never a source build
+    # (Pillow 13 has no wheel for glibc 2.17, and CentOS 7's GCC 4.8 can't compile it)
+    run uv tool install --upgrade --quiet --no-build-package pillow "$source" </dev/null && return 0
     warn "could not install from $source"
   done < <(tamp_sources)
   return 1

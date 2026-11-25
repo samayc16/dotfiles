@@ -55,6 +55,20 @@ class Libc(unittest.TestCase):
             with self.subTest(name):
                 self.assertEqual(self.ask(system, "wants_old_glibc_nvim"), wanted)
 
+    def test_language_servers(self) -> None:
+        """Mason's basedpyright, clangd and clang-format need glibc 2.28: below it the nvim step
+        installs basedpyright from npm and clang-tools from conda-forge."""
+        cases = {
+            "Alpine (musl): Mason's own builds": (MUSL, False),
+            "CentOS 7 (glibc 2.17)": (glibc("2.17", libatomic=False), True),
+            "Amazon Linux 2 (glibc 2.26)": (glibc("2.26"), True),
+            "Rocky 8 (glibc 2.28)": (glibc("2.28", libatomic=False), False),
+            "Ubuntu 24.04 (glibc 2.39)": (glibc("2.39"), False),
+        }
+        for name, (system, wanted) in cases.items():
+            with self.subTest(name):
+                self.assertEqual(self.ask(system, "wants_old_glibc_lsps"), wanted)
+
     def test_node(self) -> None:
         cases = {
             "Alpine (musl): musl build elsewhere": (MUSL, False),

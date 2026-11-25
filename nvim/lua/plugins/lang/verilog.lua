@@ -80,7 +80,14 @@ return {
     'neovim/nvim-lspconfig',
     opts = {
       servers = {
-        slang_server = { mason = 'slang-server', cmd = { 'slang-server' }, filetypes = hdl, root_markers = { '.slang', '.git' } },
+        -- slang-server needs glibc 2.27 and there's no older build: none on CentOS 7 (2.17)
+        slang_server = {
+          enabled = not require('util.tools').glibc_below(2, 27),
+          mason = 'slang-server',
+          cmd = { 'slang-server' },
+          filetypes = hdl,
+          root_markers = { '.slang', '.git' },
+        },
       },
       tools = { 'verible' },
     },

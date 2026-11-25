@@ -83,6 +83,7 @@ local samples = {
     lang = 'systemverilog',
     file = 'counter.sv',
     requires = { { 'verilator', 'iverilog' } },
+    needs = function() return not tools.glibc_below(2, 27), 'slang-server needs glibc 2.27' end,
     servers = { 'slang_server' },
     text = { 'module counter (output logic [3:0] q);', '  assign q = undeclared_signal;', 'endmodule' },
     run_text = { 'module counter;', '  logic [3:0] q = 0;', '  initial begin', '    repeat (5) q++;', '    $display("q=%0d", q);', '    $finish;', '  end', 'endmodule' },

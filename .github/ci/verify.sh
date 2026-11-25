@@ -31,9 +31,13 @@ printf '%-12s %s\n' git "$git_v ($(command -v git))"
 # build (neovim, tree-sitter, node; mise/global.toml says why). zsh-bin's zsh must be static too.
 if [ "$mac" = 0 ]; then
   command -v file >/dev/null || fail "verify needs file(1)"
-  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv atuin sesh yazi ya btop direnv node nvim tree-sitter zsh git; do
+  for t in mise tmux rg fd fzf bat eza delta lazygit zoxide jq gh uv atuin sesh yazi ya btop direnv node nvim tree-sitter zsh git basedpyright clangd; do
     case $t in
-      git) mise which git >/dev/null 2>&1 || continue ;; # only where the installer added one (old systems)
+      git | clangd) mise which "$t" >/dev/null 2>&1 || continue ;; # only where the installer added one (old systems)
+      basedpyright) # a Node script, from npm where Mason's needs a newer glibc (old systems only)
+        mise which basedpyright >/dev/null 2>&1 || continue
+        printf '%-12s %s, a Node script\n' "$t" "$(basedpyright --version 2>&1 | head -n1)"
+        continue ;;
       nvim | tree-sitter) [ "$nvim_on" = 1 ] || continue ;;
       zsh) [ -x "$HOME/.local/bin/zsh" ] || continue ;;
       node) # newer Node needs libatomic.so.1, a system library only root can add; the installer says so
@@ -46,7 +50,7 @@ if [ "$mac" = 0 ]; then
     info=$(file -L "$bin")
     case "$info" in
       *interpreter*) interp=$(echo "$info" | sed 's/.*interpreter \([^,]*\).*/\1/')
-        case $t in nvim | tree-sitter | node | git) printf '%-12s dynamic (%s), a documented exception\n' "$t" "$interp" ;;
+        case $t in nvim | tree-sitter | node | git | clangd) printf '%-12s dynamic (%s), a documented exception\n' "$t" "$interp" ;;
           *) fail "$t ($bin) is dynamically linked ($interp): pick its static build in mise/global.toml" ;; esac ;;
       *ELF*) printf '%-12s static\n' "$t" ;;
       *) fail "$t ($bin) is not an ELF binary: $info" ;;

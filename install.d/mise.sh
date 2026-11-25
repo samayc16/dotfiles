@@ -91,7 +91,9 @@ git_setup() {
   fi
   read -r spec version < <(pin_lookup mise/git-old-system) || { err "mise/git-old-system is not in pins.txt"; return 1; }
   have="$(git_version)"
-  info "${have:+git $have is older than $GIT_FLOOR}${have:-no git here}: installing git $version from conda-forge for you ($spec)"
+  local why="no git here"
+  [[ -n "$have" ]] && why="git $have is older than $GIT_FLOOR"
+  info "$why: installing git $version from conda-forge for you ($spec)"
   [[ "$DRY_RUN" == 1 ]] && return 0
   mkdir -p "$(dirname "$GIT_CONFIG")"
   cat >"$GIT_CONFIG" <<EOF

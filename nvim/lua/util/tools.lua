@@ -7,9 +7,36 @@ M.is_mac = vim.uv.os_uname().sysname == 'Darwin'
 -- Headless runs (installer, CI, scripts) install synchronously; see scripts/bootstrap.lua.
 M.headless = vim.list_contains(vim.v.argv, '--headless')
 
--- Newest first; the first one the compiler accepts wins.
-M.cxx_stds = { 'c++26', 'c++2c', 'c++23', 'c++2b', 'c++20' }
-M.c_stds = { 'c23', 'c2x', 'c17' }
+-- Newest first; the first one the compiler accepts wins. The old ones are for old compilers
+-- (CentOS 7's GCC 4.8 stops at C11 and C++11).
+M.cxx_stds = { 'c++26', 'c++2c', 'c++23', 'c++2b', 'c++20', 'c++17', 'c++14', 'c++11' }
+M.c_stds = { 'c23', 'c2x', 'c17', 'c11' }
+
+local glibc
+
+--- glibc's version as { major, minor }, or nil where there's none (macOS, musl).
+---@return integer[]?
+function M.glibc()
+  if glibc == nil then
+    glibc = false
+    if not M.is_mac and vim.fn.executable 'getconf' == 1 then
+      local major, minor = vim.fn.system({ 'getconf', 'GNU_LIBC_VERSION' }):match 'glibc (%d+)%.(%d+)'
+      if major then glibc = { tonumber(major), tonumber(minor) } end
+    end
+  end
+  return glibc or nil
+end
+
+--- True on a glibc older than major.minor (never off glibc).
+function M.glibc_below(major, minor)
+  local v = M.glibc()
+  return v ~= nil and (v[1] < major or (v[1] == major and v[2] < minor))
+end
+
+-- Mason's basedpyright (Node from PyPI), clangd and clang-format need glibc 2.28; below it the
+-- installer puts basedpyright (npm) and clangd + clang-format (conda-forge) on PATH instead
+-- (install.d/nvim.sh). CentOS 7 has 2.17.
+M.old_glibc = M.glibc_below(2, 28)
 
 local xcode_bin_dirs
 

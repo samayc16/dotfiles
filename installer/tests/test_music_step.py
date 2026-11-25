@@ -49,19 +49,19 @@ class MusicStep(unittest.TestCase):
 
     def test_pinned_release_wheel(self) -> None:
         self.run_step()
-        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet https://github.com/samayc16/plexamp-tui/releases/download/v0.2.0/plexamp_tui-0.2.0-py3-none-any.whl"])
+        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet --no-build-package pillow https://github.com/samayc16/plexamp-tui/releases/download/v0.2.0/plexamp_tui-0.2.0-py3-none-any.whl"])
 
     def test_bundled_wheel_wins(self) -> None:
         wheel = self.repo / "dist" / "plexamp_tui-0.2.0-py3-none-any.whl"
         wheel.parent.mkdir()
         wheel.write_text("")
         self.run_step()
-        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet %s" % wheel])
+        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet --no-build-package pillow %s" % wheel])
 
     def test_no_release_yet_installs_main(self) -> None:
         self.pins.write_text("plexamp-tui release https://github.com/samayc16/plexamp-tui -\n")
         self.assertIn("no numbered", self.run_step())
-        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet git+https://github.com/samayc16/plexamp-tui"])
+        self.assertEqual(self.installs(), ["uv tool install --upgrade --quiet --no-build-package pillow git+https://github.com/samayc16/plexamp-tui"])
 
     def test_editable_dev_install_is_left_alone(self) -> None:
         receipt = self.home / ".local" / "share" / "uv" / "tools" / "plexamp-tui" / "uv-receipt.toml"
