@@ -29,7 +29,7 @@ learn/swift-argument-parser  commit   https://github.com/apple/swift-argument-pa
 learn/picorv32               commit   https://github.com/YosysHQ/picorv32                             ef203c2b0a3fb793280f5114941416c425c5b461
 learn/lyah                   commit   https://github.com/learnyouahaskell/learnyouahaskell.github.io  1e60d107cceadccf2a2d4b6cf67e94fc77c61e19
 learn/swift-book             commit   https://github.com/swiftlang/swift-book                         16a2a4caa408c86fc85bde1e1dfff4745b6e454c
-learn/verilator-docs         commit   https://github.com/verilator/verilator                          e7d094587d436d171c8e9dffdf986b8840cf4db8
+learn/verilator-docs         commit   https://github.com/verilator/verilator                          74e46235e5966901f66fab48635611c47bbd8909
 
 # install.d/tmux.sh: TPM and the plugins tmux.conf lists, cloned into ~/.tmux/plugins/<name>
 tmux/tpm                     commit   https://github.com/tmux-plugins/tpm                             e261deb1b47614eed3400089ce7197dc68acc4eb
