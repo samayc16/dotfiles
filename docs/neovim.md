@@ -1,7 +1,7 @@
 # Neovim guide
 
 A full IDE for Python, C, C++, Rust, Swift, SystemVerilog/Verilog, Haskell, Lua and shell that works offline. Leader is `Space`.
-Every key is in [CHEATSHEET.md](../CHEATSHEET.md#neovim-leader--space); this guide covers how to *use* them.
+Every key is in [cheatsheets/neovim.md](../cheatsheets/neovim.md) (`Space sC` inside Neovim); this guide covers how to *use* them.
 
 ## First 10 minutes
 

@@ -87,7 +87,7 @@ jobs:
         run: python3 -m unittest discover -s tests
       - name: shellcheck
         run: |
-          shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles scripts/build-release.sh
+          shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles bin/cheat scripts/build-release.sh
           shellcheck -S warning -x -P install.d -s bash learn/fetch.sh
           shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh scripts/focus.sh
       - name: zsh syntax

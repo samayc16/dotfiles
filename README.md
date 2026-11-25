@@ -39,11 +39,11 @@ Either way it installs everything, then smoke-tests every language in Neovim. Ad
 | **Learning** | `learn`: koans and Exercism exercises with tests, stars and XP · `:Dojo`: vim golf for motions and these keymaps · offline docs | [docs/learning.md](docs/learning.md) |
 | **Music** | [plexamp-tui](https://github.com/samayc16/plexamp-tui) (`tamp`): Plex in the terminal. Play here, or follow and control Plexamp on your phone with synced lyrics; now playing in the tmux bar | [plexamp-tui](https://github.com/samayc16/plexamp-tui#readme) |
 | **Games** | `play`: vim trainers, GameShell, a grep murder mystery, DOOM in Neovim, Zork, roguelikes | [docs/games.md](docs/games.md) |
-| **Terminal** | zsh + Powerlevel10k with fuzzy Tab completion for everything, `tools` to see what's installed, tmux with popups, kitty, fzf/zoxide/eza/bat, lazygit + delta | [CHEATSHEET.md](CHEATSHEET.md) |
-| **Workflow** | atuin history search on `Ctrl-R` (local only), sesh project sessions (`prefix T`), a focus timer in the tmux bar (`prefix P`), yazi (`y`), btop, direnv, `kitten ssh` from kitty | [CHEATSHEET.md](CHEATSHEET.md#history-files-processes-atuin-yazi-btop-direnv) |
+| **Terminal** | zsh + Powerlevel10k with fuzzy Tab completion for everything, `tools` to see what's installed, tmux with popups, kitty, fzf/zoxide/eza/bat, lazygit + delta | [shell](cheatsheets/shell.md) · [tmux](cheatsheets/tmux.md) · [kitty](cheatsheets/kitty.md) |
+| **Workflow** | atuin history search on `Ctrl-R` (local only), sesh project sessions (`prefix T`), a focus timer in the tmux bar (`prefix P`), yazi (`y`), btop, direnv, `kitten ssh` from kitty | [shell](cheatsheets/shell.md#history-files-processes-atuin-yazi-btop-direnv) |
 | **Claude Code** | Remote Control in every session, Claude inside Neovim (`Space ac`), a Tutor style for learning, `quiz` and `learn-coach` skills | [below](#claude-code) |
 
-Every keybinding is in [CHEATSHEET.md](CHEATSHEET.md). In tmux press `prefix ?`; in Neovim press `Space` and wait.
+Every keybinding is in [CHEATSHEET.md](CHEATSHEET.md), or one app at a time in [cheatsheets/](cheatsheets/). From a shell, `cheat tmux` shows one app and `cheat split` finds every key that mentions a word; in Neovim `Space sC` (`:Cheat`) opens it in a float, or press `Space` and wait; in tmux press `prefix ?`.
 
 <table>
   <tr>

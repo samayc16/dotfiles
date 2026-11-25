@@ -11,6 +11,7 @@ search|fd|find files by name
 search|fzf|fuzzy-pick anything: Ctrl-T files, Alt-C cd, Tab completion
 search|atuin|shell history from every session: Ctrl-R (local only)
 search|grep|classic text search
+search|cheat|your keys for every app here: cheat tmux, cheat split
 view|bat|cat with syntax highlighting (cat is aliased to it)
 view|eza|ls with icons and git status (ls, ll, lt, lrt)
 view|less|page through long output

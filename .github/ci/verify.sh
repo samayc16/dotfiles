@@ -52,7 +52,7 @@ fi
 # Links, and for a release install: through ~/.local/share/dotfiles/current, so a flip moves them all
 clangd=.config/clangd/config.yaml
 [ "$mac" = 1 ] && clangd=Library/Preferences/clangd/config.yaml
-for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .atuin/config.toml .config/nvim .config/mise/config.toml "$clangd" bin/dotfiles; do
+for l in .zshrc .tmux.conf .tmux/scripts .gitconfig .atuin/config.toml .config/nvim .config/mise/config.toml "$clangd" bin/dotfiles bin/cheat; do
   [ -L "$HOME/$l" ] && [ -e "$HOME/$l" ] || fail "missing link: ~/$l"
 done
 if [ "${RELEASE:-0}" = 1 ]; then
@@ -60,6 +60,12 @@ if [ "${RELEASE:-0}" = 1 ]; then
   dotfiles status
 fi
 [ -f "$HOME/.claude/settings.json" ] && [ ! -L "$HOME/.claude/settings.json" ] || fail "Claude settings must be a copy, not a link"
+
+# cheat renders every sheet and searches them with this system's awk (mawk, busybox, BSD, gawk)
+for app in $(cheat --complete | cut -d: -f1); do cheat "$app" | grep -q . || fail "cheat $app shows nothing"; done
+cheat tmux | grep -q 'split side-by-side' || fail "cheat tmux lost the panes table"
+cheat split | grep -q '^tmux .*prefix %' || fail "cheat split doesn't find tmux's split key"
+echo "cheat: $(cheat --complete | wc -l | tr -d ' ') sheets"
 
 # A clean interactive start, with atuin on Ctrl-R (fzf keeps Ctrl-T) and the history import done
 if [ "$mac" = 1 ]; then out=$(script -q /dev/null zsh -ic 'echo ZSH_OK; bindkey "^R"; bindkey "^T"; exit' 2>&1)

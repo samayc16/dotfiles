@@ -1,8 +1,11 @@
+<!-- Generated from cheatsheets/*.md by scripts/build-cheatsheet.py: edit those, then run it. -->
 # cheatsheet
 
-Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` shows the live popup version.
+Everything wired up by this repo, grouped by tool. One app at a time: the files in [cheatsheets/](cheatsheets/), `cheat <app>` in a terminal (`cheat <words>` searches every app), `:Cheat` in Neovim, `prefix ?` in tmux.
 
-## install
+[dotfiles](#dotfiles-install--update) · [shell](#shell-zsh) · [tmux](#tmux) · [neovim](#neovim-leader--space) · [learn](#learn--train-all-offline) · [tamp](#music-tamp) · [kitty](#kitty) · [git](#git) · [claude](#claude-code) · [codex](#codex)
+
+## dotfiles (install & update)
 
 | cmd | does |
 |---|---|
@@ -41,6 +44,7 @@ Everything wired up by this repo, grouped by tool. Inside tmux, `prefix + ?` sho
 ### discover what you have
 | keys / cmd | does |
 |---|---|
+| `cheat <app>` · `cheat <words>` | one app's keys (`cheat tmux`, `cheat nvim`) · every key that mentions them, in any app (`cheat split`, `cheat tmux session`); `cheat` alone searches them all as you type |
 | `Tab` | fuzzy completion menu for any command, flag, file, `learn` exercise or `play` game; type to filter, `<` / `>` switch groups |
 | `rg --<Tab>` · `learn <Tab>` · `learn start <Tab>` | e.g. search every rg flag · every course · every exercise with its title |
 | `r<Tab>` | commands starting with r, each previewed with its tldr examples |
@@ -95,7 +99,7 @@ Images preview in yazi inside tmux too (kitty graphics, passed through by tmux).
 
 ## tmux
 
-**prefix = `Ctrl-a`** (also `Ctrl-b`). `prefix + ?` for the popup.
+**prefix = `Ctrl-a`** (also `Ctrl-b`). `prefix + ?` for the popup, `cheat tmux` for this page in a shell.
 
 ### no prefix
 | keys | does |
@@ -172,7 +176,7 @@ Renames (`,` `$`), move (`.`), find (`C-f`) and new/goto session (`C` / `g`) ope
 
 ## neovim (leader = `Space`)
 
-Press a leader prefix and pause: which-key lists everything under it. `<leader>?` shows buffer-local keys, `<leader>sk` searches every keymap.
+Press a leader prefix and pause: which-key lists everything under it. `<leader>?` shows buffer-local keys, `<leader>sk` searches every keymap, `<leader>sC` (or `:Cheat`) shows this page in a float (`:Cheat tmux` for another app's).
 Layout: `nvim/lua/config/` (options, keymaps) · `nvim/lua/plugins/` (one file per concern) · `nvim/lua/plugins/lang/` (one file per language).
 
 ### languages (all offline once installed)
@@ -375,6 +379,8 @@ Par = keystrokes: ★★★ ≤ par, ★★ ≤ 1.5× par. The black belt drills
 | `tamp status` · `tamp toggle` `next` `prev` | what's playing (shown in the tmux bar) · control from scripts and keys |
 | `Alt+p` · `Alt+n` (tmux, anywhere) | play / pause · next, whatever tamp is playing on |
 
+---
+
 ## kitty
 
 Monokai Pro palette, `MesloLGM Nerd Font`, OSC52 clipboard (so `copy` and nvim yank work over SSH). Shared settings in `kitty/kitty.conf`; OS-specific ones in `kitty/macos.conf` (Option sends Alt) and `kitty/linux.conf`.
@@ -426,6 +432,8 @@ model · effort · directory (bold leaf) · branch · context % (green → yello
 | `/model` | switch model |
 | `/fast` | toggle fast mode |
 | `/loop <interval> <cmd>` | recurring prompts |
+
+---
 
 ## Codex
 

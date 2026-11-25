@@ -1,0 +1,5 @@
+#compdef cheat
+
+local -a items=(${(f)"$(cheat --complete 2>/dev/null)"})
+_arguments '--list[the apps]' '--help[usage]' '1:app:->app' '*:word:'
+[[ $state == app ]] && _describe -t apps 'app' items
