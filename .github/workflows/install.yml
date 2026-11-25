@@ -176,13 +176,13 @@ jobs:
         # takes the source-build path a real install would (~15 min).
         run: ./install.sh --profile "${{ matrix.profile || 'dev' }}" --with "${{ matrix.extra || 'music' }}" --no-log
 
-      - name: Install a release tarball as a user without sudo (profile cli + ${{ matrix.user_with || 'hdl,music' }})
+      - name: Install a release tarball as a user without sudo (profile ${{ matrix.user_profile || 'cli' }} + ${{ matrix.user_with || 'hdl,music' }})
         if: matrix.mode == 'user'
         run: |
           install -m 755 bin/dotfiles /tmp/dotfiles-cli
           install -m 644 ci-artifacts/dotfiles.tar.gz /tmp/dotfiles.tar.gz
           .github/ci/as-tester.sh env HOME=/home/tester GITHUB_TOKEN="$GITHUB_TOKEN" NO_COLOR=1 \
-            bash /tmp/dotfiles-cli install --from /tmp/dotfiles.tar.gz --no-sudo --profile cli --with "${{ matrix.user_with || 'hdl,music' }}" --no-log
+            bash /tmp/dotfiles-cli install --from /tmp/dotfiles.tar.gz --no-sudo --profile "${{ matrix.user_profile || 'cli' }}" --with "${{ matrix.user_with || 'hdl,music' }}" --no-log
 
       - name: Verify
         env:
