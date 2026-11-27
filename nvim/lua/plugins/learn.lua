@@ -116,10 +116,28 @@ end
 function M.next() step 'next' end
 function M.prev() step 'prev' end
 
+--- Listed buffers under `root` that still differ from the file on disk.
+local function unsaved_in(root)
+  local names = {}
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local name = vim.api.nvim_buf_get_name(buf)
+    if vim.bo[buf].modified and vim.startswith(name, root .. '/') then table.insert(names, vim.fs.basename(name)) end
+  end
+  return names
+end
+
 function M.check()
   local root = require_workspace()
   if not root then return end
   vim.cmd 'silent! wall'
+  local unsaved = unsaved_in(root)
+  if #unsaved > 0 then -- 'wall' skips readonly buffers and swallows write errors under silent!
+    vim.notify(
+      ('Could not save %s: the check reads the file on disk, not your edits.'):format(table.concat(unsaved, ', ')),
+      vim.log.levels.WARN,
+      { title = 'learn' }
+    )
+  end
   local ok, overseer = pcall(require, 'overseer')
   if not ok then
     vim.cmd('botright 15split | terminal cd ' .. vim.fn.shellescape(root) .. ' && ' .. vim.fn.shellescape(learn_bin()) .. ' check')
@@ -148,7 +166,9 @@ function M.hint()
   local root = require_workspace()
   if not root then return end
   local res = run({ 'hint' }, { cwd = root })
-  float_markdown(res.stdout ~= '' and res.stdout or res.stderr, ' hint ')
+  -- stderr carries the one-time "this caps the exercise at ★" warning: show it above the hint.
+  local text = vim.trim(table.concat({ vim.trim(res.stderr), vim.trim(res.stdout) }, '\n\n'))
+  float_markdown(text, ' hint ')
 end
 
 function M.solution(giveup)
@@ -165,9 +185,11 @@ function M.solution(giveup)
     vim.notify('No reference solution for this exercise.', vim.log.levels.INFO, { title = 'learn' })
     return
   end
-  vim.cmd.tabnew()
   for i, path in ipairs(paths) do
-    vim.cmd((i == 1 and 'view ' or 'vsplit | view ') .. vim.fn.fnameescape(path))
+    -- `tab sview` (not tabnew + view) so no empty [No Name] buffer is left in the tab bar
+    vim.cmd((i == 1 and 'tab sview ' or 'vertical sview ') .. vim.fn.fnameescape(path))
+    vim.bo.buflisted = false -- the reference stays out of the exercise's buffer tabs
+    vim.bo.bufhidden = 'wipe'
   end
 end
 
@@ -202,11 +224,19 @@ function M.dashboard()
 end
 
 --- Offline reference docs: HTML opens in the browser, Markdown/rST folders open in a picker.
-local DOC_LANGS = { 'c', 'cpp', 'python', 'haskell', 'swift', 'sv', 'shell' }
+local DOC_LANGS = { 'c', 'cpp', 'rust', 'python', 'haskell', 'swift', 'sv', 'shell' }
 
 local function open_doc(entry)
   if not entry.exists then
     vim.notify(entry.title .. ' is not downloaded: run ~/dotfiles/learn/fetch.sh once with internet', vim.log.levels.WARN)
+  elseif type(entry.files) == 'table' and #entry.files > 0 then
+    -- A track's READMEs: offer just those (the track dir also holds every reference solution).
+    vim.ui.select(entry.files, {
+      prompt = entry.title,
+      format_item = function(path) return vim.fs.basename(vim.fs.dirname(path)) end,
+    }, function(path)
+      if path then vim.cmd.view(vim.fn.fnameescape(path)) end
+    end)
   elseif entry.kind == 'html' then
     vim.ui.open(entry.path)
   else
@@ -235,6 +265,7 @@ function M.docs(lang)
   local guess = ({
     c = 'c',
     cpp = 'cpp',
+    rust = 'rust',
     python = 'python',
     haskell = 'haskell',
     swift = 'swift',
@@ -252,12 +283,18 @@ end
 
 local function stars(n) return string.rep('★', n) .. string.rep('☆', 3 - n) end
 
+--- Pad to `width` screen cells (string.format counts bytes, so "·" or "★" would skew columns).
+local function pad(text, width)
+  if vim.fn.strdisplaywidth(text) > width then text = vim.fn.strcharpart(text, 0, width - 1) .. '…' end
+  return text .. string.rep(' ', width - vim.fn.strdisplaywidth(text))
+end
+
 function M.pick()
   local status = run_json { 'status' }
   if not status then return end
   vim.ui.select(status.tracks, {
     prompt = ('learn · Level %d %s · %d XP · pick a track'):format(status.level, status.title, status.xp),
-    format_item = function(t) return ('%-34s %3d/%-3d'):format(t.name, t.passed, t.total) end,
+    format_item = function(t) return ('%s %3d/%-3d'):format(pad(t.name, 34), t.passed, t.total) end,
   }, function(track)
     if not track then return end
     vim.ui.select(track.exercises, {
