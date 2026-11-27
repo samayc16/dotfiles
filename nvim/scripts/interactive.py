@@ -58,6 +58,70 @@ with open(log, "ab", buffering=0) as out:
         out.write(data)
 """
 
+# Stands in for `claude` in the Claude split: logs keys like KEYLOG, and connects to
+# claudecode.nvim's IDE websocket the way the real CLI does (port from the terminal's env,
+# token from the lock file), appending each message nvim sends it to <log>.ide as a line.
+FAKE_CLAUDE = """\
+import base64, json, os, socket, struct, sys, threading, tty
+log = sys.argv[1]
+port = os.environ["CLAUDE_CODE_SSE_PORT"]
+with open(os.path.join(os.environ["CLAUDE_CONFIG_DIR"], "ide", port + ".lock")) as f:
+    token = json.load(f)["authToken"]
+sock = socket.create_connection(("127.0.0.1", int(port)))
+sock.sendall((
+    "GET / HTTP/1.1\\r\\nHost: 127.0.0.1:%s\\r\\nUpgrade: websocket\\r\\nConnection: Upgrade\\r\\n"
+    "Sec-WebSocket-Key: %s\\r\\nSec-WebSocket-Version: 13\\r\\nx-claude-code-ide-authorization: %s\\r\\n\\r\\n"
+    % (port, base64.b64encode(os.urandom(16)).decode(), token)).encode())
+reply = b""
+while b"\\r\\n\\r\\n" not in reply:
+    reply += sock.recv(4096)
+assert reply.startswith(b"HTTP/1.1 101"), reply
+
+def recv_exact(n):
+    data = b""
+    while len(data) < n:
+        chunk = sock.recv(n - len(data))
+        if not chunk:
+            raise EOFError
+        data += chunk
+    return data
+
+def send(opcode, payload):  # clients must mask their frames
+    mask, n = os.urandom(4), len(payload)
+    head = bytes([0x80 | opcode]) + (bytes([0x80 | n]) if n < 126 else bytes([0xFE]) + struct.pack(">H", n))
+    sock.sendall(head + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
+
+def websocket():
+    with open(log + ".ide", "a") as out:
+        while True:
+            b0, b1 = recv_exact(2)
+            n = b1 & 0x7F
+            n = struct.unpack(">H", recv_exact(2))[0] if n == 126 else struct.unpack(">Q", recv_exact(8))[0] if n == 127 else n
+            mask = recv_exact(4) if b1 & 0x80 else b"\\0\\0\\0\\0"
+            payload = bytes(b ^ mask[i % 4] for i, b in enumerate(recv_exact(n)))
+            opcode = b0 & 0x0F
+            if opcode == 1:
+                out.write(payload.decode() + "\\n")
+                out.flush()
+            elif opcode == 9:
+                send(0xA, payload)
+            elif opcode == 8:
+                return
+
+threading.Thread(target=websocket, daemon=True).start()
+tty.setraw(0)
+open(log + ".ready", "w").close()
+with open(log, "ab", buffering=0) as out:
+    while True:
+        try:
+            data = os.read(0, 1024)
+        except OSError:
+            break
+        if not data:
+            break
+        out.write(data)
+"""
+
 
 class Failure(Exception):
     pass
@@ -197,6 +261,7 @@ class Session:
         self.pane = None
         self.logs = []
         (tmp / "keylog.py").write_text(KEYLOG)
+        (tmp / "fake_claude.py").write_text(FAKE_CLAUDE)
 
     def start_nvim(self, *files, dashboard=False):
         if not files and not dashboard:  # a file, so tests start in an editor window
@@ -216,11 +281,30 @@ class Session:
             raise Failure("lazy.nvim's window is open (missing plugins: %s): run ./install.sh --only nvim" % (missing or "none"))
         return self.pane
 
-    def keylogger(self, name):
+    def keylogger(self, name, script="keylog.py"):
         log = self.tmp / name
         self.logs.append(log)
-        cmd = " ".join(shlex.quote(p) for p in (sys.executable, str(self.tmp / "keylog.py"), str(log)))
+        cmd = " ".join(shlex.quote(p) for p in (sys.executable, str(self.tmp / script), str(log)))
         return log, cmd
+
+    def open_claude(self, name="claude", connect=False):
+        """The split <leader>ac opens, running a key logger (connect=True: FAKE_CLAUDE,
+        connected to the IDE server like the real CLI) in place of `claude`. Returns the
+        log and the split's window, in terminal mode."""
+        log, cmd = self.keylogger(name, "fake_claude.py" if connect else "keylog.py")
+        self.nvim.lua("require('claudecode.terminal').setup({ split_side = 'right', split_width_percentage = 0.4 }, %s) return true" % lua_str(cmd))
+        self.type(LEADER + b"ac")
+        self.wait_ready(log)
+        win = self.wait_state("the Claude split in terminal mode", buftype="terminal", mode="t")["win"]
+        if connect:
+            wait_for("Claude to connect to nvim", lambda: self.nvim.lua("return require('claudecode').is_claude_connected()"))
+        return log, win
+
+    @staticmethod
+    def ide_messages(log, method):
+        path = Path(str(log) + ".ide")
+        lines = path.read_text().splitlines() if path.exists() else []
+        return [m["params"] for m in map(json.loads, lines) if m.get("method") == method]
 
     def wait_ready(self, log):
         wait_for("%s to start" % log.name, lambda: Path(str(log) + ".ready").exists())
@@ -316,12 +400,7 @@ def nav_claude_split_types_nothing(s):
     Claude's prompt. The plugin's own terminal maps typed "TmuxNavigateLeft" into it."""
     s.start_nvim()
     s.type(CTRL["l"])  # first use loads vim-tmux-navigator: its own terminal maps appeared then
-    log, cmd = s.keylogger("claude")
-    # The same split <leader>ac opens, running the key logger instead of `claude`.
-    s.nvim.lua("require('claudecode.terminal').setup({ split_side = 'right', split_width_percentage = 0.4 }, %s) return true" % lua_str(cmd))
-    s.type(LEADER + b"ac")
-    s.wait_ready(log)
-    claude = s.wait_state("the Claude split in terminal mode", buftype="terminal", mode="t")["win"]
+    log, claude = s.open_claude()
     for key in "jk":  # no window above or below: tmux has no pane there either
         s.type(CTRL[key])
     s.type(CTRL["h"])
@@ -331,6 +410,33 @@ def nav_claude_split_types_nothing(s):
     s.wait_state("Ctrl-l back to Claude, typing", win=claude, mode="t")
     s.type(b"hi")
     wait_for("Claude to get the typed text", lambda: s.received(log) == b"hi")
+
+
+@test
+def claude_send_selection_focuses_claude(s):
+    """With Claude open and connected, <leader>as on a selection sends those lines and
+    moves to Claude's prompt, so the question can be typed straight away."""
+    code = s.tmp / "code.py"
+    code.write_text("one\ntwo\nthree\nfour\n")
+    s.start_nvim(code)
+    log, claude = s.open_claude(connect=True)
+    s.type(CTRL["h"])
+    s.wait_state("back in the file", buftype="", mode="n")
+    s.type(b"jVj")
+    s.wait_state("lines 2-3 selected", mode="V")
+    s.type(LEADER + b"as")
+    s.wait_state("Claude's prompt, typing", win=claude, mode="t")
+    sent = wait_for("Claude to get the selection", lambda: s.ide_messages(log, "at_mentioned"))
+    if len(sent) != 1 or not sent[0]["filePath"].endswith("code.py") or (sent[0]["lineStart"], sent[0]["lineEnd"]) != (1, 2):
+        raise Failure("Claude got %r, wanted one mention of code.py lines 1-2 (0-based)" % sent)
+    s.assert_nothing_typed(log)
+    s.type(b"why?")
+    wait_for("Claude to get the question", lambda: s.received(log) == b"why?")
+    s.type(CTRL["h"])
+    s.wait_state("the file again, out of visual mode", buftype="", mode="n")
+    s.type(LEADER + b"ab")  # the whole buffer, same behaviour
+    s.wait_state("Claude's prompt after <leader>ab", win=claude, mode="t")
+    wait_for("Claude to get the buffer", lambda: len(s.ide_messages(log, "at_mentioned")) == 2)
 
 
 @test

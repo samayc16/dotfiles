@@ -312,7 +312,7 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | keys | does |
 |---|---|
 | `<leader>ac` / `<leader>af` | toggle / focus Claude panel |
-| `<leader>ab` · `<leader>as` (visual) | add current file · send selection |
+| `<leader>ab` · `<leader>as` (visual) | add current file · send selection, then jump to Claude's prompt |
 | `<leader>aa` / `<leader>ad` | accept / deny Claude's diff |
 
 ### screen

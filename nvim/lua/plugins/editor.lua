@@ -129,7 +129,10 @@ return {
     'coder/claudecode.nvim',
     event = 'VeryLazy', -- start the IDE server so `claude` in another tmux pane can /ide-connect
     dependencies = { 'folke/snacks.nvim' },
-    opts = { terminal = { split_side = 'right', split_width_percentage = 0.4 } },
+    opts = {
+      focus_after_send = true, -- <leader>as / <leader>ab land in Claude's prompt, ready for the question
+      terminal = { split_side = 'right', split_width_percentage = 0.4 },
+    },
     keys = {
       { '<leader>ac', '<cmd>ClaudeCode<cr>', desc = 'Toggle Claude' },
       { '<leader>af', '<cmd>ClaudeCodeFocus<cr>', desc = 'Focus Claude' },
