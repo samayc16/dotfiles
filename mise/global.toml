@@ -39,7 +39,7 @@
 "github:ajeetdsouza/zoxide" = { version = "0.10.0", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "zoxide-*-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "zoxide-*-aarch64-unknown-linux-musl.tar.gz" } } }
 fzf = { version = "0.75.0", os = ["linux"] }         # Go: static
 lazygit = { version = "0.66.3", os = ["linux"] }     # Go: static
-gh = { version = "2.105.0", os = ["linux"] }         # Go: static
+gh = { version = "2.106.0", os = ["linux"] }         # Go: static
 jq = { version = "1.8.2", os = ["linux"] }           # upstream's static build
 
 # History search (Ctrl-R), the tmux session picker (prefix T), file manager (y), process viewer and
@@ -53,7 +53,7 @@ jq = { version = "1.8.2", os = ["linux"] }           # upstream's static build
 
 # Runtimes for language servers (mason installs npm/pip-based servers with these)
 node = { version = "26.13.1", os = ["linux"] }
-"github:astral-sh/uv" = { version = "0.13.9", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "uv-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "uv-aarch64-unknown-linux-musl.tar.gz" } } }
+"github:astral-sh/uv" = { version = "0.13.10", os = ["linux"], platforms = { linux-x64 = { asset_pattern = "uv-x86_64-unknown-linux-musl.tar.gz" }, linux-arm64 = { asset_pattern = "uv-aarch64-unknown-linux-musl.tar.gz" } } }
 
 [settings]
 # Prefer prebuilt release binaries; never prompt (CI / unattended installs).

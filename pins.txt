@@ -15,7 +15,7 @@ zsh-bin                      commit   https://github.com/romkatv/zsh-bin        
 
 # learn/fetch.sh: Exercism tracks, example projects, offline docs
 learn/exercism-python        commit   https://github.com/exercism/python                              479f11b44b02337b0413e805b948491c2179615a
-learn/exercism-c             commit   https://github.com/exercism/c                                   1675b02c310198e9752e516ee1a2294b76a37f84
+learn/exercism-c             commit   https://github.com/exercism/c                                   7515d208a3b7aeb4749e0f6790b0ecdbd07498f7
 learn/exercism-cpp           commit   https://github.com/exercism/cpp                                 3ad5d0e99c0972b7e429d30c9539954207238b37
 learn/exercism-swift         commit   https://github.com/exercism/swift                               a0e8e9ef7453d4010e123c6af8e1fb296eafad43
 learn/exercism-rust          commit   https://github.com/exercism/rust                                0a9b22d667da5a226bf480b0152ae29dfba99545
@@ -29,7 +29,7 @@ learn/swift-argument-parser  commit   https://github.com/apple/swift-argument-pa
 learn/picorv32               commit   https://github.com/YosysHQ/picorv32                             ef203c2b0a3fb793280f5114941416c425c5b461
 learn/lyah                   commit   https://github.com/learnyouahaskell/learnyouahaskell.github.io  1e60d107cceadccf2a2d4b6cf67e94fc77c61e19
 learn/swift-book             commit   https://github.com/swiftlang/swift-book                         16a2a4caa408c86fc85bde1e1dfff4745b6e454c
-learn/verilator-docs         commit   https://github.com/verilator/verilator                          74e46235e5966901f66fab48635611c47bbd8909
+learn/verilator-docs         commit   https://github.com/verilator/verilator                          43872a413ae4c07cff523222e430d9301c5364bc
 
 # install.d/tmux.sh: TPM and the plugins tmux.conf lists, cloned into ~/.tmux/plugins/<name>
 tmux/tpm                     commit   https://github.com/tmux-plugins/tpm                             e261deb1b47614eed3400089ce7197dc68acc4eb
@@ -58,9 +58,9 @@ mise/delta                   mise     github:dandavison/delta                   
 mise/lazygit                 mise     lazygit                                                         0.66.3
 mise/zoxide                  mise     github:ajeetdsouza/zoxide                                       0.10.0
 mise/jq                      mise     jq                                                              1.8.2
-mise/gh                      mise     gh                                                              2.105.0
+mise/gh                      mise     gh                                                              2.106.0
 mise/node                    mise     node@lts                                                        26.13.1
-mise/uv                      mise     github:astral-sh/uv                                             0.13.9
+mise/uv                      mise     github:astral-sh/uv                                             0.13.10
 mise/atuin                   mise     github:atuinsh/atuin                                            18.25.1
 mise/sesh                    mise     github:joshmedeski/sesh                                         2.34.0
 mise/yazi                    mise     github:sxyazi/yazi                                              26.9.1
