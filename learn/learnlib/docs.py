@@ -8,11 +8,13 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 from .tracks import TRACKS_DIR
 
 LEARN_HOME = Path(os.environ.get("LEARN_HOME", Path.home() / "learn"))
 DOCS_DIR = LEARN_HOME / "docs"
+LEVEL_READMES = "[0-9]*/README.md"
 
 
 @dataclass(frozen=True)
@@ -20,10 +22,14 @@ class DocEntry:
     title: str
     path: Path
     kind: str  # "html" opens in a browser; "text" is Markdown/rST read in nvim
+    glob: str = ""  # offer only these files under `path` (a track dir also holds the solutions)
 
     @property
     def exists(self) -> bool:
         return self.path.exists()
+
+    def files(self) -> List[Path]:
+        return sorted(self.path.glob(self.glob)) if self.glob and self.path.is_dir() else []
 
 
 def _first(pattern: str) -> Path:
@@ -79,11 +85,11 @@ def registry() -> dict[str, list[DocEntry]]:
             DocEntry("The Swift Programming Language (Markdown)", DOCS_DIR / "swift/swift-book/TSPL.docc", "text")
         ],
         "sv": [
-            DocEntry("SystemVerilog track READMEs", TRACKS_DIR / "systemverilog", "text"),
+            DocEntry("SystemVerilog track READMEs", TRACKS_DIR / "systemverilog", "text", LEVEL_READMES),
             DocEntry("Verilator user guide (rST)", DOCS_DIR / "sv/verilator/docs/guide", "text"),
             DocEntry("Verilator examples", _verilator_examples(), "text"),
         ],
-        "shell": [DocEntry("Shell track READMEs (grep/rg/sed/awk)", TRACKS_DIR / "shell", "text")],
+        "shell": [DocEntry("Shell track READMEs (grep/rg/sed/awk)", TRACKS_DIR / "shell", "text", LEVEL_READMES)],
     }
 
 

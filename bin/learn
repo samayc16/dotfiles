@@ -10,8 +10,20 @@ sys.path.insert(0, str(REPO / "learn"))
 
 from learnlib.cli import main  # noqa: E402
 
+
+def _reader_gone() -> int:
+    """`learn list python | head` closed the pipe: stop quietly, like cat does."""
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, sys.stdout.fileno())  # the interpreter's final flush must not fail again
+    return 128 + 13  # SIGPIPE
+
+
 if __name__ == "__main__":
     try:
-        sys.exit(main())
+        code = main()
+        sys.stdout.flush()
     except KeyboardInterrupt:
-        sys.exit(130)
+        code = 130
+    except BrokenPipeError:
+        code = _reader_gone()
+    sys.exit(code)

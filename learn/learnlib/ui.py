@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
+import unicodedata
 
 PALETTE = {
     "red": (255, 97, 136),
@@ -57,11 +59,42 @@ def rule(width: int = 60) -> str:
     return dim("─" * width)
 
 
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _char_width(char: str) -> int:
+    if unicodedata.category(char) in ("Mn", "Me", "Cf"):
+        return 0
+    return 2 if unicodedata.east_asian_width(char) in ("W", "F") else 1
+
+
+def width(text: str) -> int:
+    """Columns `text` takes in a terminal: colour codes take none, emoji take two."""
+    return sum(_char_width(char) for char in ANSI.sub("", text))
+
+
+def pad(text: str, columns: int) -> str:
+    """Left-align (possibly coloured) text in `columns`; plain text that is too long gets an ellipsis.
+
+    str.ljust can't do this: it counts colour codes as characters, so painted cells never line up."""
+    shown = width(text)
+    if shown <= columns:
+        return text + " " * (columns - shown)
+    if ANSI.search(text):
+        return text
+    cut = ""
+    for char in text:
+        if width(cut + char) > columns - 1:
+            break
+        cut += char
+    return cut + "…" + " " * (columns - 1 - width(cut))
+
+
 def banner(lines: list[str], color: str = "green") -> str:
-    width = max(len(line) for line in lines) + 4
-    top = paint("╭" + "─" * width + "╮", color)
-    bottom = paint("╰" + "─" * width + "╯", color)
-    body = [paint("│", color) + "  " + line.ljust(width - 2) + paint("│", color) for line in lines]
+    inner = max(width(line) for line in lines) + 4
+    top = paint("╭" + "─" * inner + "╮", color)
+    bottom = paint("╰" + "─" * inner + "╯", color)
+    body = [paint("│", color) + "  " + pad(line, inner - 2) + paint("│", color) for line in lines]
     return "\n".join([top, *body, bottom])
 
 

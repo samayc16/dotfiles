@@ -8,11 +8,13 @@ understands the exercise (pyrightconfig.json, compile_flags.txt).
 
 from __future__ import annotations
 
+import glob
 import json
 import os
 import re
 import shutil
 from pathlib import Path
+from typing import List, Tuple
 
 from . import exercism
 from .model import Exercise
@@ -21,6 +23,21 @@ LEARN_HOME = Path(os.environ.get("LEARN_HOME", Path.home() / "learn"))
 WORKSPACE_ROOT = LEARN_HOME / "workspace"
 VENV_DIR = LEARN_HOME / ".venv"
 MARKER = ".learn.json"
+
+
+
+def default_swap_dirs() -> Tuple[Path, ...]:
+    """Where Neovim keeps swap files ('directory' default: stdpath("state")/swap//)."""
+    state = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
+    return (Path(state) / (os.environ.get("NVIM_APPNAME") or "nvim") / "swap",)
+
+
+SWAP_DIRS = default_swap_dirs()
+# Vim/Neovim swap file, block 0 (memline.c `struct block0`): b0_pid at bytes 24-27 (LSB first);
+# b0_dirty, the last byte of the 900-byte b0_fname that starts at 108, is 0x55 while modified.
+SWAP_PID = slice(24, 28)
+SWAP_DIRTY_AT = 108 + 900 - 1
+SWAP_DIRTY = 0x55
 
 C_STD = "c23"
 CXX_STD = "c++26"
@@ -144,6 +161,60 @@ def prepare(exercise: Exercise) -> Path:
     marker = {"track": exercise.track, "slug": exercise.slug}
     (ws / MARKER).write_text(json.dumps(marker) + "\n")
     return ws
+
+
+def _swap_files(path: Path) -> List[Path]:
+    """Swap files an editor may hold for `path`: Neovim's %-named ones, and Vim's .name.swp beside it."""
+    found = list(path.parent.glob(glob.escape(f".{path.name}") + ".sw?"))
+    for name in {str(path), str(path.resolve())}:
+        encoded = glob.escape(name.replace(os.sep, "%"))
+        for directory in SWAP_DIRS:
+            found.extend(directory.glob(encoded + ".sw?"))
+    return found
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def _modified_in_running_editor(swap: Path) -> bool:
+    try:
+        with swap.open("rb") as fh:
+            block = fh.read(SWAP_DIRTY_AT + 1)
+    except OSError:
+        return False
+    if len(block) <= SWAP_DIRTY_AT or block[:2] != b"b0" or block[SWAP_DIRTY_AT] != SWAP_DIRTY:
+        return False
+    pid = int.from_bytes(block[SWAP_PID], "little")
+    return pid > 0 and _alive(pid)  # a dead pid is a crashed session: `nvim -r` territory, not ours
+
+
+def unsaved_files(exercise: Exercise, ws: Path) -> List[str]:
+    """Learner files that a running Vim/Neovim has modified but not saved: `learn check` can't see those."""
+    return [rel for rel in exercise.files if any(_modified_in_running_editor(s) for s in _swap_files(ws / rel))]
+
+
+def untouched_files(exercise: Exercise, ws: Path) -> List[str]:
+    """Learner files still exactly as the starter was copied in."""
+    untouched = []
+    for rel in exercise.files:
+        mine, starter = ws / rel, exercise.source_dir / rel
+        try:
+            if starter.is_file():
+                same = mine.read_bytes() == starter.read_bytes()
+            else:
+                same = not mine.exists() or mine.stat().st_size == 0
+        except OSError:
+            same = False
+        if same:
+            untouched.append(rel)
+    return untouched
 
 
 def remove(exercise: Exercise) -> bool:

@@ -1,8 +1,9 @@
 """Persistent progress (~/learn/progress.json).
 
 Every update returns a NEW dict; `save` writes atomically (temp file + rename) so a
-crash mid-write never corrupts history. A missing or corrupt file starts fresh
-(the corrupt one is kept as progress.json.corrupt for inspection).
+crash mid-write never corrupts history. A missing or unreadable file starts fresh; a
+readable one with damaged parts (a hand edit, a bad merge) keeps every entry that still
+makes sense. Either way the original is kept as progress.json.corrupt for inspection.
 """
 
 from __future__ import annotations
@@ -12,8 +13,10 @@ import copy
 import datetime as dt
 import json
 import os
+import shutil
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 from . import ui
 
@@ -26,23 +29,69 @@ def empty() -> dict:
     return {"version": VERSION, "exercises": {}, "days": [], "last": None}
 
 
-def load(path: Path = PROGRESS_FILE) -> dict:
+ENTRY_FIELDS = {"attempts": int, "hints_used": int, "gave_up": bool, "passed": bool, "stars": int, "xp": int}
+
+
+def _clean_entry(raw: object) -> Optional[dict]:
+    """The fields of one exercise entry that have the right type (None if it isn't an entry at all)."""
+    if not isinstance(raw, dict):
+        return None
+    clean = {}
+    for name, kind in ENTRY_FIELDS.items():
+        value = raw.get(name)
+        if kind is bool and isinstance(value, bool):
+            clean[name] = value
+        elif kind is int and isinstance(value, (int, float)) and not isinstance(value, bool):
+            clean[name] = max(0, min(3, int(value))) if name == "stars" else max(0, int(value))
+    return clean
+
+
+def _is_day(value: object) -> bool:
+    try:
+        dt.date.fromisoformat(value)  # type: ignore[arg-type]
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _repaired(data: dict) -> dict:
+    cleaned = {key: _clean_entry(value) for key, value in data["exercises"].items()}
+    days = data.get("days") if isinstance(data.get("days"), list) else []
+    last = data.get("last")
+    return {
+        **data,
+        "exercises": {key: entry for key, entry in cleaned.items() if entry is not None},
+        "days": sorted({day for day in days if _is_day(day)}),
+        "last": last if isinstance(last, str) else None,
+    }
+
+
+def load(path: Optional[Path] = None) -> dict:
+    path = path or PROGRESS_FILE  # looked up per call: a default argument would freeze it at import
     if not path.exists():
         return empty()
+    backup = path.with_suffix(".json.corrupt")
     try:
         data = json.loads(path.read_text())
         if not isinstance(data, dict) or not isinstance(data.get("exercises"), dict):
             raise ValueError("unexpected shape")
-        return {**empty(), **data}
     except (OSError, ValueError) as exc:
-        backup = path.with_suffix(".json.corrupt")
         with contextlib.suppress(OSError):
             path.replace(backup)
         ui.warn(f"progress file was unreadable ({exc}); starting fresh. Old copy: {backup}")
         return empty()
+    as_read = {**empty(), **data}
+    repaired = _repaired(as_read)
+    if repaired != as_read:
+        with contextlib.suppress(OSError):
+            shutil.copyfile(str(path), str(backup))
+            save(repaired, path)
+        ui.warn(f"progress file had damaged entries; kept everything readable. Original: {backup}")
+    return repaired
 
 
-def save(data: dict, path: Path = PROGRESS_FILE) -> None:
+def save(data: dict, path: Optional[Path] = None) -> None:
+    path = path or PROGRESS_FILE
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix=".progress-", dir=path.parent)
     try:

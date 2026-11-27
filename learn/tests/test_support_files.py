@@ -12,6 +12,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from tests import support  # noqa: F401  (isolates LEARN_HOME first)
 from learnlib import docs, tracks, workspace
 
 TESTS_RS = "#[test]\nfn t() {}\n"

@@ -17,6 +17,7 @@ from .model import Exercise, Track
 
 FRONTIER = 3  # how many unpassed exercises are open at once in a track
 CHECK_TIMEOUT_S = 900
+TOOLCHAIN_MISSING = 127  # a checker exits with this when a tool it needs isn't installed
 DIFFICULTY = {
     1: ("easy", "green"),
     2: ("easy+", "green"),
@@ -38,11 +39,39 @@ def is_unlocked(track: Track, index: int, data: dict) -> bool:
     return entry["passed"] or entry["attempts"] > 0 or index < _passed_count(track, data) + FRONTIER
 
 
+def _open_indexes(track: Track, data: dict) -> list[int]:
+    """Exercises waiting to be passed that the learner can start now."""
+    return [
+        i
+        for i, ex in enumerate(track.exercises)
+        if not progress.entry(data, ex.key)["passed"] and is_unlocked(track, i, data)
+    ]
+
+
 def next_in_track(track: Track, data: dict) -> Exercise | None:
-    for i, ex in enumerate(track.exercises):
-        if not progress.entry(data, ex.key)["passed"] and is_unlocked(track, i, data):
-            return ex
-    return None
+    """Where to resume a track: its first open exercise."""
+    indexes = _open_indexes(track, data)
+    return track.exercises[indexes[0]] if indexes else None
+
+
+def next_after(track: Track, data: dict, slug: str) -> Exercise | None:
+    """What `learn next` opens from inside `slug`: the first open exercise after it, else the
+    first one skipped before it. Never `slug` itself: <leader>ln must move somewhere."""
+    current = track.index_of(slug)
+    indexes = [i for i in _open_indexes(track, data) if i != current]
+    later = [i for i in indexes if i > current]
+    chosen = (later or indexes or [None])[0]
+    return None if chosen is None else track.exercises[chosen]
+
+
+def _nothing_to_open(message: str, as_json: bool) -> int:
+    """`--print` callers (nvim) parse stdout as the exercise to open: say why there is none on
+    stderr and fail, rather than printing prose where JSON belongs."""
+    if as_json:
+        ui.warn(message)
+        return 1
+    ui.info(message)
+    return 0
 
 
 def _current_exercise(all_tracks: tuple[Track, ...], key: str | None) -> Exercise:
@@ -108,7 +137,7 @@ def cmd_dashboard(all_tracks: tuple[Track, ...], data: dict) -> int:
         passed = _passed_count(track, data)
         got = sum(progress.entry(data, ex.key)["stars"] for ex in track.exercises)
         print(
-            f" {track.name[:30]:<30} {ui.bar(passed, total, 18)} {passed:>3}/{total:<4}"
+            f" {ui.pad(track.name, 30)} {ui.bar(passed, total, 18)} {passed:>3}/{total:<4}"
             f" {ui.paint('★', 'yellow')} {got}/{total * 3}"
         )
     print()
@@ -128,7 +157,7 @@ def cmd_dashboard(all_tracks: tuple[Track, ...], data: dict) -> int:
 def cmd_tracks(all_tracks: tuple[Track, ...], data: dict) -> int:
     for track in all_tracks:
         passed = _passed_count(track, data)
-        print(f" {ui.paint(track.slug, 'cyan', bold=True):<28} {passed:>3}/{len(track.exercises):<4} {track.name}")
+        print(f" {ui.pad(ui.paint(track.slug, 'cyan', bold=True), 28)} {passed:>3}/{len(track.exercises):<4} {track.name}")
         if track.description:
             print(ui.dim(f"     {track.description}"))
     return 0
@@ -151,7 +180,7 @@ def cmd_list(all_tracks: tuple[Track, ...], data: dict, slug: str, show_all: boo
         label, color = DIFFICULTY.get(ex.difficulty, ("?", "gray"))
         mark = ui.stars(entry["stars"]) if entry["passed"] else (ui.dim(" 🔒") + " " if not unlocked else ui.dim("···"))
         concepts = ui.dim(", ".join(ex.concepts[:3]))
-        print(f" {i + 1:>3}  {mark}  {ex.title[:34]:<34} {ui.paint(label, color):<8} {concepts}")
+        print(f" {i + 1:>3}  {mark}  {ui.pad(ex.title, 34)} {ui.pad(ui.paint(label, color), 8)} {concepts}")
     if hidden:
         print(ui.dim(f"  … {hidden} more locked. Pass exercises to unlock, or `learn list {slug} --all`."))
     return 0
@@ -181,16 +210,21 @@ def cmd_next(all_tracks: tuple[Track, ...], data: dict, slug: str | None, as_jso
     if slug and not candidates:
         ui.error(f"no track {slug!r}")
         return 2
+    here = workspace.read_marker(Path.cwd()) or ""
     if not candidates:
-        current = workspace.read_marker(Path.cwd()) or data.get("last") or ""
-        preferred = current.split("/", 1)[0]
+        preferred = (here or data.get("last") or "").split("/", 1)[0]
         candidates = sorted(all_tracks, key=lambda t: t.slug != preferred)
     for track in candidates:
-        exercise = next_in_track(track, data)
+        if here.startswith(track.slug + "/"):
+            current = track.find(here.split("/", 1)[1])
+            exercise = next_after(track, data, current.slug) if current else next_in_track(track, data)
+            if exercise is None and current and not progress.entry(data, current.key)["passed"]:
+                return _nothing_to_open(f"{current.title} is the last one left in {track.name}: pass it to finish.", as_json)
+        else:
+            exercise = next_in_track(track, data)
         if exercise:
             return cmd_start(all_tracks, data, exercise.key, as_json, force=True)
-    ui.info(ui.paint("Everything here is passed. Legendary. 🏆", "yellow", bold=True))
-    return 0
+    return _nothing_to_open(ui.paint("Everything here is passed. Legendary. 🏆", "yellow", bold=True), as_json)
 
 
 def cmd_prev(all_tracks: tuple[Track, ...], data: dict, slug: str | None, as_json: bool) -> int:
@@ -208,23 +242,37 @@ def cmd_prev(all_tracks: tuple[Track, ...], data: dict, slug: str | None, as_jso
         upcoming = next_in_track(track, data)
         index = track.index_of(upcoming.slug) if upcoming else len(track.exercises)
     if index <= 0:
-        ui.info(f"{track.exercises[0].title} is the first exercise in {track.name}.")
-        return 0
+        return _nothing_to_open(f"{track.exercises[0].title} is the first exercise in {track.name}.", as_json)
     return cmd_start(all_tracks, data, track.exercises[index - 1].key, as_json, force=True)
 
 
+def _check_env(exercise: Exercise, ws: Path) -> dict[str, str]:
+    env = {
+        **os.environ,
+        "LEARN_EXERCISE_DIR": str(exercise.source_dir),
+        "LEARN_WORKSPACE": str(ws),
+        "LEARN_HOME": str(workspace.LEARN_HOME),
+    }
+    if not ui.color_enabled():  # piped (an assistant, a script) or NO_COLOR: checkers stay plain too
+        env["NO_COLOR"] = "1"
+        env.pop("LEARN_FORCE_COLOR", None)
+    return env
+
+
 def _run_check(exercise: Exercise, ws: Path) -> int:
-    env = {**os.environ, "LEARN_EXERCISE_DIR": str(exercise.source_dir), "LEARN_WORKSPACE": str(ws)}
+    env = _check_env(exercise, ws)
     if exercise.kind == "exercism":
         cmd, extra_env = exercism.test_command(exercise, workspace.VENV_DIR / "bin" / "python")
         env.update(extra_env)
     else:
         cmd = ["bash", str(exercise.source_dir / exercise.extra["check"])]
+    sys.stdout.flush()  # our header must come before the checker's output, even through a pipe
+    sys.stderr.flush()
     try:
         return subprocess.run(cmd, cwd=ws, env=env, timeout=CHECK_TIMEOUT_S).returncode
-    except FileNotFoundError as exc:
-        ui.error(f"could not run {cmd[0]!r}: {exc}. Is the toolchain installed? (learn/fetch.sh)")
-        return 127
+    except FileNotFoundError:
+        print(ui.paint("✗", "red") + f" {cmd[0]} not found: install it (learn/fetch.sh lists what each track needs)")
+        return TOOLCHAIN_MISSING
     except subprocess.TimeoutExpired:
         ui.error(f"check timed out after {CHECK_TIMEOUT_S}s (infinite loop?)")
         return 124
@@ -233,34 +281,67 @@ def _run_check(exercise: Exercise, ws: Path) -> int:
 def _celebrate(exercise: Exercise, before: dict, after: dict, old_xp: int, new_xp: int, length: int | None) -> None:
     gained = new_xp - old_xp
     lines = [f"PASSED  {exercise.title}", f"{ui.stars(after['stars'])}   +{gained} XP"]
+    over_par = exercise.par is not None and length is not None and length > exercise.par
     if exercise.par is not None and length is not None:
-        verdict = "within par ⛳" if length <= exercise.par else f"par is {exercise.par}: golf it for ★★★"
+        verdict = f"par is {exercise.par}: golf it for ★★★" if over_par else "within par ⛳"
         lines.append(f"solution length {length} · {verdict}")
-    if after["stars"] < 3 and before["stars"] < 3:
-        lines.append("retry without hints for more stars")
+    capped = after["hints_used"] > 0 or after["gave_up"]
+    if after["stars"] < 3 and (capped or not over_par):
+        how = "without hints" if after["hints_used"] else "without giving up" if after["gave_up"] else "first try"
+        lines.append(f"for more stars: learn reset {exercise.key}, then pass {how}")
     print(ui.banner(lines, "green"))
     old_level, new_level = scoring.level_for(old_xp), scoring.level_for(new_xp)
     if new_level > old_level:
         print(ui.paint(f" ⬆  LEVEL UP: {new_level} · {scoring.title_for(new_level)}", "purple", bold=True))
 
 
+def _join(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def _not_yet(exercise: Exercise, ws: Path, data: dict, before: dict, unsaved: list[str]) -> int:
+    untouched = workspace.untouched_files(exercise, ws)
+    if unsaved or len(untouched) == len(exercise.files):
+        # Checking text the learner hasn't written (or hasn't saved) isn't an attempt.
+        why = (
+            f"this checked the saved {_join(unsaved)}, not your unsaved edits. Save (:w) and check again"
+            if unsaved
+            else f"{_join(untouched)} {'is' if len(untouched) == 1 else 'are'} unchanged from the starter: "
+            "edit, save (:w) and check again"
+        )
+        print(ui.paint("\n ✗ Not yet:", "red", bold=True), why + ui.dim(" (not counted as an attempt)."))
+        return 1
+    attempts = before["attempts"] + 1
+    progress.save(progress.with_entry(data, exercise.key, {**before, "attempts": attempts}))
+    left = len(exercise.hints) - before["hints_used"]
+    tip = f"`learn hint` ({left} left, costs ★★)" if left > 0 else "read the README again, or `learn giveup`"
+    print(
+        ui.paint(f"\n ✗ Not yet (attempt {attempts}).", "red", bold=True),
+        ui.dim(f"Fix it and re-run. Stuck? {tip}"),
+    )
+    return 1
+
+
 def cmd_check(all_tracks: tuple[Track, ...], data: dict, key: str | None) -> int:
     exercise = _current_exercise(all_tracks, key)
     ws = workspace.prepare(exercise)
+    unsaved = workspace.unsaved_files(exercise, ws)
+    for name in unsaved:
+        ui.warn(
+            f"{name} has unsaved changes in your editor, and learn check reads the saved file. "
+            "Save it (:w), or check with <leader>lc, which saves first."
+        )
     ui.info(f"checking {ui.paint(exercise.key, 'cyan')} …")
     code = _run_check(exercise, ws)
+    if code == TOOLCHAIN_MISSING:
+        print(ui.paint("\n ✗ The check couldn't run:", "red", bold=True), "a tool it needs is missing (see above).")
+        print(ui.dim("   Nothing was counted. Install it and check again."))
+        return TOOLCHAIN_MISSING
     before = progress.entry(data, exercise.key)
-    attempts = before["attempts"] + 1
     data = progress.touch_today(data)
     if code != 0:
-        progress.save(progress.with_entry(data, exercise.key, {**before, "attempts": attempts}))
-        left = len(exercise.hints) - before["hints_used"]
-        tip = f"`learn hint` ({left} left, costs ★★)" if left > 0 else "read the README again, or `learn giveup`"
-        print(
-            ui.paint(f"\n ✗ Not yet (attempt {attempts}).", "red", bold=True),
-            ui.dim(f"Fix it and re-run. Stuck? {tip}"),
-        )
-        return 1
+        return _not_yet(exercise, ws, data, before, unsaved)
+    attempts = before["attempts"] + 1
     length = scoring.solution_length(ws / exercise.open) if exercise.par is not None else None
     stars = scoring.stars_for(
         hints_used=before["hints_used"], gave_up=before["gave_up"], attempts=attempts, par=exercise.par, length=length
@@ -277,7 +358,7 @@ def cmd_check(all_tracks: tuple[Track, ...], data: dict, key: str | None) -> int
     progress.save(updated)
     _celebrate(exercise, before, after, old_xp, progress.total_xp(updated), length)
     track = tracks_mod.find_track(all_tracks, exercise.track)
-    upcoming = next_in_track(track, updated) if track else None
+    upcoming = next_after(track, updated, exercise.slug) if track else None
     if upcoming:
         print(ui.dim(f" next: {upcoming.key} — `learn next` or <leader>ln"))
     return 0
@@ -291,7 +372,7 @@ def cmd_hint(all_tracks: tuple[Track, ...], data: dict, key: str | None) -> int:
     entry = progress.entry(data, exercise.key)
     index = min(entry["hints_used"], len(exercise.hints) - 1)
     if entry["hints_used"] == 0 and not entry["passed"]:
-        ui.warn("Using a hint caps this exercise at ★ (you can still replay later for more).")
+        ui.warn(f"Using a hint caps this exercise at ★ (replay it later with `learn reset {exercise.key}` for more).")
     updated = {**entry, "hints_used": max(entry["hints_used"], index + 1)}
     progress.save(progress.with_entry(data, exercise.key, updated))
     print(ui.paint(f"Hint {index + 1}/{len(exercise.hints)}", "yellow", bold=True))
@@ -400,9 +481,11 @@ def cmd_docs(lang: str | None, as_json: bool) -> int:
         ui.error(f"no docs for {lang!r}. Try: {', '.join(docs_mod.registry())}")
         return 2
     if as_json:
-        print(
-            json.dumps([{"title": e.title, "path": str(e.path), "kind": e.kind, "exists": e.exists} for e in entries])
-        )
+        rows = [
+            {"title": e.title, "path": str(e.path), "kind": e.kind, "exists": e.exists, "files": [str(f) for f in e.files()]}
+            for e in entries
+        ]
+        print(json.dumps(rows))
         return 0
     available = [e for e in entries if e.exists]
     if not available:
@@ -411,6 +494,11 @@ def cmd_docs(lang: str | None, as_json: bool) -> int:
     for entry in available:
         print(f"  {ui.paint(entry.title, 'cyan')}: {entry.path}")
     first = available[0]
+    if first.glob:  # a track's READMEs: list them, never open the dir (it holds the solutions too)
+        for path in first.files():
+            print(f"    {path.relative_to(first.path)}")
+        ui.info("in nvim, <leader>lD picks one")
+        return 0
     if first.kind == "html":
         if not docs_mod.open_in_browser(first.path):
             ui.info(f"no GUI here: open {first.path} in a browser")
