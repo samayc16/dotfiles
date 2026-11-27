@@ -57,9 +57,11 @@ fi
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/learn-shell.XXXXXX")
 trap 'rm -rf "$tmp"' EXIT
 
-# Run with a hard timeout (perl is everywhere; coreutils `timeout` is not on macOS).
+# Run with a hard timeout (perl is everywhere; coreutils `timeout` is not on macOS). Stdin is
+# /dev/null, as in a terminal with nothing typed: without a tty (Claude, CI, a pipe) ripgrep with
+# no path searches stdin instead of the directory, and a right answer would print nothing.
 run_solution() {
-  LC_ALL=C LEARN_EXERCISE_DIR="$EX" perl -e 'alarm shift; exec @ARGV or die "exec failed: $!\n"' "$TIMEOUT" bash "$SOL"
+  LC_ALL=C LEARN_EXERCISE_DIR="$EX" perl -e 'alarm shift; exec @ARGV or die "exec failed: $!\n"' "$TIMEOUT" bash "$SOL" </dev/null
 }
 
 mkdir -p "$tmp/run"
@@ -74,7 +76,7 @@ else
 fi
 
 if [ "$rc" -eq 142 ]; then
-  fail "Timed out after ${TIMEOUT}s. A command is probably waiting on stdin - did you forget the input file?"
+  fail "Timed out after ${TIMEOUT}s. Is a command stuck in a loop, or waiting on something?"
 fi
 
 normalize() {
@@ -117,6 +119,9 @@ else
   printf '%s✗ Output does not match yet.%s\n' "$R" "$N"
 fi
 note "  expected $exp_n lines, got $got_n"
+if [ "$got_n" -eq 0 ] && [ "$exp_n" -gt 0 ]; then
+  note "  no output: does every command get its input file (\"\$DATA/...\"), or a directory to search?"
+fi
 first=$(awk 'NR == FNR { e[FNR] = $0; n = FNR; next } { g[FNR] = $0; m = FNR }
   END { max = n > m ? n : m; for (i = 1; i <= max; i++) if (e[i] != g[i]) { print i; exit } }' "$tmp/exp" "$tmp/got")
 if [ -n "$first" ]; then

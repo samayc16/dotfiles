@@ -61,10 +61,13 @@ class Exercise(NamedTuple):
 
 
 def run_learn(args: List[str], cwd: Path, env: Dict[str, str]) -> Result:
+    # Stdin is an empty pipe, as when Claude or a script runs `learn check`: the hardest case for
+    # checkers (ripgrep with no path searches a piped stdin instead of the directory).
     proc = subprocess.run(
         [sys.executable, str(LEARN), *args],
         cwd=str(cwd),
         env=env,
+        input="",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         universal_newlines=True,
