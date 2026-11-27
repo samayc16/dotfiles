@@ -33,10 +33,11 @@ ENTRY_FIELDS = {"attempts": int, "hints_used": int, "gave_up": bool, "passed": b
 
 
 def _clean_entry(raw: object) -> Optional[dict]:
-    """The fields of one exercise entry that have the right type (None if it isn't an entry at all)."""
+    """One exercise entry without its wrongly typed known fields (None if it isn't an entry at all).
+    Fields this version doesn't know are kept, so a newer learn's data survives an older one."""
     if not isinstance(raw, dict):
         return None
-    clean = {}
+    clean = {name: value for name, value in raw.items() if name not in ENTRY_FIELDS}
     for name, kind in ENTRY_FIELDS.items():
         value = raw.get(name)
         if kind is bool and isinstance(value, bool):

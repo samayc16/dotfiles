@@ -23,6 +23,14 @@ class DamagedProgressTest(IsolatedHome):
             self.assertNotIn("Traceback", out, args)
             self.assertEqual(code, 0, f"{args}: {out}")
 
+    def test_a_healthy_file_is_left_alone_and_unknown_fields_survive(self) -> None:
+        healthy = {"version": 1, "exercises": {"demo/01-ex": {**GOOD, "from_a_newer_learn": [1]}}, "days": ["2026-01-02"], "last": "demo/01-ex"}
+        self.write(healthy)
+        before = (self.home / "progress.json").read_text()
+        self.assertEqual(progress.load(self.home / "progress.json")["exercises"]["demo/01-ex"]["from_a_newer_learn"], [1])
+        self.assertEqual((self.home / "progress.json").read_text(), before)
+        self.assertFalse((self.home / "progress.json.corrupt").exists())
+
     def test_bad_entries_are_dropped_and_good_ones_kept(self) -> None:
         self.write(
             {
