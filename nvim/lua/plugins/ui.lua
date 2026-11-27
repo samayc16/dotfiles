@@ -42,8 +42,33 @@ return {
       image = { enabled = true }, -- kitty graphics: markdown images, SwiftUI previews
       lazygit = { enabled = true },
       terminal = { enabled = true },
+      statuscolumn = { enabled = true }, -- marks + diagnostics left of the numbers, git + folds right
+      zen = { enabled = true },
+      dashboard = { -- `nvim` with no file: these keys, recent files
+        enabled = true,
+        preset = {
+          keys = {
+            { icon = ' ', key = 'f', desc = 'Find file', action = function() require('telescope.builtin').find_files() end },
+            { icon = ' ', key = 'g', desc = 'Grep', action = function() require('telescope.builtin').live_grep() end },
+            { icon = ' ', key = 'r', desc = 'Recent files', action = function() require('telescope.builtin').oldfiles { cwd_only = true } end },
+            { icon = ' ', key = 's', desc = 'Restore session (this directory)', action = function() require('persistence').load() end },
+            { icon = '󰑴 ', key = 'l', desc = 'Learn: pick an exercise', action = ':Learn' },
+            { icon = ' ', key = 'n', desc = 'New file', action = ':ene | startinsert' },
+            { icon = ' ', key = 'c', desc = 'Config', action = function() require('telescope.builtin').find_files { cwd = vim.fn.stdpath 'config' } end },
+            { icon = '󰒲 ', key = 'L', desc = 'Lazy (plugins)', action = ':Lazy' },
+            { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
+          },
+        },
+        sections = {
+          { section = 'header' },
+          { section = 'keys', gap = 1, padding = 1 },
+          { icon = ' ', title = 'Recent files', section = 'recent_files', cwd = true, limit = 5, indent = 2, padding = 1 },
+          { section = 'startup' },
+        },
+      },
     },
     keys = {
+      { '<leader>tz', function() Snacks.zen() end, desc = '[T]oggle [Z]en mode' },
       { '<leader>gg', function() Snacks.lazygit() end, desc = 'Lazy[g]it' },
       { '<leader>gl', function() Snacks.lazygit.log_file() end, desc = '[G]it [l]og for file' },
       { '<leader>gB', function() Snacks.gitbrowse() end, desc = '[G]it [B]rowse on GitHub', mode = { 'n', 'x' } },
@@ -75,6 +100,13 @@ return {
     ft = 'markdown',
     opts = {},
     keys = { { '<leader>tm', '<cmd>RenderMarkdown toggle<cr>', desc = '[T]oggle [M]arkdown rendering' } },
+  },
+
+  { -- saves the open files per directory on exit; the dashboard's `s` (or <leader>bs) reopens them
+    'folke/persistence.nvim',
+    event = 'BufReadPre',
+    opts = {},
+    keys = { { '<leader>bs', function() require('persistence').load() end, desc = '[B]uffers: restore [s]ession (this directory)' } },
   },
 
   { 'nvim-tree/nvim-web-devicons', lazy = true },

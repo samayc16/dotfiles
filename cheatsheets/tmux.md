@@ -5,7 +5,7 @@
 ## no prefix
 | keys | does |
 |---|---|
-| `Ctrl-h/j/k/l` | navigate panes (vim-aware — passes through to nvim splits) |
+| `Ctrl-h/j/k/l` | navigate panes (vim-aware — passes through to nvim splits and Claude's split in nvim) |
 | `Alt-h` / `Alt-l` | previous / next **window** |
 | `Alt-j` / `Alt-k` | previous / next **session** |
 | `Alt-1` … `Alt-0` | jump to window 1–10 |

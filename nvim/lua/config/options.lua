@@ -18,6 +18,8 @@ opt.splitkeep = 'screen'
 opt.confirm = true
 opt.virtualedit = 'block'
 opt.jumpoptions = 'stack,view'
+-- What a saved session (persistence.nvim) restores: files and layout, never terminals (Claude)
+opt.sessionoptions = { 'buffers', 'curdir', 'tabpages', 'winsize', 'help', 'globals', 'skiprtp', 'folds' }
 
 opt.expandtab = true
 opt.shiftwidth = 4

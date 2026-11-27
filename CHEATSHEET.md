@@ -104,7 +104,7 @@ Images preview in yazi inside tmux too (kitty graphics, passed through by tmux).
 ### no prefix
 | keys | does |
 |---|---|
-| `Ctrl-h/j/k/l` | navigate panes (vim-aware — passes through to nvim splits) |
+| `Ctrl-h/j/k/l` | navigate panes (vim-aware — passes through to nvim splits and Claude's split in nvim) |
 | `Alt-h` / `Alt-l` | previous / next **window** |
 | `Alt-j` / `Alt-k` | previous / next **session** |
 | `Alt-1` … `Alt-0` | jump to window 1–10 |
@@ -285,6 +285,8 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `gcc` / `gc{motion}` | comment line / motion |
 | `J` / `K` (visual) | move selection down / up |
 | `Ctrl-s` | save |
+| `Ctrl-a` / `Ctrl-e` (insert, `:` line) | start of line (first non-blank, again for column 0) / end of line; in tmux press `Ctrl-a` twice |
+| `Alt-Backspace` (insert, `:` line) | delete the word before the cursor |
 | `Ctrl-d` / `Ctrl-u` / `n` / `N` | scroll / search, cursor stays centred |
 | `za` `zc` `zo` `zR` `zM` | folds (treesitter) |
 | `[x` · `<leader>tc` | jump to enclosing function/class · toggle sticky context header |
@@ -299,8 +301,10 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `]c` `[c` · `<leader>hs` `hr` `hp` `hb` `hd` | next/prev git hunk · stage / reset / preview / blame / diff |
 | `<leader>gg` / `<leader>gl` / `<leader>gB` | lazygit / file log / open on GitHub |
 | `<leader>tb` | toggle inline git blame |
-| `Ctrl-h/j/k/l` | move between splits and tmux panes (`Ctrl-k` works from insert mode too) |
-| `<leader>tt` or `Ctrl-/` | toggle terminal |
+| `Ctrl-h/j/k/l` | move between splits, terminal splits (Claude) and tmux panes; `Ctrl-k` works from insert mode too. Back in a terminal you left typing, you keep typing |
+| `<leader>tt` or `Ctrl-/` | toggle terminal (a floating one keeps `Ctrl-h/j/k/l` for its program) |
+| `<leader>bs` | restore this directory's session (files and splits from last time) |
+| `<leader>tz` | toggle zen mode (centred, no bars) |
 | `<leader>ut` | undotree |
 | `<leader>tm` · `<leader>tw` · `<leader>ts` · `<leader>tr` | toggle markdown render · wrap · spell · relative numbers |
 
@@ -311,6 +315,13 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `<leader>ab` · `<leader>as` (visual) | add current file · send selection |
 | `<leader>aa` / `<leader>ad` | accept / deny Claude's diff |
 
+### screen
+| shows | where |
+|---|---|
+| start screen | `nvim` with no file: `f` find · `g` grep · `r` recent · `s` restore session · `l` learn · `n` new · `c` config · `L` Lazy · `q` quit |
+| statusline | mode pill · git branch and diff · file · diagnostics … macro `REC @q` · learn exercise · tasks · language servers · line:column pill (styled like the tmux bar) |
+| left gutter | marks and diagnostics, numbers, then git changes and folds |
+
 ### keeping it healthy
 | command | does |
 |---|---|
@@ -318,6 +329,7 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `:Mason` | language servers / formatters / debuggers |
 | `:checkhealth` | diagnose anything |
 | `nvim --headless -c 'luafile ~/.config/nvim/scripts/smoke.lua'` | end-to-end test of every language |
+| `python3 ~/.config/nvim/scripts/interactive.py` | keys typed through a private tmux into nvim: navigation, Claude's split, editing keys, statusline |
 
 ---
 

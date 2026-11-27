@@ -1,29 +1,45 @@
+local nav_dirs = { h = 'Left', j = 'Down', k = 'Up', l = 'Right' }
+
+--- Ctrl-h/j/k/l in a terminal: a split (Claude, a shell) is left like any window; a
+--- float (<C-/>, lazygit) has no neighbours, so its program keeps the key.
+local function terminal_nav(lhs, dir)
+  return function()
+    if vim.api.nvim_win_get_config(0).relative ~= '' then return lhs end
+    vim.schedule(function() vim.cmd('TmuxNavigate' .. dir) end) -- expr maps can't switch windows
+    return ''
+  end
+end
+
+local function nav_keys()
+  local keys = {}
+  for key, dir in pairs(nav_dirs) do
+    local lhs = '<C-' .. key .. '>'
+    table.insert(keys, { lhs, '<cmd>TmuxNavigate' .. dir .. '<cr>', desc = 'Navigate ' .. dir:lower() })
+    table.insert(keys, { lhs, terminal_nav(lhs, dir), mode = 't', expr = true, desc = 'Navigate ' .. dir:lower() })
+  end
+  -- Ctrl-k means "up" in insert mode too (Vim's digraph key is Ctrl-k otherwise)
+  table.insert(keys, { '<C-k>', '<C-\\><C-n><cmd>TmuxNavigateUp<cr>', mode = 'i', desc = 'Navigate up (leaves insert mode)' })
+  return keys
+end
+
 return {
   { 'NMAC427/guess-indent.nvim', event = 'BufReadPre', opts = {} },
 
-  { -- Ctrl-h/j/k/l across nvim splits and tmux panes
+  { -- Ctrl-h/j/k/l across nvim splits, terminal splits (Claude) and tmux panes
     'christoomey/vim-tmux-navigator',
-    keys = {
-      { '<C-h>', '<cmd>TmuxNavigateLeft<cr>', desc = 'Navigate left' },
-      { '<C-j>', '<cmd>TmuxNavigateDown<cr>', desc = 'Navigate down' },
-      { '<C-k>', '<cmd>TmuxNavigateUp<cr>', desc = 'Navigate up' },
-      -- Ctrl-k means "up" in insert mode too (Vim's digraph key is Ctrl-k otherwise)
-      { '<C-k>', '<C-\\><C-n><cmd>TmuxNavigateUp<cr>', mode = 'i', desc = 'Navigate up (leaves insert mode)' },
-      { '<C-l>', '<cmd>TmuxNavigateRight<cr>', desc = 'Navigate right' },
-    },
+    -- Its own terminal maps are Vim's (<C-w>:...): Neovim types them into the terminal, so
+    -- Claude's prompt got "TmuxNavigateDown". Ours are above; tests: nvim/scripts/interactive.py
+    init = function() vim.g.tmux_navigator_no_mappings = 1 end,
+    keys = nav_keys,
   },
 
-  { -- text objects (mini.ai), surround (sa/sd/sr), autopairs, statusline
+  { -- text objects (mini.ai), surround (sa/sd/sr), autopairs; the statusline is lualine (statusline.lua)
     'nvim-mini/mini.nvim',
     lazy = false,
     config = function()
       require('mini.ai').setup { n_lines = 500 }
       require('mini.surround').setup()
       require('mini.pairs').setup()
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function() return '%2l:%-2v' end
     end,
   },
 

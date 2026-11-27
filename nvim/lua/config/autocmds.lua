@@ -24,6 +24,22 @@ autocmd('BufReadPost', {
   end,
 })
 
+-- Back in a terminal you left while typing (Ctrl-h out of Claude, Ctrl-l back in): keep
+-- typing, no `i` first. One you left in normal mode (scrolled back) stays in normal mode.
+local terminal_resume = augroup 'terminal-resume'
+autocmd('WinLeave', {
+  group = terminal_resume,
+  callback = function()
+    if vim.bo.buftype == 'terminal' then vim.b.terminal_resume = vim.api.nvim_get_mode().mode == 't' end
+  end,
+})
+autocmd({ 'WinEnter', 'BufEnter' }, {
+  group = terminal_resume,
+  callback = function()
+    if vim.bo.buftype == 'terminal' and vim.b.terminal_resume and vim.api.nvim_get_mode().mode ~= 't' then vim.cmd.startinsert() end
+  end,
+})
+
 autocmd('VimResized', {
   group = augroup 'resize-splits',
   callback = function()
