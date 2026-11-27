@@ -1,13 +1,16 @@
 name: learn
 
-# The learn CLI and its tracks: unit tests, and the Rust koans proven end to end
-# (every starter fails its checks, every reference solution passes them clippy-clean).
+# The learn CLI and its tracks: unit and end-to-end tests (the CLI on the real shell track, and
+# nvim/lua/plugins/learn.lua in a headless Neovim), and the tracks proven through the CLI:
+# every starter fails its checks, every reference solution passes them. Tracks whose toolchain
+# is cheap to install here run in `tracks`; cpp-koans (needs C++26), swift-koans (macOS) and
+# systemverilog (Verilator 5.x, newer than Ubuntu's) are verified locally with the same script.
 on:
   push:
     branches: [main]
-    paths: [learn/**, .github/workflows/learn.yml]
+    paths: [learn/**, bin/learn, nvim/lua/plugins/learn.lua, pins.txt, .github/workflows/learn.yml]
   pull_request:
-    paths: [learn/**, .github/workflows/learn.yml]
+    paths: [learn/**, bin/learn, nvim/lua/plugins/learn.lua, pins.txt, .github/workflows/learn.yml]
   workflow_dispatch:
 
 concurrency:
@@ -30,9 +33,41 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - name: Unit tests
+      - name: Neovim for the learn.lua test (the version pinned in pins.txt)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          version="$(awk '$1 == "mise/neovim" { print $4 }' pins.txt)"
+          curl -fsSL --retry 3 "https://github.com/neovim/neovim/releases/download/v$version/nvim-linux-x86_64.tar.gz" |
+            tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/nvim-linux-x86_64/bin" >> "$GITHUB_PATH"
+      - name: Unit and end-to-end tests
         working-directory: learn
         run: python -m unittest discover -s tests -v
+
+  tracks:
+    name: track ${{ matrix.track }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { track: shell, apt: "ripgrep gawk" }  # gawk, as on Arch/CentOS (Ubuntu's default awk is mawk)
+          - { track: python-koans, apt: "" }
+          - { track: c-koans, apt: "gcc-14", cc: gcc-14 }  # C23 constexpr needs GCC 14 (the image's clang is 18)
+          - { track: haskell-koans, apt: "ghc" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"  # python-koans use 3.12 syntax
+      - name: Toolchain
+        if: matrix.apt != ''
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends ${{ matrix.apt }}
+      - name: Every starter fails, every solution passes (through `learn start` / `learn check`)
+        env:
+          CC: ${{ matrix.cc }}
+        run: python learn/tracks/_tools/verify.py ${{ matrix.track }} --require
 
   rust-koans:
     runs-on: ubuntu-latest
