@@ -344,8 +344,8 @@ Start here: `learn` for exercises, `:Dojo` for vim skills, `play` for everything
 | `learn <Tab>` | every course, plus the commands |
 | `learn <track>` | open that course's next exercise in nvim (same as `learn next <track>`) |
 | `learn prev [track]` | the exercise before the current one (`<leader>lp` in nvim) |
-| `learn list <track>` / `learn next` | exercises with ★ / next exercise where you left off |
-| `learn check` · `hint` · `solution` · `giveup` | run checks · next hint (caps ★) · reference after passing |
+| `learn list <track>` / `learn next` | exercises with ★ / next exercise where you left off (inside one: the next open one after it) |
+| `learn check` · `hint` · `solution` · `giveup` | run checks on the saved files · next hint (caps ★) · reference after passing |
 | `learn docs <lang>` | offline docs (cppreference, Python, Haskell, Swift book, Verilator) |
 | `<leader>ll` / `<leader>ln` / `<leader>lp` | pick exercise / next / previous exercise (inside nvim) |
 | `<leader>lc` / `<leader>lh` | check in bottom panel / hint float |

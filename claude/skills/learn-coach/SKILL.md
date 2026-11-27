@@ -10,6 +10,9 @@ description: Coach the user through their current `learn` exercise (shell, Syste
 1. Walk up from the current directory to the nearest `.learn.json` (`{"track": ..., "slug": ...}`). If there is none, read `~/learn/progress.json` and use its `"last"` key (`<track>/<slug>`), and the workspace `~/learn/workspace/<track>/<slug>/`.
 2. Read the workspace `README.md` (the task) and the learner's files there.
 3. Run `learn check` in the workspace to see the current failure. Don't edit their files unless they ask.
+   It checks the saved files: when it warns of unsaved editor changes or an untouched starter (neither
+   counts as an attempt), ask them to save (`:w`) and re-check before coaching on the failure. Exit 127
+   means a missing tool, named in the output.
 
 ## Off limits
 
@@ -30,6 +33,7 @@ Encourage the editor loop they have: `<leader>rr` to run, `K`/`grd` to inspect, 
 ## Next steps
 
 After a pass, read `~/learn/progress.json` (`exercises[<key>]` has `stars`, `hints_used`, `attempts`) and suggest:
-- a retry for ★★★ if they used hints or missed par (shell golf),
+- golfing under par for ★★★ (shell: just re-check a shorter solution), or a replay with
+  `learn reset <track>/<slug>` if hints, a give-up or a failed first try capped the stars,
 - the next exercise in the track (`learn next <track>`),
 - or a different track if they've finished one.
