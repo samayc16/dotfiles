@@ -3,6 +3,10 @@
 # Swift 6 language mode (strict concurrency), then run it.
 set -euo pipefail
 LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if ! command -v swiftc >/dev/null; then
+  echo "✗ swiftc not found: install Xcode or the Swift toolchain (https://swift.org/install)"
+  exit 127 # learn's "the checker couldn't run" code: not counted against the learner
+fi
 BUILD="$(mktemp -d)"
 trap 'rm -rf "$BUILD"' EXIT
 if ! swiftc -swift-version 6 -Onone -g -module-name Koans -o "$BUILD/koan" \

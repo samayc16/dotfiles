@@ -19,6 +19,7 @@ static inline const char *koan_color_(const char *code) { return getenv("NO_COLO
             printf(__VA_ARGS__);                                                            \
             printf("\n");                                                                   \
         }                                                                                   \
+        fflush(stdout); /* a sanitizer abort must not swallow the lines already printed */  \
     } while (0)
 
 static inline int koan_finish(void) {

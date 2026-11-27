@@ -9,7 +9,7 @@ lib="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if ! command -v runghc >/dev/null 2>&1; then
   echo "✘ runghc not found. Install GHC (macOS: brew install ghc · Arch: pacman -S ghc)."
-  exit 2
+  exit 127 # learn's "the checker couldn't run" code: not counted against the learner
 fi
 
 # Run Test.hs from a scratch copy so the only `import <YourModule>` match is the workspace.

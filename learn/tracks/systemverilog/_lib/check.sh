@@ -24,13 +24,20 @@ TB=${TB:-tb.sv}
 RUNS=${RUNS:-default}
 TIMEOUT=${TIMEOUT:-60}
 
-if [ -t 1 ]; then G=$'\033[32m' R=$'\033[31m' Y=$'\033[33m' D=$'\033[2m' N=$'\033[0m'; else G= R= Y= D= N=; fi
-fail() { printf '%s✗ %s%s\n' "$R" "$*" "$N"; exit 1; }
-
-command -v verilator >/dev/null || fail "verilator not found (brew install verilator / pacman -S verilator)"
-if [ -n "${NEEDS_Z3:-}" ] && ! command -v z3 >/dev/null; then
-  fail "This exercise uses constrained randomization, which needs the z3 solver (brew install z3 / pacman -S z3)"
+if [ -z "${NO_COLOR:-}" ] && { [ -t 1 ] || [ -n "${LEARN_FORCE_COLOR:-}" ]; }; then
+  G=$'\033[32m' R=$'\033[31m' Y=$'\033[33m' D=$'\033[2m' N=$'\033[0m'
+else
+  G= R= Y= D= N=
 fi
+fail() { printf '%s✗ %s%s\n' "$R" "$*" "$N"; exit 1; }
+# 127 is learn's "the checker couldn't run" code: a missing tool isn't counted against the learner.
+missing() { printf '%s✗ %s%s\n' "$R" "$*" "$N"; exit 127; }
+
+command -v verilator >/dev/null || missing "verilator not found (brew install verilator / pacman -S verilator)"
+if [ -n "${NEEDS_Z3:-}" ] && ! command -v z3 >/dev/null; then
+  missing "This exercise uses constrained randomization, which needs the z3 solver (brew install z3 / pacman -S z3)"
+fi
+command -v perl >/dev/null || missing "perl not found (the checker uses it for timeouts)"
 
 files=("$LIB/tbu.sv")
 for f in ${SUPPORT:-}; do files+=("$EX/$f"); done

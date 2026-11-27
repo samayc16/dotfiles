@@ -137,8 +137,9 @@ def test_command(exercise: Exercise, venv_python: Path) -> tuple[list[str], dict
     if lang == "c":
         return ["sh", "-c", "make -s clean >/dev/null 2>&1; make -s test"], {}
     if lang == "cpp":
+        # -Wno-deprecated: Exercism's cmake_minimum_required(3.5.1) makes CMake 4 warn on every check.
         script = (
-            "cmake -S . -B build -DEXERCISM_RUN_ALL_TESTS=1 -DCMAKE_BUILD_TYPE=Debug "
+            "cmake -Wno-deprecated -S . -B build -DEXERCISM_RUN_ALL_TESTS=1 -DCMAKE_BUILD_TYPE=Debug "
             "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON >/dev/null && cmake --build build"
         )
         return ["sh", "-c", script], {}

@@ -19,6 +19,6 @@ if ! command -v cargo >/dev/null; then
 fi
 if ! command -v cargo >/dev/null; then
   echo "✗ cargo not found: install Rust with rustup (macOS: brew install rustup · Linux: https://rustup.rs)"
-  exit 2
+  exit 127 # learn's "the checker couldn't run" code: not counted against the learner
 fi
 exec python3 -I "$LIB/koancheck.py"

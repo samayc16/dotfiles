@@ -19,6 +19,7 @@ inline const char *koan_color(const char *code) { return std::getenv("NO_COLOR")
             std::printf("  %s✗%s %s — %s\n", koan_color("\033[38;2;255;97;136m"), koan_color("\033[0m"), #cond, \
                         std::string(message).c_str());                                           \
         }                                                                                        \
+        std::fflush(stdout); /* a sanitizer abort must not swallow the lines already printed */  \
     } while (0)
 
 inline int koan_finish() {

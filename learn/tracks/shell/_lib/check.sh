@@ -23,11 +23,24 @@ SOL="$WS/solution.sh"
 MODE=${MODE:-exact}
 TIMEOUT=${TIMEOUT:-10}
 
-if [ -t 1 ]; then G=$'\033[32m' R=$'\033[31m' Y=$'\033[33m' D=$'\033[2m' N=$'\033[0m'; else G= R= Y= D= N=; fi
+if [ -z "${NO_COLOR:-}" ] && { [ -t 1 ] || [ -n "${LEARN_FORCE_COLOR:-}" ]; }; then
+  G=$'\033[32m' R=$'\033[31m' Y=$'\033[33m' D=$'\033[2m' N=$'\033[0m'
+else
+  G= R= Y= D= N=
+fi
 pass() { printf '%s✓ %s%s\n' "$G" "$*" "$N"; }
 fail() { printf '%s✗ %s%s\n' "$R" "$*" "$N"; exit 1; }
 note() { printf '%s%s%s\n' "$D" "$*" "$N"; }
+# 127 is learn's "the checker couldn't run" code: a missing tool isn't counted against the learner.
+missing() { printf '%s✗ %s%s\n' "$R" "$*" "$N"; exit 127; }
 
+command -v perl >/dev/null || missing "perl not found (the checker uses it for timeouts)"
+required=${REQUIRE_HINT:-}
+tool=${required%% *}
+if [ -n "$tool" ] && ! command -v "$tool" >/dev/null; then
+  [ "$tool" = rg ] && how=" (macOS: brew install ripgrep · Arch: pacman -S ripgrep · Debian: apt install ripgrep)"
+  missing "$tool is not installed, and this level is about it${how:-}"
+fi
 [ -f "$SOL" ] || fail "No solution.sh in $WS"
 
 # Code without comments/blank lines, used for REQUIRE/FORBID and the golf count.
