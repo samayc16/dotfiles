@@ -113,7 +113,7 @@ dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]
 
 **On a push to `main`** the same tests run on the committed (last good) versions, then a release: an upstream release that breaks the install never holds back your own change. A failed push run has its own issue ("CI is failing on main"). Pull requests test the committed versions; workflow_dispatch bumps and tests without releasing. `scripts/bump-pins.py bump` and `scripts/bump-plugins.sh` locally do what CI does; `diff OLD NEW`, `lock-diff OLD NEW` and `table` print changes and versions.
 
-**On your machine**, a new shell looks for a newer release every 4 hours (in the background) and asks once per release, `Update now? [y/N]`; after N, each new shell reminds you in one line until you run `dotfiles update`. `DOTFILES_NO_UPDATE_CHECK=1` turns both off.
+**On your machine**, every new shell looks for a newer release in the background (one request to github.com, at most once a minute, so it never slows startup), and the shell that finds one asks before its next prompt: `Update now? [y/N]`, once per release. After N, each new shell reminds you in one line until you run `dotfiles update`. `DOTFILES_NO_UPDATE_CHECK=1` turns both off.
 
 ## CI
 

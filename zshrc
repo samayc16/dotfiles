@@ -4,7 +4,7 @@
 # The repo this file lives in (follows the ~/.zshrc symlink; an inherited DOTFILES may point elsewhere)
 export DOTFILES="${${(%):-%N}:A:h}"
 
-# A newer release asks once whether to update (zsh/update-check.zsh). It may read a key, so it
+# A newer release asks once whether to update, then reminds (zsh/update-check.zsh). It may read a key, so it
 # sits above the instant prompt. Off in CI, without a terminal, or with DOTFILES_NO_UPDATE_CHECK=1.
 if [[ -o interactive && -t 0 && -t 1 && -z ${CI-} && ${DOTFILES_NO_UPDATE_CHECK:-0} != 1 ]]; then
   source "$DOTFILES/zsh/update-check.zsh"

@@ -57,6 +57,39 @@ def run_in_pty(argv: list, env: Dict[str, str], answer: Optional[bytes] = None, 
     return out
 
 
+def interactive_zsh(env: Dict[str, str], lines: list, answer: bytes, timeout: float = 15.0) -> bytes:
+    """`zsh -f -i` on a terminal: type each line, then `exit`; answer the update prompt when it shows."""
+    leader, follower = pty.openpty()
+    proc = subprocess.Popen([ZSH, "-f", "-i"], stdin=follower, stdout=follower, stderr=follower, env=env, cwd=env["HOME"], close_fds=True)
+    os.close(follower)
+    out, answered, deadline = b"", False, time.monotonic() + timeout
+    pending = [line.encode() + b"\n" for line in lines] + [b"exit\n"]
+    try:
+        while time.monotonic() < deadline:
+            ready, _, _ = select.select([leader], [], [], 0.2)
+            if ready:
+                try:
+                    chunk = os.read(leader, 4096)
+                except OSError:
+                    break
+                if not chunk:
+                    break
+                out += chunk
+                if not answered and PROMPT in out:
+                    os.write(leader, answer)
+                    answered = True
+            elif proc.poll() is not None:
+                break
+            elif pending:  # the shell is idle: type the next line
+                os.write(leader, pending.pop(0))
+    finally:
+        os.close(leader)
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()
+    return out
+
+
 @unittest.skipUnless(ZSH, "zsh not installed")
 class UpdateCheck(unittest.TestCase):
     def setUp(self) -> None:
@@ -140,19 +173,29 @@ class UpdateCheck(unittest.TestCase):
         time.sleep(0.3)
         self.assertNotIn("check --quiet", self.cli_calls())
 
-    def test_looks_again_after_four_hours(self) -> None:  # nightly releases show up the same day
+    def test_every_new_shell_looks_at_most_once_a_minute(self) -> None:
         checked = self.state / "checked"
-        hour = 3600
-        os.utime(checked, (time.time() - 3 * hour, time.time() - 3 * hour))
+        os.utime(checked, (time.time() - 30, time.time() - 30))
         self.check(answer=b"n")
         time.sleep(0.3)
         self.assertNotIn("check --quiet", self.cli_calls())
-        os.utime(checked, (time.time() - 5 * hour, time.time() - 5 * hour))
+        os.utime(checked, (time.time() - 90, time.time() - 90))
         self.check()
         deadline = time.monotonic() + 5
         while "check --quiet" not in self.cli_calls() and time.monotonic() < deadline:
             time.sleep(0.05)
         self.assertIn("check --quiet", self.cli_calls())
+
+    def test_a_lookup_that_finds_a_release_tells_the_same_shell(self) -> None:
+        """The shell whose lookup finds a release asks before its next prompt, not only the next shell."""
+        (self.state / "checked").unlink()
+        (self.state / "latest").write_text("2026.11.24\n")  # what's installed: nothing to say yet
+        lookup = '#!/bin/sh\necho "$*" >>"$HOME/cli.log"\n[ "$1" = check ] && sleep 0.3 && echo 2026.12.05 >"%s/latest"\nexit 0\n'
+        (self.dotfiles / "bin" / "dotfiles").write_text(lookup % self.state)
+        out = interactive_zsh(self.env(), ["source %s" % (ROOT / "zsh" / "update-check.zsh"), "sleep 1", "print AFTER-FIRST-COMMAND"], answer=b"n")
+        self.assertIn(b"dotfiles 2026.12.05 is available (you have 2026.11.24). Update now? [y/N]", out)
+        self.assertLess(out.index(b"AFTER-FIRST-COMMAND"), out.index(PROMPT), "asked before its first command finished")
+        self.assertEqual(out.count(PROMPT), 1)
 
 
 @unittest.skipUnless(ZSH, "zsh not installed")
