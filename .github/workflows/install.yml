@@ -40,9 +40,10 @@ on:
       - clangd/**
       - .github/ci/**
       - .github/workflows/install.yml
-  # Nightly, 01:17 Pacific (09:17 UTC): bump everything, test, and release what passed
+  # Nightly at midnight CST (06:00 UTC; cron is UTC, so 1 AM during daylight saving): bump
+  # everything, test, and release what passed. GitHub can start scheduled runs a little late.
   schedule:
-    - cron: "17 9 * * *"
+    - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
       bump:
