@@ -7,15 +7,25 @@ source "$(dirname "${BASH_SOURCE[0]}")/pins.sh"
 
 PLUGIN_DIR="$HOME/.local/share/zsh-plugins"
 
-# Linux: clone the prompt + plugins user-locally (macOS gets them from Homebrew).
+# Linux: clone the prompt + plugins user-locally at their pins (pins.txt zsh/*); macOS gets
+# them from Homebrew. A clone you've changed is left as it is.
 sync_plugins() {
   [[ "$OS" == macos ]] && return 0
   run mkdir -p "$PLUGIN_DIR"
-  git_sync https://github.com/romkatv/powerlevel10k.git "$PLUGIN_DIR/powerlevel10k"
-  git_sync https://github.com/zsh-users/zsh-autosuggestions.git "$PLUGIN_DIR/zsh-autosuggestions"
-  git_sync https://github.com/zsh-users/zsh-syntax-highlighting.git "$PLUGIN_DIR/zsh-syntax-highlighting"
-  git_sync https://github.com/Aloxaf/fzf-tab.git "$PLUGIN_DIR/fzf-tab"
-  ok "zsh plugins in $PLUGIN_DIR"
+  local pin url rev status failed=0
+  while read -r pin url rev; do
+    if [[ "$DRY_RUN" == 1 ]]; then info "would sync ${pin#zsh/} at ${rev:0:12}"; continue; fi
+    status=0
+    pin_sync "$url" "$PLUGIN_DIR/${pin#zsh/}" "$rev" || status=$?
+    case $status in
+      0 | 11) ok "${pin#zsh/} at ${rev:0:12}" ;;
+      10) ;;
+      12) warn "kept ${pin#zsh/} at your version: it has your changes" ;;
+      *) err "could not sync ${pin#zsh/} ($url at ${rev:0:12})"; failed=1 ;;
+    esac
+  done < <(pins_with_prefix zsh/)
+  [[ "$failed" == 0 ]] && ok "zsh plugins in $PLUGIN_DIR"
+  return "$failed"
 }
 
 # Linux: tools from mise don't install zsh completions, so generate them (Homebrew

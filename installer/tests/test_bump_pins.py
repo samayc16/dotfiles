@@ -90,6 +90,14 @@ class Parse(unittest.TestCase):
         self.assertEqual(plugins, pinned)
         self.assertEqual(len(pinned), 8)
 
+    def test_zsh_plugin_pins_are_what_zshrc_loads(self) -> None:
+        zshrc = (ROOT / "zshrc").read_text()
+        pinned = [p.name.split("/", 1)[1] for p in bp.pins_of(bp.load(ROOT / "pins.txt")) if p.name.startswith("zsh/")]
+        self.assertEqual(sorted(pinned), ["fzf-tab", "powerlevel10k", "zsh-autosuggestions", "zsh-syntax-highlighting"])
+        for name in pinned:
+            self.assertIn("/%s/" % name, zshrc)
+        self.assertIn("pins_with_prefix zsh/", (ROOT / "install.d" / "zsh.sh").read_text())
+
 
 class Bump(unittest.TestCase):
     def test_moves_each_pin_and_reports(self) -> None:
@@ -192,6 +200,10 @@ class Lookups(unittest.TestCase):
         self.assertEqual(request.full_url, "https://api.github.com/repos/samayc16/plexamp-tui/releases/latest")
         self.assertEqual(request.get_header("Authorization"), "Bearer tok")
 
+    def test_latest_release_accepts_dated_tags(self) -> None:  # mason-registry's
+        with mock.patch.object(bp.urllib.request, "urlopen", return_value=self._respond({"tag_name": "2026-11-28-chief-loan"})):
+            self.assertEqual(bp.latest_release("https://github.com/mason-org/mason-registry"), "2026-11-28-chief-loan")
+
     def test_latest_release_ignores_unnumbered_tags(self) -> None:
         with mock.patch.object(bp.urllib.request, "urlopen", return_value=self._respond({"tag_name": "edge"})):
             self.assertIsNone(bp.latest_release("https://github.com/o/r"))
@@ -225,6 +237,36 @@ class DiffAndTable(unittest.TestCase):
 
     def test_table(self) -> None:
         self.assertEqual(bp.table(bp.parse(PINS)).splitlines()[0].split(), ["tamp", "v0.1.0"])
+
+
+class LazyLock(unittest.TestCase):
+    OLD_LOCK = {"oil.nvim": {"branch": "master", "commit": OLD}, "mini.nvim": {"branch": "main", "commit": OLD}, "gone.nvim": {"branch": "main", "commit": OLD}}
+    NEW_LOCK = {"oil.nvim": {"branch": "master", "commit": NEW}, "mini.nvim": {"branch": "main", "commit": OLD}, "fresh.nvim": {"branch": "main", "commit": NEW}}
+
+    def test_lock_diff_lists_moved_new_and_removed_plugins(self) -> None:
+        changes = bp.lock_diff(self.OLD_LOCK, self.NEW_LOCK)
+        self.assertEqual(
+            [str(c) for c in changes],
+            ["nvim/fresh.nvim: (new) → %s" % NEW[:12], "nvim/oil.nvim: %s → %s" % (OLD[:12], NEW[:12]), "nvim/gone.nvim: %s → (removed)" % OLD[:12]],
+        )
+
+    def test_lock_diff_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            old, new = Path(tmp, "old.json"), Path(tmp, "new.json")
+            old.write_text(json.dumps(self.OLD_LOCK))
+            new.write_text(json.dumps(self.NEW_LOCK))
+            out = io.StringIO()
+            with redirect_stdout(out):
+                self.assertEqual(bp.main(["lock-diff", str(old), str(new)]), 0)
+            self.assertIn("nvim/oil.nvim: %s → %s\n" % (OLD[:12], NEW[:12]), out.getvalue())
+            new.write_text("{ not json")
+            with redirect_stderr(io.StringIO()):
+                self.assertEqual(bp.main(["lock-diff", str(old), str(new)]), 1)
+
+    def test_repo_lock_parses(self) -> None:
+        lock = bp.load_lock(ROOT / "nvim" / "lazy-lock.json")
+        self.assertIn("lazy.nvim", lock)
+        self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", entry["commit"]) for entry in lock.values()))
 
 
 if __name__ == "__main__":

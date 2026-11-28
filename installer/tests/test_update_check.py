@@ -87,14 +87,18 @@ class UpdateCheck(unittest.TestCase):
         log = self.home / "cli.log"
         return log.read_text().splitlines() if log.exists() else []
 
-    def test_asks_once_and_remembers_no(self) -> None:
+    def test_asks_once_then_reminds_in_every_shell(self) -> None:
         out = self.check(answer=b"n")
         self.assertIn(b"dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]", out)
         self.assertIn(b"CHECK-DONE", out)
         self.assertEqual(self.cli_calls(), [])
-        out = self.check()
-        self.assertNotIn(PROMPT, out)
-        self.assertIn(b"CHECK-DONE", out)
+        for _ in range(2):
+            out = self.check()
+            self.assertNotIn(PROMPT, out)
+            self.assertIn(b"dotfiles 2026.11.30 is available (you have 2026.11.24): dotfiles update", out)
+            self.assertIn(b"CHECK-DONE", out)
+        (self.dotfiles / "VERSION").write_text("2026.11.30\n")  # updated: no more reminders
+        self.assertNotIn(b"is available", self.check())
 
     def test_yes_runs_dotfiles_update(self) -> None:
         self.assertIn(b"CHECK-DONE", self.check(answer=b"y"))
@@ -135,6 +139,20 @@ class UpdateCheck(unittest.TestCase):
         self.check(answer=b"n")
         time.sleep(0.3)
         self.assertNotIn("check --quiet", self.cli_calls())
+
+    def test_looks_again_after_four_hours(self) -> None:  # nightly releases show up the same day
+        checked = self.state / "checked"
+        hour = 3600
+        os.utime(checked, (time.time() - 3 * hour, time.time() - 3 * hour))
+        self.check(answer=b"n")
+        time.sleep(0.3)
+        self.assertNotIn("check --quiet", self.cli_calls())
+        os.utime(checked, (time.time() - 5 * hour, time.time() - 5 * hour))
+        self.check()
+        deadline = time.monotonic() + 5
+        while "check --quiet" not in self.cli_calls() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertIn("check --quiet", self.cli_calls())
 
 
 @unittest.skipUnless(ZSH, "zsh not installed")

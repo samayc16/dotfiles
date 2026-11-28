@@ -91,7 +91,7 @@ Completion accepts with `Ctrl-y`, `Tab` or `Enter`; `Ctrl-e` closes the menu.
 
 | command | when |
 |---|---|
-| `:Lazy sync` | update plugins (then commit `nvim/lazy-lock.json`) |
+| `:Lazy sync` | try newer plugins now (CI updates and tests them nightly; `git checkout nvim/lazy-lock.json` goes back) |
 | `:Mason` | inspect language servers and tools |
 | `nvim --headless -c 'luafile ~/.config/nvim/scripts/smoke.lua'` | prove every language still works |
 | `:checkhealth` | diagnose anything else |

@@ -37,16 +37,22 @@ end)
 
 step('mason packages (LSPs, formatters, debug adapters)', function()
   -- Loading lspconfig runs plugins/lsp.lua, which hands the full package list to
-  -- mason-tool-installer (without starting installs when headless); the Sync
-  -- command then blocks until every install finishes.
+  -- mason-tool-installer (without starting installs when headless). UpdateSync installs what's
+  -- missing and moves every installed package to the pinned registry's version (newer or older),
+  -- blocking until done.
   require('lazy').load { plugins = { 'nvim-lspconfig' } }
-  vim.cmd 'MasonToolsInstallSync'
+  vim.cmd 'MasonToolsUpdateSync'
   local registry = require 'mason-registry'
-  local missing = vim.tbl_filter(function(name)
+  local wrong = {}
+  for _, name in ipairs(require('util.mason').required()) do
     local ok, pkg = pcall(registry.get_package, name)
-    return not (ok and pkg:is_installed())
-  end, require('util.mason').required())
-  if #missing > 0 then error('not installed: ' .. table.concat(missing, ', ')) end
+    if not (ok and pkg:is_installed()) then
+      table.insert(wrong, name .. ' (not installed)')
+    elseif pkg:get_installed_version() ~= pkg:get_latest_version() then
+      table.insert(wrong, ('%s %s, pinned %s'):format(name, pkg:get_installed_version(), pkg:get_latest_version()))
+    end
+  end
+  if #wrong > 0 then error(table.concat(wrong, ', ')) end
 end)
 
 step('treesitter parsers', function()

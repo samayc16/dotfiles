@@ -89,6 +89,14 @@ echo "$out" | grep -q 'fzf-file-widget' || fail "Ctrl-T is not fzf's: $out"
 [ -e "${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/atuin-imported" ] || fail "the zsh step didn't import the history into atuin"
 [ "$nvim_on" = 0 ] || nvim --headless "+Lazy! restore" +qa
 
+# zsh plugins (Linux; macOS uses Homebrew's): each at its pin
+if [ "$(uname)" = Linux ]; then
+  grep '^zsh/' "$PINS" | while read -r name _ _ rev; do
+    dir="$HOME/.local/share/zsh-plugins/${name#zsh/}"
+    [ "$(git -C "$dir" rev-parse HEAD)" = "$rev" ] || fail "$dir is not at its pin $rev"
+  done
+fi
+
 # tmux plugins: each at its pin, and TPM's own first run finds them all (installs nothing)
 grep '^tmux/' "$PINS" | while read -r name _ _ rev; do
   dir="$HOME/.tmux/plugins/${name#tmux/}"

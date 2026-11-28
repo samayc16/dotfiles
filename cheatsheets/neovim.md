@@ -151,7 +151,7 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 ## keeping it healthy
 | command | does |
 |---|---|
-| `:Lazy` | plugins (`:Lazy sync` to update, then commit `nvim/lazy-lock.json`) |
+| `:Lazy` | plugins (updated nightly by CI, tested, then `dotfiles update`; `:Lazy sync` tries newer ones now) |
 | `:Mason` | language servers / formatters / debuggers |
 | `:checkhealth` | diagnose anything |
 | `nvim --headless -c 'luafile ~/.config/nvim/scripts/smoke.lua'` | end-to-end test of every language |

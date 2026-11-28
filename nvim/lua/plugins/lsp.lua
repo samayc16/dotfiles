@@ -33,7 +33,17 @@ local function on_attach(ev)
 end
 
 return {
-  { 'mason-org/mason.nvim', lazy = false, build = ':MasonUpdate', opts = {} },
+  {
+    'mason-org/mason.nvim',
+    lazy = false,
+    build = ':MasonUpdate',
+    opts = function()
+      -- The pinned registry fixes every package's version (pins.txt mason-registry, bumped and
+      -- tested nightly); without a pin, the newest registry.
+      local registry = require('util.pins').version 'mason-registry'
+      return { registries = { 'github:mason-org/mason-registry' .. (registry and '@' .. registry or '') } }
+    end,
+  },
 
   {
     'neovim/nvim-lspconfig',

@@ -3,14 +3,17 @@
 
   scripts/bump-pins.py bump [--pins FILE] [--changes FILE]   move each pin to the newest version
   scripts/bump-pins.py diff OLD NEW                          what changed between two pins files
+  scripts/bump-pins.py lock-diff OLD NEW                     what moved between two nvim/lazy-lock.json
   scripts/bump-pins.py table [--pins FILE]                   name and version of every pin
   scripts/bump-pins.py asset NAME PATTERN [--pins FILE]      download URL of a pinned release's asset
 
 Newest means `git ls-remote <url> HEAD` for a commit pin, GitHub's releases/latest for a release
-pin (GITHUB_TOKEN is used when set; only numbered tags like v1.2.3 count), and `mise latest
+pin (GITHUB_TOKEN is used when set; only numbered tags like v1.2.3 and dated ones like
+mason-registry's 2026-11-28-chief-loan count), and `mise latest
 <spec>` for a mise pin (spec `neovim@0.12` stays on 0.12.x). With no release yet, or when a
 lookup fails, the pin stays where it is and a warning says why. `bump` also writes the mise pins'
-exact versions into mise/global.toml, which the installer installs from.
+exact versions into mise/global.toml, which the installer installs from. Neovim plugins are
+bumped by scripts/bump-plugins.sh (lazy.nvim itself); lock-diff reports what that moved.
 Standard library only, Python 3.8+.
 """
 
@@ -35,7 +38,7 @@ MISE_CONFIG = ROOT / "mise" / "global.toml"
 # `tool = { version = "…", …}` in mise/global.toml; the tool may be quoted ("conda:tree-sitter-cli")
 MISE_LINE = re.compile(r'^(?P<head>"?(?P<tool>[^"=\s]+)"?\s*=\s*\{\s*version\s*=\s*")(?P<version>[^"]*)(?P<tail>".*)$')
 NONE = "-"  # a release pin with no numbered release yet
-NUMBERED = re.compile(r"^v?\d+(\.\d+)*$")
+NUMBERED = re.compile(r"^(v?\d+(\.\d+)*|\d{4}-\d{2}-\d{2}(-[a-z0-9]+)*)$")  # v1.2.3, 2026-11-28-chief-loan
 GITHUB = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+?)(?:\.git)?/?$")
 HEADER = ("#", "name", "kind", "source", "version")
 # mise pins that are deliberately not in mise/global.toml: install.d/mise.sh writes them into
@@ -246,6 +249,24 @@ def diff(old: Sequence[Line], new: Sequence[Line]) -> List[Change]:
     return changes + [Change(name, version, "(removed)") for name, version in before.items() if name not in after]
 
 
+def load_lock(path: Path) -> Dict[str, dict]:
+    """nvim/lazy-lock.json: {plugin: {"branch": …, "commit": …}}."""
+    try:
+        lock = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise PinError("cannot read %s: %s" % (path, exc)) from exc
+    if not isinstance(lock, dict) or not all(isinstance(entry, dict) and "commit" in entry for entry in lock.values()):
+        raise PinError("%s: expected {plugin: {commit: …}}" % path)
+    return lock
+
+
+def lock_diff(old: Mapping[str, dict], new: Mapping[str, dict]) -> List[Change]:
+    """Plugins whose commit moved, then new ones, then removed ones; each "nvim/<plugin>"."""
+    moved = [Change("nvim/" + name, old[name]["commit"] if name in old else "(new)", entry["commit"])
+             for name, entry in sorted(new.items()) if name not in old or old[name]["commit"] != entry["commit"]]
+    return moved + [Change("nvim/" + name, entry["commit"], "(removed)") for name, entry in sorted(old.items()) if name not in new]
+
+
 def table(lines: Sequence[Line]) -> str:
     pins = pins_of(lines)
     width = max(len(pin.name) for pin in pins)
@@ -277,9 +298,10 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         if name == "asset":
             command.add_argument("name")
             command.add_argument("pattern")
-    compare = sub.add_parser("diff")
-    compare.add_argument("old", type=Path)
-    compare.add_argument("new", type=Path)
+    for name in ("diff", "lock-diff"):
+        compare = sub.add_parser(name)
+        compare.add_argument("old", type=Path)
+        compare.add_argument("new", type=Path)
     return parser.parse_args(argv)
 
 
@@ -304,6 +326,8 @@ def main(argv: Optional[Sequence[str]] = None, lookups: Optional[Mapping[str, Lo
             print(report or "every pin is already the newest", end="" if report else "\n")
         elif args.command == "diff":
             print("".join("%s\n" % change for change in diff(load(args.old), load(args.new))), end="")
+        elif args.command == "lock-diff":
+            print("".join("%s\n" % change for change in lock_diff(load_lock(args.old), load_lock(args.new))), end="")
         elif args.command == "table":
             print(table(load(args.pins)), end="")
         else:

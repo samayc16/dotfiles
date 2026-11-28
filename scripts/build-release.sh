@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Build the all-in-one release tarball:   scripts/build-release.sh VERSION OUT.tar.gz
 #
-#   dotfiles/               a git archive of HEAD, with the working tree's pins.txt and
-#                           mise/global.toml (the release job commits them first; test jobs build
-#                           with freshly bumped pins)
+#   dotfiles/               a git archive of HEAD, with the working tree's pins.txt,
+#                           mise/global.toml and nvim/lazy-lock.json (the release job commits them
+#                           first; test jobs build with freshly bumped versions)
 #   dotfiles/dist/          the pinned plexamp-tui wheel, from its GitHub release
 #   dotfiles/VERSION        VERSION, e.g. 2026.11.24
 #   dotfiles/VERSIONS.txt   every pinned item and its version
@@ -26,7 +26,7 @@ PKG="$STAGE/dotfiles"
 
 mkdir -p "$PKG/dist"
 git -C "$ROOT" archive --format=tar HEAD | tar -xf - -C "$PKG"
-for maintained in pins.txt mise/global.toml; do cp "$ROOT/$maintained" "$PKG/$maintained"; done
+for maintained in pins.txt mise/global.toml nvim/lazy-lock.json; do cp "$ROOT/$maintained" "$PKG/$maintained"; done
 printf '%s\n' "$VERSION" >"$PKG/VERSION"
 
 if [[ "$(awk '$1 == "plexamp-tui" { print $4 }' "$PKG/pins.txt")" == - ]]; then
@@ -39,8 +39,9 @@ fi
 {
   printf 'dotfiles %s (commit %s)\n\n' "$VERSION" "$(git -C "$ROOT" rev-parse HEAD)"
   python3 "$ROOT/scripts/bump-pins.py" table --pins "$PKG/pins.txt"
-  printf '\nNeovim plugins are pinned by nvim/lazy-lock.json. On macOS the CLI tools come from\n'
-  printf "Homebrew at its current versions (Homebrew can't pin); the mise/* pins are for Linux.\n"
+  printf '\nNeovim plugins are pinned by nvim/lazy-lock.json, language servers and formatters by\n'
+  printf 'mason-registry. On macOS the CLI tools come from Homebrew at its current versions\n'
+  printf "(Homebrew can't pin); the mise/* pins are for Linux.\n"
 } >"$PKG/VERSIONS.txt"
 
 tar -czf "$OUT" -C "$STAGE" dotfiles

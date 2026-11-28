@@ -365,7 +365,7 @@ cmd_status() {
   if [[ "${DOTFILES_NO_UPDATE_CHECK:-0}" == 1 ]]; then
     say "  ${C_DIM}update prompt: off (DOTFILES_NO_UPDATE_CHECK=1)${C_RESET}"
   else
-    say "  ${C_DIM}update prompt: on, checks daily (DOTFILES_NO_UPDATE_CHECK=1 turns it off)${C_RESET}"
+    say "  ${C_DIM}update prompt: on, checks every 4 hours (DOTFILES_NO_UPDATE_CHECK=1 turns it off)${C_RESET}"
   fi
 }
 

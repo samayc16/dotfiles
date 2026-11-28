@@ -1,10 +1,17 @@
-# The release pipeline. On every push to main:
-#   1. pins: bump everything in pins.txt to the newest upstream version, build a test tarball
-#   2. test: install from scratch with those pins on 5 Linux distros, as root from the checkout and
-#      as a user without sudo from the tarball, plus macOS (dry run, links, release update/rollback)
-#   3. release: only when every test passed, commit the tested pins to main and publish a dated
-#      release (vYYYY.MM.DD, .1 for a second one that day) with dotfiles.tar.gz
-# Pull requests test the committed pins. workflow_dispatch can bump and test without releasing.
+# The release pipeline.
+# Nightly (and workflow_dispatch, which never releases):
+#   1. pins: move everything to its newest upstream version (every pin in pins.txt: the CLI tools,
+#      tmux and zsh plugins, mise, the Mason registry, the learn repos; and every Neovim plugin in
+#      nvim/lazy-lock.json), and build a test tarball
+#   2. test: install from scratch with those versions on the Linux distros below, as root from the
+#      checkout and as a user without sudo from the tarball, plus CentOS 7 and macOS
+#   3. release: when something moved and every test passed, commit the tested versions to main
+#      and publish a dated release (vYYYY.MM.DD, .1 for a second one that day)
+# On a push to main: the same tests on the committed (last good) versions, then a release, so an
+# upstream release that breaks the install never holds back your own change.
+#   4. report: a failed run opens a GitHub issue (or comments on the open one), which notifies
+#      you; the next passing run closes it. Nightly runs and pushes each have their own issue.
+# Pull requests test the committed versions.
 name: install
 
 on:
@@ -33,14 +40,13 @@ on:
       - clangd/**
       - .github/ci/**
       - .github/workflows/install.yml
-  # Mondays: bump and test everything, so an upstream release that breaks the install shows up
-  # before your next push does (never commits or releases: only a push to main does)
+  # Nightly, 01:17 Pacific (09:17 UTC): bump everything, test, and release what passed
   schedule:
-    - cron: "17 9 * * 1"
+    - cron: "17 9 * * *"
   workflow_dispatch:
     inputs:
       bump:
-        description: Bump the pins to the newest versions before testing (never commits or releases)
+        description: Bump everything to the newest versions before testing (never commits or releases)
         type: boolean
         default: true
 
@@ -56,19 +62,28 @@ jobs:
   pins:
     name: pins + tarball
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub API rate limits
+      BUMP: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.bump) }}
     steps:
       - uses: actions/checkout@v7
-      - name: mise (looks up the Linux CLI tools' newest versions)
-        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.bump
+      - name: mise (looks up the Linux CLI tools' newest versions; runs Neovim for the plugin bump)
+        if: env.BUMP == 'true'
         run: curl -fsSL https://mise.run | MISE_INSTALL_PATH="$HOME/.local/bin/mise" sh && echo "$HOME/.local/bin" >>"$GITHUB_PATH"
       - name: Bump every pin to the newest version
-        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.bump
+        if: env.BUMP == 'true'
+        run: python3 scripts/bump-pins.py bump --changes changes.txt
+      - name: Bump every Neovim plugin to the newest version (with the bumped Neovim and Mason registry)
+        if: env.BUMP == 'true'
         run: |
-          python3 scripts/bump-pins.py bump --changes changes.txt
-          { echo '### Pins moved'; echo '```'; cat changes.txt; echo '```'; } >>"$GITHUB_STEP_SUMMARY"
+          nvim_version="$(awk '$1 == "mise/neovim" { print $4 }' pins.txt)"
+          mise exec "neovim@$nvim_version" -- scripts/bump-plugins.sh --changes plugin-changes.txt
+          cat plugin-changes.txt >>changes.txt
+      - name: What moved
+        run: |
+          touch changes.txt
+          { echo '### What moved'; echo '```'; cat changes.txt; echo '```'; } >>"$GITHUB_STEP_SUMMARY"
       - name: Build the tarball a release would ship
         run: scripts/build-release.sh "0.0.${{ github.run_number }}" dotfiles.tar.gz
       - uses: actions/upload-artifact@v7
@@ -77,6 +92,8 @@ jobs:
           path: |
             pins.txt
             mise/global.toml
+            nvim/lazy-lock.json
+            changes.txt
             dotfiles.tar.gz
           if-no-files-found: error
           retention-days: 7
@@ -98,7 +115,7 @@ jobs:
           shellcheck -x -P install.d -s bash install.d/*.sh bin/dotfiles bin/cheat scripts/build-release.sh
           shellcheck -S warning -x -P install.d -s bash learn/fetch.sh
           shellcheck -s sh install.sh install-arch.sh .github/ci/verify.sh scripts/focus.sh
-          shellcheck -s bash .github/ci/centos7.sh
+          shellcheck -s bash .github/ci/centos7.sh .github/ci/report.sh scripts/bump-plugins.sh
       - name: zsh syntax
         run: for f in zshrc zsh/*.zsh; do zsh -n "$f"; done
 
@@ -169,7 +186,7 @@ jobs:
           name: pins
           path: ci-artifacts
       - name: Use the pins under test
-        run: cp ci-artifacts/pins.txt pins.txt && cp ci-artifacts/mise/global.toml mise/global.toml
+        run: for f in pins.txt mise/global.toml nvim/lazy-lock.json; do cp "ci-artifacts/$f" "$f"; done
 
       - name: Install as root from the checkout (profile ${{ matrix.profile || 'dev' }} + ${{ matrix.extra || 'music' }})
         if: matrix.mode == 'root'
@@ -237,7 +254,7 @@ jobs:
           name: pins
           path: ci-artifacts
       - name: Use the pins under test
-        run: cp ci-artifacts/pins.txt pins.txt && cp ci-artifacts/mise/global.toml mise/global.toml
+        run: for f in pins.txt mise/global.toml nvim/lazy-lock.json; do cp "ci-artifacts/$f" "$f"; done
       - name: Unit tests (bash 3.2 included)
         run: python3 -m unittest discover -s installer/tests -t .
       - name: Plan + dry run
@@ -292,7 +309,7 @@ jobs:
 
   release:
     needs: [pins, lint, linux, centos7, macos, macos-install]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -313,35 +330,47 @@ jobs:
         with:
           name: pins
           path: ${{ runner.temp }}/tested
-      - name: Commit the tested pins to main
+      - name: Commit the tested versions to main
         id: pins
         run: |
+          maintained=(pins.txt mise/global.toml nvim/lazy-lock.json) # what CI bumps
+          tested_are_committed() { for f in "${maintained[@]}"; do cmp -s "$f" "$RUNNER_TEMP/tested/$f" || return 1; done; }
+          only_versions_changed() { [ -z "$(git diff --name-only HEAD~1 HEAD -- . "${maintained[@]/#/:!}")" ]; }
           if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
-            # A rerun after a failed publish finds the pins its first attempt committed on top of
-            # this run's commit. That push started no run (GITHUB_TOKEN), so this run releases it.
-            if [ "$(git rev-parse HEAD~1)" = "$GITHUB_SHA" ] &&
-              [ -z "$(git diff --name-only HEAD~1 HEAD -- . ':!pins.txt' ':!mise/global.toml')" ] &&
-              cmp -s pins.txt "$RUNNER_TEMP/tested/pins.txt" && cmp -s mise/global.toml "$RUNNER_TEMP/tested/mise/global.toml"; then
-              echo "pins already committed by this run's first attempt ($(git rev-parse --short HEAD))"
+            # A rerun after a failed publish finds the versions its first attempt committed on top
+            # of this run's commit. That push started no run (GITHUB_TOKEN), so this run releases it.
+            if [ "$(git rev-parse HEAD~1)" = "$GITHUB_SHA" ] && only_versions_changed && tested_are_committed; then
+              echo "versions already committed by this run's first attempt ($(git rev-parse --short HEAD))"
               echo "release=true" >>"$GITHUB_OUTPUT"; exit 0
             fi
-            echo "::notice::main moved on during this run; the run for $(git rev-parse --short HEAD) releases it"
+            echo "::notice::main moved on during this run; its run releases it (the next nightly run retries these versions)"
             echo "release=false" >>"$GITHUB_OUTPUT"; exit 0
           fi
-          echo "release=true" >>"$GITHUB_OUTPUT"
-          cp "$RUNNER_TEMP/tested/pins.txt" pins.txt
-          cp "$RUNNER_TEMP/tested/mise/global.toml" mise/global.toml # the mise pins' exact versions
-          if git diff --quiet -- pins.txt mise/global.toml; then echo "pins unchanged"; exit 0; fi
+          for f in "${maintained[@]}"; do cp "$RUNNER_TEMP/tested/$f" "$f"; done
+          if git diff --quiet -- "${maintained[@]}"; then
+            if [ "$GITHUB_EVENT_NAME" = schedule ]; then
+              echo "::notice::nothing moved upstream since the last release: no release tonight"
+              echo "release=false" >>"$GITHUB_OUTPUT"
+            else
+              echo "versions unchanged"
+              echo "release=true" >>"$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
           git show HEAD:pins.txt >"$RUNNER_TEMP/old-pins.txt"
-          changes="$(python3 scripts/bump-pins.py diff "$RUNNER_TEMP/old-pins.txt" pins.txt)"
+          git show HEAD:nvim/lazy-lock.json >"$RUNNER_TEMP/old-lock.json"
+          changes="$(python3 scripts/bump-pins.py diff "$RUNNER_TEMP/old-pins.txt" pins.txt
+            python3 scripts/bump-pins.py lock-diff "$RUNNER_TEMP/old-lock.json" nvim/lazy-lock.json)"
           echo "$changes"
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -q -m "chore: bump pins" -m "$changes" -m "Tested in $RUN_URL" -- pins.txt mise/global.toml
+            commit -q -m "chore: bump pins" -m "$changes" -m "Tested in $RUN_URL" -- "${maintained[@]}"
           # A push with GITHUB_TOKEN starts no workflow, so this can't loop.
-          if ! git push -q origin HEAD:main; then
+          if git push -q origin HEAD:main; then
+            echo "release=true" >>"$GITHUB_OUTPUT"
+          else
             git fetch -q origin main
             [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ] || exit 1
-            echo "::notice::main moved on while committing the pins; its own run releases it"
+            echo "::notice::main moved on while committing the versions; its own run releases it"
             echo "release=false" >>"$GITHUB_OUTPUT"
           fi
       - name: Tag, build and publish
@@ -352,6 +381,14 @@ jobs:
           while git rev-parse -q --verify "refs/tags/$tag" >/dev/null; do n=$((n + 1)) && tag="$base.$n"; done
           previous="$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD 2>/dev/null || true)"
           scripts/build-release.sh "${tag#v}" dotfiles.tar.gz
+          moved=""
+          if [ -n "$previous" ]; then
+            git show "$previous:pins.txt" >"$RUNNER_TEMP/released-pins.txt"
+            moved="$(python3 scripts/bump-pins.py diff "$RUNNER_TEMP/released-pins.txt" pins.txt)"
+            if git show "$previous:nvim/lazy-lock.json" >"$RUNNER_TEMP/released-lock.json" 2>/dev/null; then
+              moved="$moved${moved:+$'\n'}$(python3 scripts/bump-pins.py lock-diff "$RUNNER_TEMP/released-lock.json" nvim/lazy-lock.json)"
+            fi
+          fi
           # shellcheck disable=SC2016 # the notes show these commands literally
           {
             echo 'Install (macOS or Linux, no root needed):'
@@ -362,12 +399,46 @@ jobs:
             echo
             echo "## Changes${previous:+ since $previous}"
             git log --no-merges --format='- %s (%h)' ${previous:+"$previous..HEAD"} | head -n 60
+            if [ -n "$moved" ]; then
+              echo
+              echo '## Versions that moved'
+              echo '```'
+              echo "$moved"
+              echo '```'
+            fi
             echo
             echo '## Pinned versions'
             echo '```'
             python3 scripts/bump-pins.py table
             echo '```'
+            echo 'Neovim plugins: nvim/lazy-lock.json.'
           } >notes.md
           gh release create "$tag" dotfiles.tar.gz bin/dotfiles --target "$(git rev-parse HEAD)" \
             --title "dotfiles ${tag#v}" --notes-file notes.md --latest
           echo "::notice::released $tag: ${{ github.server_url }}/${{ github.repository }}/releases/tag/$tag"
+
+  report:
+    name: report (an issue when a run on main fails)
+    needs: [pins, lint, linux, centos7, macos, macos-install, release]
+    if: always() && github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'schedule')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read # which jobs failed
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RESULTS: ${{ join(needs.*.result, ' ') }}
+      EVENT: ${{ github.event_name }}
+      RUN_ID: ${{ github.run_id }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        continue-on-error: true # a failed pins job uploads nothing
+        with:
+          name: pins
+          path: ci-artifacts
+      - name: Open, update or close the issue
+        run: .github/ci/report.sh

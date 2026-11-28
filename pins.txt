@@ -1,9 +1,10 @@
 # Every external version the installer uses, one per line: name kind source version.
-# CI maintains this file: on each push to main, scripts/bump-pins.py moves every pin to the
-# newest upstream version, the whole install is tested with them, and only then are they
-# committed here. kind is `commit` (a commit on the repo's default branch), `release` (its newest
-# numbered GitHub release, `-` until there is one) or `mise` (`mise latest <spec>`; neovim@0.12
-# stays on 0.12.x). bump-pins.py writes the mise versions into mise/global.toml too.
+# CI maintains this file: every night scripts/bump-pins.py moves every pin to the newest
+# upstream version (and scripts/bump-plugins.sh every Neovim plugin in nvim/lazy-lock.json), the
+# whole install is tested with them, and only when every test passes are they committed here and
+# released. kind is `commit` (a commit on the repo's default branch), `release` (its newest
+# numbered or dated GitHub release, `-` until there is one) or `mise` (`mise latest <spec>`;
+# neovim@0.12 stays on 0.12.x). bump-pins.py writes the mise versions into mise/global.toml too.
 
 # name                       kind     source                                                          version
 plexamp-tui                  release  https://github.com/samayc16/plexamp-tui                         v0.1.0
@@ -30,6 +31,17 @@ learn/picorv32               commit   https://github.com/YosysHQ/picorv32       
 learn/lyah                   commit   https://github.com/learnyouahaskell/learnyouahaskell.github.io  1e60d107cceadccf2a2d4b6cf67e94fc77c61e19
 learn/swift-book             commit   https://github.com/swiftlang/swift-book                         16a2a4caa408c86fc85bde1e1dfff4745b6e454c
 learn/verilator-docs         commit   https://github.com/verilator/verilator                          50b2d6fd0d97af716ba1536e86395d9c40d4c0e2
+
+# install.d/zsh.sh (Linux; macOS gets them from Homebrew): the prompt and plugins zshrc loads,
+# cloned into ~/.local/share/zsh-plugins/<name>
+zsh/powerlevel10k            commit   https://github.com/romkatv/powerlevel10k                        50a35cc8d9f1488d18fb8aea6cddcfc31189cc9f
+zsh/zsh-autosuggestions      commit   https://github.com/zsh-users/zsh-autosuggestions                85919cd1ffa7d2d5412f6d3fe437ebdbeeec4fc5
+zsh/zsh-syntax-highlighting  commit   https://github.com/zsh-users/zsh-syntax-highlighting            e6683f20e5c38d3e5447f45845d04ddda75d0f23
+zsh/fzf-tab                  commit   https://github.com/Aloxaf/fzf-tab                               24105b15714bfec37989ed5c5b6e60f572253019
+
+# nvim/lua/plugins/lsp.lua: Mason's package registry. This one pin fixes the version of every
+# language server, formatter, linter and debug adapter; nvim/scripts/bootstrap.lua installs them.
+mason-registry               release  https://github.com/mason-org/mason-registry                     2026-11-28-chief-loan
 
 # install.d/tmux.sh: TPM and the plugins tmux.conf lists, cloned into ~/.tmux/plugins/<name>
 tmux/tpm                     commit   https://github.com/tmux-plugins/tpm                             e261deb1b47614eed3400089ce7197dc68acc4eb

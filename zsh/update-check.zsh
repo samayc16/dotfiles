@@ -1,16 +1,18 @@
 # Asks once per new release whether to update these dotfiles:
 #   dotfiles 2026.11.30 is available (you have 2026.11.24). Update now? [y/N]
-# y runs `dotfiles update`; N is remembered for that version. zshrc sources this only in an
-# interactive shell on a terminal, not in CI, and not with DOTFILES_NO_UPDATE_CHECK=1.
-# Startup cost: one stat and one small file read, all builtins. The network lookup
-# (`dotfiles check`) runs at most daily in a disowned background job, silent on any failure.
+# y runs `dotfiles update`. After N, every new shell says so in one line until you update:
+#   dotfiles 2026.11.30 is available (you have 2026.11.24): dotfiles update
+# zshrc sources this only in an interactive shell on a terminal, not in CI, and not with
+# DOTFILES_NO_UPDATE_CHECK=1. Startup cost: one stat and one small file read, all builtins.
+# The network lookup (`dotfiles check`) runs at most every 4 hours, so a nightly release shows up
+# the same morning, in a disowned background job, silent on any failure.
 () {
   local state=${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles cli=$DOTFILES/bin/dotfiles latest have
-  local -a fresh=( $state/checked(N.mh-24) )
+  local -a fresh=( $state/checked(N.mh-4) )
   (( $#fresh )) || { [[ -x $cli ]] && "$cli" check --quiet &>/dev/null &! }
 
   [[ -r $state/latest ]] && read -r latest <$state/latest
-  [[ -n $latest && $latest != *[^0-9.]* && ! -e $state/asked/$latest ]] || return 0
+  [[ -n $latest && $latest != *[^0-9.]* ]] || return 0
 
   # Installed: a release's VERSION file, or a clone's newest tag (only reached when asking is possible)
   if [[ -r $DOTFILES/VERSION ]]; then
@@ -21,6 +23,10 @@
   fi
   autoload -Uz is-at-least
   [[ -n $have ]] && is-at-least $latest $have && return 0
+  if [[ -e $state/asked/$latest ]]; then
+    print -r -- "dotfiles $latest is available (you have ${have:-an untagged checkout}): dotfiles update"
+    return 0
+  fi
 
   # One shell asks: a tmux restore opening ten panes at once must not ask ten times.
   zmodload -F zsh/files b:zf_mkdir 2>/dev/null || return 0

@@ -556,6 +556,20 @@ def readline_line_ends(s):
     wait_for("Ctrl-A / Ctrl-E on the : line", lambda: s.nvim.lua("return vim.g.typed") == "ab")
 
 
+@test
+def undotree_on_leader_ut(s):
+    """<leader>ut opens undotree beside the file, focused (j/k walk the history); q closes it."""
+    s.start_nvim()
+    s.type(b"ione" + ESC)
+    time.sleep(SETTLE)
+    s.type(b"otwo" + ESC)
+    time.sleep(SETTLE)
+    s.type(LEADER + b"ut")
+    s.wait_state("undotree, focused", filetype="undotree")
+    s.type(b"q")
+    s.wait_state("back in the file", buftype="", filetype="text")
+
+
 # -- autosave ----------------------------------------------------------------------
 
 AUTOSAVE = 0.3  # nvim/lua/config/autosave.lua's DELAY_MS
