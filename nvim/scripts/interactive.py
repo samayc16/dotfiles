@@ -61,8 +61,9 @@ with open(log, "ab", buffering=0) as out:
 # Stands in for `claude` in the Claude split: logs keys like KEYLOG, and connects to
 # claudecode.nvim's IDE websocket the way the real CLI does (port from the terminal's env,
 # token from the lock file), appending each message nvim sends it to <log>.ide as a line.
+# Each line a test appends to <log>.send goes to nvim, as Claude's requests do.
 FAKE_CLAUDE = """\
-import base64, json, os, socket, struct, sys, threading, tty
+import base64, json, os, socket, struct, sys, threading, time, tty
 log = sys.argv[1]
 port = os.environ["CLAUDE_CODE_SSE_PORT"]
 with open(os.path.join(os.environ["CLAUDE_CONFIG_DIR"], "ide", port + ".lock")) as f:
@@ -86,10 +87,26 @@ def recv_exact(n):
         data += chunk
     return data
 
+sending = threading.Lock()
+
 def send(opcode, payload):  # clients must mask their frames
     mask, n = os.urandom(4), len(payload)
     head = bytes([0x80 | opcode]) + (bytes([0x80 | n]) if n < 126 else bytes([0xFE]) + struct.pack(">H", n))
-    sock.sendall(head + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
+    with sending:
+        sock.sendall(head + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(payload)))
+
+def requests():
+    sent = 0
+    while True:
+        time.sleep(0.05)
+        try:
+            with open(log + ".send") as f:
+                lines = f.read().splitlines()
+        except OSError:
+            continue
+        for line in lines[sent:]:
+            send(1, line.encode())
+        sent = len(lines)
 
 def websocket():
     with open(log + ".ide", "a") as out:
@@ -109,6 +126,7 @@ def websocket():
                 return
 
 threading.Thread(target=websocket, daemon=True).start()
+threading.Thread(target=requests, daemon=True).start()
 tty.setraw(0)
 open(log + ".ready", "w").close()
 with open(log, "ab", buffering=0) as out:
@@ -301,10 +319,22 @@ class Session:
         return log, win
 
     @staticmethod
-    def ide_messages(log, method):
+    def ide_log(log):
         path = Path(str(log) + ".ide")
-        lines = path.read_text().splitlines() if path.exists() else []
-        return [m["params"] for m in map(json.loads, lines) if m.get("method") == method]
+        return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+    def ide_messages(self, log, method):
+        return [m["params"] for m in self.ide_log(log) if m.get("method") == method]
+
+    def ide_reply(self, log, request_id):
+        return next((m for m in self.ide_log(log) if m.get("id") == request_id), None)
+
+    @staticmethod
+    def claude_calls(log, request_id, tool, arguments):
+        """Fake Claude calls an MCP tool in nvim, as `claude` does to propose an edit."""
+        call = {"jsonrpc": "2.0", "id": request_id, "method": "tools/call", "params": {"name": tool, "arguments": arguments}}
+        with open(str(log) + ".send", "a") as f:
+            f.write(json.dumps(call) + "\n")
 
     def wait_ready(self, log):
         wait_for("%s to start" % log.name, lambda: Path(str(log) + ".ready").exists())
@@ -524,6 +554,175 @@ def readline_line_ends(s):
     time.sleep(SETTLE)
     s.type(b":ab" + C_A + b"let g:typed = '" + C_E + b"'\r")
     wait_for("Ctrl-A / Ctrl-E on the : line", lambda: s.nvim.lua("return vim.g.typed") == "ab")
+
+
+# -- autosave ----------------------------------------------------------------------
+
+AUTOSAVE = 0.3  # nvim/lua/config/autosave.lua's DELAY_MS
+
+
+def in_project(s, name, text):
+    """A file in a git repo. Tests run in a temp dir, and autosave skips temp files
+    outside a repo ($EDITOR files: zsh's Ctrl-X Ctrl-E, crontab -e)."""
+    proj = s.tmp / "proj"
+    if not (proj / ".git").exists():
+        proj.mkdir(parents=True, exist_ok=True)
+        run(["git", "init", "-q", str(proj)], s.tmux.env)
+    path = proj / name
+    path.write_text(text)
+    return path
+
+
+def buffer_modified(s):
+    return s.nvim.lua("return vim.bo.modified")
+
+
+def assert_not_saved(s, path, text, what):
+    time.sleep(AUTOSAVE + SETTLE)
+    if path.read_text() != text:
+        raise Failure("%s was saved: the file has %r" % (what, path.read_text()))
+    if not buffer_modified(s):
+        raise Failure("%s: the buffer lost its unsaved change" % what)
+
+
+@test
+def autosave_after_changes(s):
+    """Leaving insert mode, dw and u each save the file; typing doesn't. <leader>ta
+    turns it off, and back on (saving what's pending)."""
+    f = in_project(s, "notes.txt", "one two\n")
+    s.start_nvim(f)
+    s.type(b"Ahi")
+    wait_for("the typed text", lambda: s.nvim.lua("return vim.api.nvim_get_current_line()") == "one twohi")
+    assert_not_saved(s, f, "one two\n", "a half-typed line")
+    s.type(ESC)
+    wait_for("leaving insert mode to save", lambda: f.read_text() == "one twohi\n")
+    s.type(b"0dw")
+    wait_for("dw to save", lambda: f.read_text() == "twohi\n")
+    s.type(b"u")
+    wait_for("u to save", lambda: f.read_text() == "one twohi\n" and not buffer_modified(s))
+    s.type(LEADER + b"ta")
+    wait_for("<leader>ta to turn autosave off", lambda: s.nvim.lua("return vim.g.autosave") is False)
+    s.type(b"x")
+    assert_not_saved(s, f, "one twohi\n", "a change with autosave off")
+    s.type(LEADER + b"ta")
+    wait_for("<leader>ta back on to save the pending change", lambda: f.read_text() == "ne twohi\n")
+    # An LSP rename edits this file and one that isn't open, through the same function.
+    other = in_project(s, "other.txt", "twohi()\n")
+    s.nvim.lua(
+        "local function edit(path, last) return { [vim.uri_from_fname(path)] = { { newText = 'renamed', "
+        "range = { start = { line = 0, character = 0 }, ['end'] = { line = 0, character = last } } } } } end "
+        "vim.lsp.util.apply_workspace_edit({ changes = vim.tbl_extend('error', edit(%s, 2), edit(%s, 5)) }, 'utf-8') return true"
+        % (lua_str(str(f)), lua_str(str(other)))
+    )
+    wait_for("both files of the rename to save", lambda: (f.read_text(), other.read_text()) == ("renamed twohi\n", "renamed()\n"))
+
+
+@test
+def autosave_skips_format_on_save(s):
+    """Autosaves don't run the formatter: text would jump while editing, and `u` would
+    be redone by it. :w still formats."""
+    f = in_project(s, "notes.txt", "one\n")
+    s.start_nvim(f)
+    # A formatter for plain text that upper-cases, so format-on-save applies to this file.
+    s.nvim.lua("local c = require('conform') c.formatters.shout = { command = 'tr', args = { 'a-z', 'A-Z' } } c.formatters_by_ft.text = { 'shout' } return true")
+    s.type(b"otwo" + ESC)
+    wait_for("the autosave, unformatted", lambda: f.read_text() == "one\ntwo\n")
+    s.type(b"u")
+    wait_for("u to autosave, unformatted", lambda: f.read_text() == "one\n")
+    s.type(b":w\r")
+    wait_for(":w to format", lambda: f.read_text() == "ONE\n")
+
+
+@test
+def autosave_leaves_alone(s):
+    """Never autosaved: a temp file outside a repo, a commit message, oil (a write
+    deletes files), and a file changed on disk since nvim read it (you're told)."""
+    temp = s.tmp / "zshAb12"
+    temp.write_text("echo hi\n")
+    keep = in_project(s, "keep.txt", "keep\n")
+    hunk = keep.parent / ".git" / "ADD_EDIT.patch"  # git add -p's hunk editor
+    hunk.write_text("+line\n")
+    commit = in_project(s, "COMMIT_EDITMSG", "subject\n")  # a commit message by filetype alone
+    s.start_nvim(temp)
+    s.type(b"x")
+    assert_not_saved(s, temp, "echo hi\n", "a temp file outside a repo")
+    for path, filetype, text in ((hunk, "diff", "+line\n"), (commit, "gitcommit", "subject\n")):
+        s.nvim.lua("vim.cmd.edit(%s) return true" % lua_str(str(path)))
+        s.wait_state(path.name, filetype=filetype)
+        s.type(b"x")
+        assert_not_saved(s, path, text, path.name)
+    s.nvim.lua("vim.cmd.edit(%s) return true" % lua_str(str(keep.parent)))  # oil
+    s.wait_state("oil", filetype="oil")
+    listing = lambda: "\n".join(s.nvim.lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)"))  # noqa: E731
+    wait_for("oil to list keep.txt", lambda: "keep.txt" in listing())  # it reads the directory async
+    s.type(b"/keep\rdd")
+    wait_for("dd to delete keep.txt's line", lambda: "keep.txt" not in listing())
+    time.sleep(AUTOSAVE + SETTLE)
+    # A write would delete keep.txt, or first ask in a floating confirm window.
+    floats = s.nvim.lua("return #vim.tbl_filter(function(w) return vim.api.nvim_win_get_config(w).relative ~= '' end, vim.api.nvim_list_wins())")
+    if not keep.exists() or floats:
+        raise Failure("autosave wrote the oil buffer (keep.txt exists: %s, oil's confirm open: %s)" % (keep.exists(), bool(floats)))
+    if not buffer_modified(s):
+        raise Failure("the oil buffer lost its pending delete")
+    # Someone else (Claude in another pane, git checkout) rewrites the file nvim has open.
+    s.nvim.lua("vim.cmd.edit(%s) return true" % lua_str(str(keep)))
+    s.wait_state("keep.txt", filetype="text")
+    keep.write_text("their version\n")
+    s.type(b"x")
+    assert_not_saved(s, keep, "their version\n", "a file changed on disk")
+    told = s.nvim.lua(
+        "local said = vim.api.nvim_exec2('messages', { output = true }).output "
+        "local ok, history = pcall(function() return Snacks.notifier.get_history() end) "
+        "for _, n in ipairs(ok and history or {}) do said = said .. tostring(n.msg) end "
+        "return said:find('changed on disk', 1, true) ~= nil"
+    )
+    if not told:
+        raise Failure("no message that keep.txt changed on disk")
+
+
+@test
+def autosave_never_accepts_claude_diff(s):
+    """Claude's proposed edit opens as a diff, and writing the proposal accepts it. Editing
+    the proposal and leaving it must not autosave (accept) it; only :w does."""
+    code = in_project(s, "code.txt", "old\n")
+    s.start_nvim(code)
+    log, _ = s.open_claude(connect=True)
+    s.claude_calls(log, 1, "openDiff", {
+        "old_file_path": str(code), "new_file_path": str(code), "new_file_contents": "new\n",
+        "tab_name": "✻ [Claude Code] code.txt ⧉",  # what claude sends
+    })
+    proposal = wait_for("the proposed diff", lambda: s.nvim.lua(
+        "for _, w in ipairs(vim.api.nvim_list_wins()) do "
+        "if vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(w)):find('(proposed)', 1, true) then return w end end"))
+    s.nvim.lua("vim.api.nvim_set_current_win(%d) vim.cmd.stopinsert() return true" % proposal)
+    s.wait_state("in the proposal", win=proposal, mode="n")
+    s.type(b"A, edited" + ESC)
+    s.type(CTRL["h"])  # leave it: BufLeave
+    s.wait_state("out of the proposal", buftype="")
+    time.sleep(AUTOSAVE + SETTLE)
+    if s.ide_reply(log, 1) or code.read_text() != "old\n":
+        raise Failure("autosave accepted Claude's diff: Claude got %r, code.txt has %r" % (s.ide_reply(log, 1), code.read_text()))
+    s.nvim.lua("vim.api.nvim_set_current_win(%d) return true" % proposal)
+    s.type(b":w\r")
+    reply = wait_for("Claude to hear :w accept the diff", lambda: s.ide_reply(log, 1))
+    if "FILE_SAVED" not in json.dumps(reply):
+        raise Failure(":w didn't accept the diff: Claude got %r" % reply)
+
+
+@test
+def autosave_on_leaving_the_pane(s):
+    """Mid-insert, moving to another tmux pane (where `learn check` or Claude runs)
+    saves at once."""
+    f = in_project(s, "a.txt", "a\n")
+    nvim_pane = s.start_nvim(f)
+    log, cmd = s.keylogger("pane")
+    right = s.tmux.split(cmd)
+    s.wait_ready(log)
+    s.tmux.select(nvim_pane)
+    s.type(b"Ab")
+    wait_for("the typed text", lambda: s.nvim.lua("return vim.api.nvim_get_current_line()") == "ab")
+    s.tmux.select(right)
+    wait_for("leaving the pane to save", lambda: f.read_text() == "ab\n", timeout=AUTOSAVE * 2)
 
 
 # -- what's drawn --------------------------------------------------------------------

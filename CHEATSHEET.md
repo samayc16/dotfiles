@@ -284,7 +284,8 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `ci(` `daf` `cia` `yiq` `vib` | text objects incl. function call `f`, argument `a`, quote `q`, bracket `b` (mini.ai) |
 | `gcc` / `gc{motion}` | comment line / motion |
 | `J` / `K` (visual) | move selection down / up |
-| `Ctrl-s` | save |
+| (automatic) | autosave: a file is saved a moment after each change (leaving insert mode, `u`, `dw`, ...) and at once when you leave it, the tmux pane or nvim; never mid-typing. Not commit messages, temp files outside a repo, oil or Claude's diffs, or a file changed on disk (you're told). `:q!` no longer discards: `u` (undo survives restarts) or `<leader>ut` |
+| `Ctrl-s` / `:w` | save and format (autosaves skip the formatter) |
 | `Ctrl-a` / `Ctrl-e` (insert, `:` line) | start of line (first non-blank, again for column 0) / end of line; in tmux press `Ctrl-a` twice |
 | `Alt-Backspace` (insert, `:` line) | delete the word before the cursor |
 | `Ctrl-d` / `Ctrl-u` / `n` / `N` | scroll / search, cursor stays centred |
@@ -307,6 +308,7 @@ In `Cargo.toml`, crates.nvim shows the latest version of each dependency; `gra` 
 | `<leader>tz` | toggle zen mode (centred, no bars) |
 | `<leader>ut` | undotree |
 | `<leader>tm` · `<leader>tw` · `<leader>ts` · `<leader>tr` | toggle markdown render · wrap · spell · relative numbers |
+| `<leader>ta` | toggle autosave |
 
 ### Claude Code
 | keys | does |

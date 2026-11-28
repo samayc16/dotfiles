@@ -19,6 +19,7 @@ local style_files = {
 
 local function format_on_save(buf)
   if vim.g.autoformat == false or vim.b[buf].autoformat == false then return nil end
+  if vim.b[buf].autosaving then return nil end -- config/autosave.lua: only :w formats
   local markers = style_files[vim.bo[buf].filetype]
   if markers == false or (markers and not vim.fs.root(buf, markers)) then return nil end
   return { timeout_ms = 1500, lsp_format = 'fallback' }
