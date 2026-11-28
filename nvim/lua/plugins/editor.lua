@@ -122,7 +122,16 @@ return {
     'mbbill/undotree',
     cmd = 'UndotreeToggle',
     keys = { { '<leader>ut', '<cmd>UndotreeToggle<CR>', desc = '[U]ndo[t]ree' } },
-    init = function() vim.g.undotree_SetFocusWhenToggle = 1 end,
+    init = function()
+      vim.g.undotree_SetFocusWhenToggle = 1
+      -- Its diff panel runs `diff`, which minimal systems (Rocky 8, openSUSE images) lack, and
+      -- errors on every open without it. git is always here: the panel then shows git's diff,
+      -- without highlighting the changed text in the file (that parser reads only diff's format).
+      if vim.fn.executable 'diff' == 0 then
+        vim.g.undotree_DiffCommand = 'git diff --no-index --no-color --'
+        vim.g.undotree_HighlightChangedText = 0
+      end
+    end,
   },
 
   { -- Same IDE protocol as the VS Code extension: selection context, diffs, /ide from any terminal

@@ -558,16 +558,27 @@ def readline_line_ends(s):
 
 @test
 def undotree_on_leader_ut(s):
-    """<leader>ut opens undotree beside the file, focused (j/k walk the history); q closes it."""
+    """<leader>ut opens undotree beside the file, focused (j/k walk the history), with its diff
+    panel; q closes it. Again with git's diff, which the config uses where `diff` is missing."""
     s.start_nvim()
     s.type(b"ione" + ESC)
     time.sleep(SETTLE)
     s.type(b"otwo" + ESC)
     time.sleep(SETTLE)
-    s.type(LEADER + b"ut")
-    s.wait_state("undotree, focused", filetype="undotree")
-    s.type(b"q")
-    s.wait_state("back in the file", buftype="", filetype="text")
+    for diff_command in (None, "git diff --no-index --no-color --"):
+        if diff_command:
+            s.nvim.lua("vim.g.undotree_DiffCommand = %s vim.g.undotree_HighlightChangedText = 0 return true" % lua_str(diff_command))
+        s.type(LEADER + b"ut")
+        s.wait_state("undotree, focused (diff: %s)" % (diff_command or "diff"), filetype="undotree")
+        diff = wait_for("the diff panel to show the change", lambda: s.nvim.lua(
+            "for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do local b = vim.api.nvim_win_get_buf(w) "
+            "if vim.bo[b].filetype == 'diff' then local t = table.concat(vim.api.nvim_buf_get_lines(b, 0, -1, false), '\\n') "
+            "if t:find('two', 1, true) then return t end end end"))
+        errors = s.nvim.lua("return vim.api.nvim_exec2('messages', { output = true }).output:match('E%d+:[^\\n]*') or ''")
+        if errors:
+            raise Failure("undotree errored: %s (diff panel: %r)" % (errors, diff))
+        s.type(b"q")
+        s.wait_state("back in the file", buftype="", filetype="text")
 
 
 # -- autosave ----------------------------------------------------------------------
